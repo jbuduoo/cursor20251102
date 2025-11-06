@@ -15,7 +15,7 @@
             font-family: "Microsoft JhengHei", "微軟正黑體", Arial, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
-            padding: 20px;
+            padding: 10px;
             display: flex;
             justify-content: center;
             align-items: flex-start;
@@ -30,144 +30,117 @@
         header {
             text-align: center;
             color: white;
-            margin-bottom: 25px;
-            padding: 20px 0;
+            margin-bottom: 10px;
+            padding: 1px 0;
+            height: 10vh;
+            min-height: 60px;
+            max-height: 80px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
         }
 
         header h1 {
-            font-size: 2em;
-            margin-bottom: 8px;
+            font-size: 1.3em;
+            margin-bottom: 3px;
             text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+            line-height: 1.2;
         }
 
         header p {
-            font-size: 1em;
+            font-size: 0.75em;
             opacity: 0.9;
+            line-height: 1.2;
+            margin: 0;
         }
 
         .category {
             background: white;
-            border-radius: 12px;
-            padding: 20px;
-            margin-bottom: 20px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+            padding: 10px;
+            margin-bottom: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
         }
 
         .category-header {
             display: flex;
             align-items: center;
-            margin-bottom: 15px;
-            padding-bottom: 10px;
+            margin-bottom: 8px;
+            padding-bottom: 6px;
             border-bottom: 2px solid #667eea;
         }
 
         .category-icon {
-            font-size: 1.8em;
-            margin-right: 12px;
+            font-size: 1.3em;
+            margin-right: 8px;
         }
 
         .category-title {
-            font-size: 1.5em;
+            font-size: 1.1em;
             color: #333;
             font-weight: bold;
+            line-height: 1.2;
         }
 
         .category-description {
             color: #666;
-            font-size: 0.85em;
-            margin-top: 3px;
-        }
-
-        .programs-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-            gap: 15px;
-        }
-
-        .program-card {
-            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-            border-radius: 10px;
-            padding: 15px;
-            transition: all 0.3s ease;
-            cursor: pointer;
-            border: 2px solid transparent;
-            text-decoration: none;
-            color: inherit;
-            display: block;
-        }
-
-        .program-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
-            border-color: #667eea;
-            background: linear-gradient(135deg, #ffffff 0%, #e8edf5 100%);
-        }
-
-        .program-icon {
-            font-size: 2em;
-            margin-bottom: 10px;
-            text-align: center;
-        }
-
-        .program-name {
-            font-size: 1.1em;
-            font-weight: bold;
-            color: #333;
-            margin-bottom: 8px;
-            text-align: center;
-        }
-
-        .program-description {
-            font-size: 0.8em;
-            color: #666;
-            text-align: center;
-            line-height: 1.4;
-        }
-
-        .program-meta {
-            display: flex;
-            justify-content: space-between;
-            margin-top: 10px;
-            padding-top: 10px;
-            border-top: 1px solid rgba(0, 0, 0, 0.1);
             font-size: 0.75em;
-            color: #888;
+            margin-top: 2px;
+            line-height: 1.2;
         }
 
-        .program-type {
-            background: #667eea;
-            color: white;
-            padding: 3px 10px;
-            border-radius: 12px;
-            font-size: 0.8em;
+        .program-select {
+            width: 100%;
+            padding: 8px;
+            font-size: 0.95em;
+            border: 2px solid #667eea;
+            border-radius: 6px;
+            background: white;
+            color: #333;
+            cursor: pointer;
+            font-family: "Microsoft JhengHei", "微軟正黑體", Arial, sans-serif;
+            transition: all 0.3s ease;
+            margin: 0;
+        }
+
+        .program-select:hover {
+            border-color: #764ba2;
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+        }
+
+        .program-select:focus {
+            outline: none;
+            border-color: #764ba2;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
         }
 
         .footer {
             text-align: center;
             color: white;
-            margin-top: 25px;
-            padding: 15px;
+            margin-top: 10px;
+            padding: 8px;
             opacity: 0.8;
-            font-size: 0.85em;
+            font-size: 0.7em;
         }
 
         @media (max-width: 768px) {
-            .programs-grid {
-                grid-template-columns: 1fr;
-            }
-
             header h1 {
-                font-size: 2em;
+                font-size: 1.3em;
             }
 
             .category-title {
-                font-size: 1.5em;
+                font-size: 1.1em;
+            }
+
+            .program-select {
+                font-size: 0.9em;
+                padding: 8px;
             }
         }
 
         .empty-category {
             text-align: center;
-            padding: 40px;
+            padding: 20px;
             color: #999;
             font-style: italic;
         }
@@ -177,7 +150,7 @@
     <div class="container">
         <header>
             <h1>🚀 專案儀表板</h1>
-            <p>歡迎來到我的專案集合！點擊下方卡片開啟對應的程式</p>
+            <p>歡迎來到我的專案集合！從下方選單選擇程式</p>
         </header>
 
         <!-- 遊戲類別 -->
@@ -189,9 +162,9 @@
                     <div class="category-description">經典遊戲與街機遊戲</div>
                 </div>
             </div>
-            <div class="programs-grid" id="game-programs">
-                <!-- 程式卡片將由 JavaScript 動態生成 -->
-            </div>
+            <select class="program-select" id="game-programs">
+                <option value="">請選擇遊戲...</option>
+            </select>
         </div>
 
         <!-- 工具類別 -->
@@ -203,9 +176,9 @@
                     <div class="category-description">實用的工具與應用程式</div>
                 </div>
             </div>
-            <div class="programs-grid" id="tools-programs">
-                <!-- 程式卡片將由 JavaScript 動態生成 -->
-            </div>
+            <select class="program-select" id="tools-programs">
+                <option value="">請選擇工具...</option>
+            </select>
         </div>
 
         <!-- 故事類別 -->
@@ -217,9 +190,9 @@
                     <div class="category-description">文字故事與內容</div>
                 </div>
             </div>
-            <div class="programs-grid" id="story-programs">
-                <!-- 程式卡片將由 JavaScript 動態生成 -->
-            </div>
+            <select class="program-select" id="story-programs">
+                <option value="">請選擇故事...</option>
+            </select>
         </div>
 
         <div class="footer">
@@ -308,64 +281,51 @@
             ]
         };
 
-        // 獲取檔案圖示
-        function getFileIcon(fileName) {
-            const ext = fileName.split('.').pop().toLowerCase();
-            const iconMap = {
-                'html': '🌐',
-                'htm': '🌐',
-                'txt': '📝',
-                'md': '📄',
-                'js': '📜',
-                'css': '🎨'
-            };
-            return iconMap[ext] || '📄';
-        }
-
-        // 獲取檔案類型
-        function getFileType(fileName) {
-            const ext = fileName.split('.').pop().toUpperCase();
-            return ext;
-        }
-
-        // 生成程式卡片
-        function createProgramCard(program) {
-            const card = document.createElement('a');
-            card.href = program.file;
-            card.target = '_blank';
-            card.className = 'program-card';
-            
-            card.innerHTML = `
-                <div class="program-icon">${program.icon}</div>
-                <div class="program-name">${program.name}</div>
-                <div class="program-description">${program.description}</div>
-                <div class="program-meta">
-                    <span class="program-type">${program.type}</span>
-                    <span>📂 ${program.file}</span>
-                </div>
-            `;
-            
-            return card;
-        }
-
         // 渲染程式列表
         function renderPrograms() {
             // 渲染遊戲
-            const gameContainer = document.getElementById('game-programs');
+            const gameSelect = document.getElementById('game-programs');
             programs.game.forEach(program => {
-                gameContainer.appendChild(createProgramCard(program));
+                const option = document.createElement('option');
+                option.value = program.file;
+                option.textContent = `${program.icon} ${program.name}`;
+                gameSelect.appendChild(option);
+            });
+            gameSelect.addEventListener('change', function() {
+                if (this.value) {
+                    window.open(this.value, '_blank');
+                    this.value = '';
+                }
             });
 
             // 渲染工具
-            const toolsContainer = document.getElementById('tools-programs');
+            const toolsSelect = document.getElementById('tools-programs');
             programs.tools.forEach(program => {
-                toolsContainer.appendChild(createProgramCard(program));
+                const option = document.createElement('option');
+                option.value = program.file;
+                option.textContent = `${program.icon} ${program.name}`;
+                toolsSelect.appendChild(option);
+            });
+            toolsSelect.addEventListener('change', function() {
+                if (this.value) {
+                    window.open(this.value, '_blank');
+                    this.value = '';
+                }
             });
 
             // 渲染故事
-            const storyContainer = document.getElementById('story-programs');
+            const storySelect = document.getElementById('story-programs');
             programs.story.forEach(program => {
-                storyContainer.appendChild(createProgramCard(program));
+                const option = document.createElement('option');
+                option.value = program.file;
+                option.textContent = `${program.icon} ${program.name}`;
+                storySelect.appendChild(option);
+            });
+            storySelect.addEventListener('change', function() {
+                if (this.value) {
+                    window.open(this.value, '_blank');
+                    this.value = '';
+                }
             });
         }
 

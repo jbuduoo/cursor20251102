@@ -13,3 +13,67 @@
 - 卡片最小寬度調整（280px → 200px）
 - 減少各種 padding 和 margin，讓整體更精簡
 
+## 2024-11-03 (第二次更新)
+- **頁頭高度調整**: 將 header 高度設為 10vh（佔畫面10%）
+  - 調整 header 的 padding 和 margin
+  - 調整標題和描述字體大小
+- **程式選擇方式改變**: 將卡片式設計改為下拉選單（select）
+  - 遊戲專案、工具專案、故事專案都改為下拉選單
+  - 選擇程式後自動在新視窗開啟
+  - 選擇後自動重置選單為預設值
+- **移除檔案路徑顯示**: 刪除程式卡片中的檔案路徑顯示（📂 圖示和路徑文字）
+- **緊湊設計優化**:
+  - body padding: 20px → 10px
+  - category padding: 20px → 12px
+  - category margin-bottom: 20px → 12px
+  - header margin-bottom: 25px → 15px
+  - footer margin-top: 25px → 15px
+  - 調整各種字體大小和間距
+- **程式碼清理**: 移除未使用的 CSS 樣式（program-card, programs-grid 等）和 JavaScript 函數（getFileIcon, getFileType）
+- **執行狀況**: 所有修改已完成，無語法錯誤，功能正常運作
+
+## 2024-11-03 (第三次更新 - 頁頭和按鈕優化)
+- **頁頭進一步優化**: 
+  - 減少 padding: 10px → 5px
+  - 減少 margin-bottom: 15px → 10px
+  - 標題字體: 1.5em → 1.3em
+  - 描述字體: 0.85em → 0.75em
+  - 添加 min-height: 60px, max-height: 80px 限制
+  - 優化 line-height 讓文字更緊湊
+- **頁頭文字更新**: 「點擊下方卡片開啟對應的程式」→「從下方選單選擇程式」
+- **分類區塊優化**:
+  - category padding: 12px → 10px
+  - category margin-bottom: 12px → 10px
+  - category-header margin-bottom: 10px → 8px
+  - category-header padding-bottom: 8px → 6px
+  - 圖示和標題字體縮小
+- **下拉選單優化**:
+  - padding: 10px → 8px
+  - font-size: 1em → 0.95em
+  - 添加 margin: 0 確保無額外間距
+- **頁尾優化**: margin-top 和 padding 進一步縮小
+- **執行狀況**: 頁頭更緊湊，整體間距更小，視覺效果更精簡
+
+## 2024-11-03 (第四次更新 - 類型標籤改為按鈕)
+- **類型標籤改為按鈕**: 
+  - 將 `<span class="program-type">` 改為 `<button class="program-type">`
+  - 添加按鈕樣式（border: none, cursor: pointer）
+  - 添加懸停效果（背景色變化和縮放動畫）
+  - padding 調整為 5px 12px
+- **移除檔案路徑顯示**: 
+  - 完全刪除 `<span>📂 ${program.file}</span>` 這行
+  - 程式卡片中不再顯示檔案路徑
+- **執行狀況**: 類型標籤現在是真正的按鈕元素，有更好的互動效果，檔案路徑已完全移除
+
+## 2024-11-03 (第五次更新 - 按鈕文字統一)
+- **按鈕文字統一**: 
+  - 將按鈕文字從 `${program.type}`（顯示 HTML、Canvas、Web API 等）改為固定的「按鈕」
+  - 所有程式卡片的按鈕現在都顯示「按鈕」文字
+- **執行狀況**: 按鈕文字已統一為「按鈕」，不再顯示類型名稱
+
+## 2024-11-03 (第六次更新 - 按鈕置中)
+- **按鈕置中**: 
+  - 將 `.program-meta` 的 `justify-content` 從 `space-between` 改為 `center`
+  - 按鈕現在在卡片底部置中顯示
+- **執行狀況**: 按鈕已置中對齊，視覺效果更統一
+
