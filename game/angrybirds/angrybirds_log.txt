@@ -1,0 +1,9 @@
+# 憤怒鳥遊戲修改記錄
+
+## 2024-11-03
+- 初始版本建立
+- 建立基本遊戲功能（彈弓系統、物理模擬、建築結構、關卡系統）
+- 建立 angrybirds.html.md 規格書
+- 檔案重新命名：將 angrybirds.html.md 重新命名為 angrybirds.md（符合命名規範）
+- 建立專案結構完善：建立 angrybirds_log.txt 記錄修改歷史
+

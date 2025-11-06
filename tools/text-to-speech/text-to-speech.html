@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>文字轉語音工具</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: "Microsoft JhengHei", "微軟正黑體", Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 700px;
+            width: 100%;
+        }
+
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2em;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 10px;
+            color: #555;
+            font-weight: bold;
+            font-size: 1.1em;
+        }
+
+        textarea {
+            width: 100%;
+            min-height: 200px;
+            padding: 15px;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            font-size: 16px;
+            font-family: "Microsoft JhengHei", "微軟正黑體", Arial, sans-serif;
+            resize: vertical;
+            transition: border-color 0.3s;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            font-size: 16px;
+            font-family: "Microsoft JhengHei", "微軟正黑體", Arial, sans-serif;
+            background-color: white;
+            cursor: pointer;
+            transition: border-color 0.3s;
+        }
+
+        select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .controls {
+            display: flex;
+            gap: 15px;
+            margin-top: 25px;
+        }
+
+        button {
+            flex: 1;
+            padding: 15px 30px;
+            font-size: 18px;
+            font-weight: bold;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-family: "Microsoft JhengHei", "微軟正黑體", Arial, sans-serif;
+        }
+
+        .play-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .play-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .play-btn:active {
+            transform: translateY(0);
+        }
+
+        .play-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .stop-btn {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+        }
+
+        .stop-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(245, 87, 108, 0.4);
+        }
+
+        .stop-btn:active {
+            transform: translateY(0);
+        }
+
+        .stop-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .status {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f0f0f0;
+            border-radius: 10px;
+            text-align: center;
+            color: #666;
+            font-size: 14px;
+        }
+
+        .status.speaking {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .settings-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .setting-item {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .setting-item label {
+            margin-bottom: 8px;
+            font-size: 0.95em;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            margin-top: 5px;
+        }
+
+        .range-value {
+            text-align: center;
+            color: #667eea;
+            font-weight: bold;
+            margin-top: 5px;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 25px;
+            }
+
+            h1 {
+                font-size: 1.5em;
+            }
+
+            .controls {
+                flex-direction: column;
+            }
+
+            .settings-group {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📢 文字轉語音工具</h1>
+
+        <div class="input-group">
+            <label for="textInput">輸入或貼上文字：</label>
+            <textarea id="textInput" placeholder="請在此輸入或貼上想要朗讀的文字...">歡迎使用文字轉語音工具！請輸入任何文字，然後按下播放按鈕來聆聽。</textarea>
+        </div>
+
+        <div class="input-group">
+            <label for="voiceSelect">選擇語音：</label>
+            <select id="voiceSelect">
+                <option value="">載入語音中...</option>
+            </select>
+        </div>
+
+        <div class="settings-group">
+            <div class="setting-item">
+                <label for="rateSlider">語速：</label>
+                <input type="range" id="rateSlider" min="0.5" max="2" step="0.1" value="1">
+                <div class="range-value" id="rateValue">1.0x</div>
+            </div>
+            <div class="setting-item">
+                <label for="pitchSlider">音調：</label>
+                <input type="range" id="pitchSlider" min="0.5" max="2" step="0.1" value="1">
+                <div class="range-value" id="pitchValue">1.0</div>
+            </div>
+        </div>
+
+        <div class="controls">
+            <button class="play-btn" id="playBtn">▶ 播放</button>
+            <button class="stop-btn" id="stopBtn" disabled>⏹ 停止</button>
+        </div>
+
+        <div class="status" id="status">就緒</div>
+    </div>
+
+    <script>
+        const textInput = document.getElementById('textInput');
+        const voiceSelect = document.getElementById('voiceSelect');
+        const playBtn = document.getElementById('playBtn');
+        const stopBtn = document.getElementById('stopBtn');
+        const status = document.getElementById('status');
+        const rateSlider = document.getElementById('rateSlider');
+        const pitchSlider = document.getElementById('pitchSlider');
+        const rateValue = document.getElementById('rateValue');
+        const pitchValue = document.getElementById('pitchValue');
+
+        let voices = [];
+        let currentUtterance = null;
+
+        // 載入可用的語音
+        function loadVoices() {
+            voices = speechSynthesis.getVoices();
+            voiceSelect.innerHTML = '';
+
+            if (voices.length === 0) {
+                voiceSelect.innerHTML = '<option value="">沒有可用的語音</option>';
+                return;
+            }
+
+            // 優先顯示中文語音
+            const chineseVoices = voices.filter(voice =>
+                voice.lang.includes('zh') || voice.lang.includes('cmn')
+            );
+            const otherVoices = voices.filter(voice =>
+                !voice.lang.includes('zh') && !voice.lang.includes('cmn')
+            );
+
+            if (chineseVoices.length > 0) {
+                const group = document.createElement('optgroup');
+                group.label = '中文語音';
+                chineseVoices.forEach((voice, index) => {
+                    const option = document.createElement('option');
+                    option.value = index;
+                    option.textContent = `${voice.name} (${voice.lang})`;
+                    group.appendChild(option);
+                });
+                voiceSelect.appendChild(group);
+            }
+
+            if (otherVoices.length > 0) {
+                const group = document.createElement('optgroup');
+                group.label = '其他語音';
+                otherVoices.forEach((voice, index) => {
+                    const option = document.createElement('option');
+                    option.value = voices.indexOf(voice);
+                    option.textContent = `${voice.name} (${voice.lang})`;
+                    group.appendChild(option);
+                });
+                voiceSelect.appendChild(group);
+            }
+
+            // 預設選擇第一個中文語音
+            if (chineseVoices.length > 0) {
+                voiceSelect.value = voices.indexOf(chineseVoices[0]);
+            }
+        }
+
+        // 初始載入語音
+        loadVoices();
+
+        // 當語音列表改變時重新載入
+        if (speechSynthesis.onvoiceschanged !== undefined) {
+            speechSynthesis.onvoiceschanged = loadVoices;
+        }
+
+        // 更新滑桿數值顯示
+        rateSlider.addEventListener('input', (e) => {
+            rateValue.textContent = `${parseFloat(e.target.value).toFixed(1)}x`;
+        });
+
+        pitchSlider.addEventListener('input', (e) => {
+            pitchValue.textContent = parseFloat(e.target.value).toFixed(1);
+        });
+
+        // 播放按鈕
+        playBtn.addEventListener('click', () => {
+            const text = textInput.value.trim();
+
+            if (!text) {
+                status.textContent = '請輸入文字！';
+                status.className = 'status';
+                return;
+            }
+
+            // 停止任何正在進行的語音
+            speechSynthesis.cancel();
+
+            // 建立新的語音實例
+            currentUtterance = new SpeechSynthesisUtterance(text);
+
+            // 設定選擇的語音
+            const selectedVoiceIndex = voiceSelect.value;
+            if (selectedVoiceIndex && voices[selectedVoiceIndex]) {
+                currentUtterance.voice = voices[selectedVoiceIndex];
+            }
+
+            // 設定語速和音調
+            currentUtterance.rate = parseFloat(rateSlider.value);
+            currentUtterance.pitch = parseFloat(pitchSlider.value);
+
+            // 事件處理
+            currentUtterance.onstart = () => {
+                status.textContent = '正在播放...';
+                status.className = 'status speaking';
+                playBtn.disabled = true;
+                stopBtn.disabled = false;
+            };
+
+            currentUtterance.onend = () => {
+                status.textContent = '播放完成';
+                status.className = 'status';
+                playBtn.disabled = false;
+                stopBtn.disabled = true;
+            };
+
+            currentUtterance.onerror = (event) => {
+                status.textContent = `錯誤：${event.error}`;
+                status.className = 'status';
+                playBtn.disabled = false;
+                stopBtn.disabled = true;
+            };
+
+            // 開始播放
+            speechSynthesis.speak(currentUtterance);
+        });
+
+        // 停止按鈕
+        stopBtn.addEventListener('click', () => {
+            speechSynthesis.cancel();
+            status.textContent = '已停止';
+            status.className = 'status';
+            playBtn.disabled = false;
+            stopBtn.disabled = true;
+        });
+
+        // 當頁面關閉時停止語音
+        window.addEventListener('beforeunload', () => {
+            speechSynthesis.cancel();
+        });
+    </script>
+</body>
+</html>

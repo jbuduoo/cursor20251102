@@ -1,0 +1,11 @@
+# Tic-Tac-Toe 遊戲修改記錄
+
+## 2024-11-03
+- 初始版本建立
+- 建立基本遊戲功能（雙人對戰、勝負判定、計分系統）
+- 建立 tictactoe.md 規格書
+
+## 檔案重新命名
+- 將 tictactoe.htm.md 重新命名為 tictactoe.md（符合命名規範）
+- 建立專案結構完善：建立 tictactoe_log.txt 記錄修改歷史
+

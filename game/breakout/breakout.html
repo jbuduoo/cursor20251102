@@ -1,0 +1,680 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>打磚塊遊戲</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            font-family: 'Microsoft JhengHei', Arial, sans-serif;
+        }
+        .game-container {
+            text-align: center;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 2.5em;
+        }
+        .info {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 20px;
+            font-size: 1.2em;
+            font-weight: bold;
+        }
+        .score {
+            color: #E91E63;
+        }
+        .lives {
+            color: #FF5722;
+        }
+        .level {
+            color: #9C27B0;
+        }
+        canvas {
+            border: 4px solid #333;
+            background: linear-gradient(180deg, #1a1a2e 0%, #0f3460 100%);
+            display: block;
+            margin: 0 auto;
+            border-radius: 10px;
+        }
+        .controls {
+            margin-top: 20px;
+            color: #666;
+            font-size: 0.9em;
+        }
+        .btn {
+            margin-top: 15px;
+            padding: 12px 30px;
+            font-size: 1.1em;
+            background: #E91E63;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s;
+            margin: 5px;
+        }
+        .btn:hover {
+            background: #C2185B;
+            transform: scale(1.05);
+        }
+        .message {
+            display: none;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.9);
+            color: white;
+            padding: 40px;
+            border-radius: 15px;
+            text-align: center;
+            font-size: 1.5em;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <h1>🧱 打磚塊遊戲</h1>
+        <div class="info">
+            <div class="score">得分: <span id="score">0</span></div>
+            <div class="lives">生命: <span id="lives">10000</span></div>
+            <div class="level">關卡: <span id="level">1</span></div>
+        </div>
+        <canvas id="gameCanvas" width="600" height="500"></canvas>
+        <div class="controls">
+            使用滑鼠或方向鍵 ⬅️ ➡️ 控制擋板移動<br>
+            按空白鍵開始遊戲
+        </div>
+        <button class="btn" onclick="startGame()">開始遊戲</button>
+        <button class="btn" onclick="resetGame()">重新開始</button>
+        <div class="message" id="message"></div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const messageDiv = document.getElementById('message');
+        const scoreElement = document.getElementById('score');
+        const livesElement = document.getElementById('lives');
+        const levelElement = document.getElementById('level');
+
+        // Game variables
+        let score = 0;
+        let lives = 10000;  // 生命值為1萬
+        let level = 1;
+        let gameRunning = false;
+        let ballLaunched = false;
+        let gameStartTime = 0;  // 遊戲開始時間
+        let lastSplitTime = 0;  // 上次分裂時間
+        const baseBallSpeed = 4;  // 基礎球速，保持不變
+
+        // Multiple balls system
+        let balls = [];
+
+        // Ball class - 保持球速不變
+        function createBall(x, y) {
+            return {
+                x: x || canvas.width / 2,
+                y: y || canvas.height - 60,
+                dx: 0,
+                dy: 0,
+                radius: 8,
+                speed: baseBallSpeed,  // 使用基礎球速，不會變慢
+                launched: false
+            };
+        }
+        
+        // 每秒自動分裂一顆球
+        function checkAutoSplit() {
+            if (!gameRunning) return;
+            
+            const currentTime = Date.now();
+            if (currentTime - lastSplitTime >= 1000) {  // 1秒 = 1000毫秒
+                // 從現有球中選擇一個作為參考
+                if (balls.length > 0) {
+                    const activeBalls = balls.filter(ball => ball.launched);
+                    if (activeBalls.length > 0) {
+                        // 選擇一個正在移動的球作為參考
+                        const referenceBall = activeBalls[0];
+                        const newBall = createBall(paddle.x + paddle.width / 2, paddle.y - 10);
+                        
+                        // 如果參考球正在移動，新球也使用相同的速度
+                        if (referenceBall.dx !== 0 || referenceBall.dy !== 0) {
+                            const speed = Math.sqrt(referenceBall.dx * referenceBall.dx + referenceBall.dy * referenceBall.dy);
+                            if (speed > 0) {
+                                // 使用相同的速度，但稍微改變角度
+                                const angle = Math.atan2(referenceBall.dy, referenceBall.dx) + (Math.random() - 0.5) * 0.3;
+                                newBall.dx = speed * Math.cos(angle);
+                                newBall.dy = speed * Math.sin(angle);
+                                newBall.launched = true;
+                            }
+                        }
+                        
+                        balls.push(newBall);
+                        showMessage('每秒生成：+1 顆球！', 800);
+                    } else {
+                        // 如果沒有正在移動的球，創建一個新球在擋板上
+                        balls.push(createBall());
+                    }
+                } else {
+                    // 如果沒有球，創建一個新球
+                    balls.push(createBall());
+                }
+                
+                lastSplitTime = currentTime;
+            }
+        }
+
+        // Initialize with first ball
+        balls.push(createBall());
+
+        // Paddle
+        const maxPaddleWidth = canvas.width;  // 最大寬度為整個畫面寬度
+        let paddle = {
+            x: canvas.width / 2 - 60,
+            y: canvas.height - 30,
+            width: 120,
+            height: 15,
+            speed: 8,
+            dx: 0,
+            baseWidth: 120  // 基礎寬度
+        };
+        
+        // 初始化擋板位置
+        paddle.x = canvas.width / 2 - paddle.width / 2;
+
+        // Bricks
+        const brickInfo = {
+            rows: 5,
+            cols: 10,
+            width: 55,
+            height: 20,
+            padding: 5,
+            offsetX: 10,
+            offsetY: 50
+        };
+
+        let bricks = [];
+
+        const brickColors = ['#FF6B6B', '#FFA06B', '#FFD93D', '#6BCF7F', '#4D96FF', '#9D4EDD'];
+
+        // Brick 類別
+        class Brick {
+            constructor(x, y, width, height, durability, maxDurability, color) {
+                this.x = x;
+                this.y = y;
+                this.width = width;
+                this.height = height;
+                this.durability = durability;
+                this.maxDurability = maxDurability;
+                this.color = color;
+                this.status = 1;  // 1 = 存在, 0 = 被摧毀
+            }
+
+            hit() {
+                this.durability--;
+                if (this.durability <= 0) {
+                    this.status = 0;
+                    return true;  // 磚塊被摧毀
+                }
+                return false;  // 磚塊還在
+            }
+
+            render(ctx) {
+                if (this.status === 0) return;
+
+                // 繪製磚塊背景
+                ctx.fillStyle = this.color;
+                ctx.fillRect(this.x, this.y, this.width, this.height);
+                
+                // 繪製邊框
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+                ctx.lineWidth = 2;
+                ctx.strokeRect(this.x, this.y, this.width, this.height);
+
+                // 繪製耐久度數字 - 清晰易讀
+                // 根據數字大小調整字體大小
+                const durabilityStr = this.durability.toString();
+                let fontSize = 14;
+                
+                // 如果數字較大，使用較小的字體
+                if (durabilityStr.length > 3) {
+                    fontSize = 12;
+                }
+                if (durabilityStr.length > 4) {
+                    fontSize = 10;
+                }
+                
+                ctx.font = `bold ${fontSize}px Arial`;
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                
+                // 計算文字位置（磚塊中心）
+                const textX = this.x + this.width / 2;
+                const textY = this.y + this.height / 2;
+                
+                // 繪製文字陰影以增加可讀性（更明顯的陰影）
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
+                ctx.fillText(durabilityStr, textX + 2, textY + 2);
+                
+                // 繪製文字（白色，高對比度）
+                ctx.fillStyle = '#FFFFFF';
+                ctx.fillText(durabilityStr, textX, textY);
+            }
+        }
+
+        // LevelManager - 計算磚塊最大耐久度
+        class LevelManager {
+            static calculate_max_durability(level) {
+                // 使用二次方增長公式，確保第 100 關達到 5000 左右
+                // 公式：基礎耐久度 * (關卡編號 / 10)^2
+                // 當 level = 100: 基礎耐久度 * (100/10)^2 = 基礎耐久度 * 100
+                // 要達到 5000: 基礎耐久度 = 50
+                const baseDurability = 50;
+                const levelFactor = Math.pow(level / 10, 2);
+                const maxDurability = Math.floor(baseDurability * levelFactor);
+                
+                // 確保最大耐久度在 1 到 5000 之間
+                return Math.min(Math.max(maxDurability, 1), 5000);
+            }
+            
+            // 別名方法，保持向後兼容
+            static calculateMaxDurability(level) {
+                return this.calculate_max_durability(level);
+            }
+
+            static getRandomDurability(level) {
+                // 第一關：所有磚塊耐久度為 10
+                if (level === 1) {
+                    return 10;
+                }
+                
+                // 第 50 關：隨機生成 500 到 1000 的耐久度
+                if (level === 50) {
+                    return Math.floor(Math.random() * (1000 - 500 + 1) + 500);
+                }
+                
+                const maxDurability = this.calculate_max_durability(level);
+                
+                // 根據關卡計算最小和最大耐久度
+                let minDurability, maxRange;
+                
+                if (level <= 50) {
+                    // 第 2-49 關：線性增長
+                    minDurability = Math.floor(10 + (level - 1) * 10);
+                    maxRange = Math.floor(maxDurability * 0.8);  // 最大值的 80%
+                } else {
+                    // 第 51-100 關：更快的增長
+                    minDurability = Math.floor(maxDurability * 0.5);
+                    maxRange = maxDurability;
+                }
+                
+                // 隨機生成耐久度（1 到 5000 之間）
+                const randomDurability = Math.floor(
+                    Math.random() * (maxRange - minDurability + 1) + minDurability
+                );
+                
+                return Math.min(Math.max(randomDurability, 1), 5000);
+            }
+        }
+
+        function createBricks() {
+            bricks = [];
+            
+            // 根據關卡調整難度（支援 100 關）
+            let rows, cols;
+            
+            if (level <= 10) {
+                rows = 5;
+                cols = 10;
+            } else if (level <= 30) {
+                rows = 6;
+                cols = 12;
+            } else if (level <= 60) {
+                rows = 7;
+                cols = 14;
+            } else {
+                // 第 61-100 關：最多磚塊
+                rows = 8;
+                cols = 16;
+            }
+            
+            // 調整磚塊大小以適應更多列
+            const adjustedWidth = (canvas.width - 20 - (cols - 1) * brickInfo.padding) / cols;
+            
+            // 生成磚塊
+            for (let row = 0; row < rows; row++) {
+                bricks[row] = [];
+                for (let col = 0; col < cols; col++) {
+                    // 計算隨機耐久度
+                    const randomDurability = LevelManager.getRandomDurability(level);
+                    const maxDurability = LevelManager.calculate_max_durability(level);
+                    
+                    // 創建 Brick 實例
+                    const brick = new Brick(
+                        col * (adjustedWidth + brickInfo.padding) + brickInfo.offsetX,
+                        row * (brickInfo.height + brickInfo.padding) + brickInfo.offsetY,
+                        adjustedWidth,
+                        brickInfo.height,
+                        randomDurability,
+                        maxDurability,
+                        brickColors[row % brickColors.length]
+                    );
+                    
+                    bricks[row][col] = brick;
+                }
+            }
+        }
+
+        function drawBall(ball) {
+            ctx.beginPath();
+            ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
+            ctx.fillStyle = '#FFF';
+            ctx.fill();
+            ctx.strokeStyle = '#FFD700';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            ctx.closePath();
+        }
+
+        function drawAllBalls() {
+            balls.forEach(ball => drawBall(ball));
+        }
+
+        function drawPaddle() {
+            ctx.fillStyle = '#00E5FF';
+            ctx.fillRect(paddle.x, paddle.y, paddle.width, paddle.height);
+            ctx.strokeStyle = '#00B8D4';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(paddle.x, paddle.y, paddle.width, paddle.height);
+        }
+
+        function drawBricks() {
+            bricks.forEach(row => {
+                row.forEach(brick => {
+                    if (brick instanceof Brick) {
+                        brick.render(ctx);
+                    }
+                });
+            });
+        }
+
+        function movePaddle() {
+            paddle.x += paddle.dx;
+
+            // Wall collision for paddle
+            if (paddle.x < 0) {
+                paddle.x = 0;
+            }
+            if (paddle.x + paddle.width > canvas.width) {
+                paddle.x = canvas.width - paddle.width;
+            }
+        }
+
+        function moveBall(ball) {
+            if (!ball.launched) {
+                ball.x = paddle.x + paddle.width / 2;
+                ball.y = paddle.y - ball.radius;
+                return;
+            }
+
+            ball.x += ball.dx;
+            ball.y += ball.dy;
+
+            // Wall collision (left and right)
+            if (ball.x + ball.radius > canvas.width || ball.x - ball.radius < 0) {
+                ball.dx *= -1;
+            }
+
+            // Wall collision (top)
+            if (ball.y - ball.radius < 0) {
+                ball.dy *= -1;
+            }
+
+            // Paddle collision
+            if (
+                ball.y + ball.radius > paddle.y &&
+                ball.x > paddle.x &&
+                ball.x < paddle.x + paddle.width
+            ) {
+                // Change angle based on where ball hits paddle
+                let hitPos = (ball.x - paddle.x) / paddle.width;
+                let angle = (hitPos - 0.5) * Math.PI * 0.6;
+                let speed = Math.sqrt(ball.dx * ball.dx + ball.dy * ball.dy);
+                ball.dx = speed * Math.sin(angle);
+                ball.dy = -speed * Math.cos(angle);
+            }
+
+            // Bottom collision - 球掉下去扣生命值並增加擋板長度
+            if (ball.y + ball.radius > canvas.height) {
+                lives--;  // 扣一生命值
+                livesElement.textContent = lives;
+                
+                // 增加擋板長度（最多為畫面的1/3寬）
+                paddle.width = Math.min(paddle.width + 10, maxPaddleWidth);
+                
+                // 移除掉下去的球
+                let index = balls.indexOf(ball);
+                if (index > -1) {
+                    balls.splice(index, 1);
+                }
+                
+                // 如果沒有球了，重新生成一個
+                if (balls.length === 0 && lives > 0) {
+                    balls.push(createBall());
+                }
+                
+                if (lives === 0) {
+                    gameOver();
+                }
+            }
+        }
+
+        function moveAllBalls() {
+            balls.forEach(ball => moveBall(ball));
+        }
+
+        function checkBrickCollision() {
+            balls.forEach(ball => {
+                bricks.forEach(row => {
+                    row.forEach(brick => {
+                        if (brick instanceof Brick && brick.status === 1) {
+                            if (
+                                ball.x > brick.x &&
+                                ball.x < brick.x + brick.width &&
+                                ball.y > brick.y &&
+                                ball.y < brick.y + brick.height
+                            ) {
+                                // 球擊中磚塊，減少耐久度
+                                const destroyed = brick.hit();
+                                
+                                // 改變球的方向
+                                ball.dy *= -1;
+                                
+                                // 如果磚塊被摧毀，增加分數
+                                if (destroyed) {
+                                    score += 10;
+                                    scoreElement.textContent = score;
+
+                                    // 檢查關卡是否完成
+                                    if (checkLevelComplete()) {
+                                        nextLevel();
+                                    }
+                                }
+                            }
+                        }
+                    });
+                });
+            });
+        }
+
+        function checkLevelComplete() {
+            return bricks.every(row => row.every(brick => brick.status === 0));
+        }
+
+        function nextLevel() {
+            // 限制最多 100 關
+            if (level >= 100) {
+                showMessage('恭喜！您已通關所有 100 關！<br>最終得分: ' + score);
+                gameRunning = false;
+                return;
+            }
+            level++;
+            levelElement.textContent = level;
+            // 保持球速不變，只重置球的位置
+            balls.forEach(ball => {
+                ball.speed = baseBallSpeed;  // 保持基礎速度，不增加
+                ball.launched = false;
+                ball.dx = 0;
+                ball.dy = 0;
+            });
+            createBricks();
+            showMessage('恭喜過關！<br>準備進入第 ' + level + ' 關<br>難度增加了！', 2000);
+        }
+
+        function gameOver() {
+            gameRunning = false;
+            showMessage('遊戲結束！<br>最終得分: ' + score);
+        }
+
+        function showMessage(msg, duration = 0) {
+            messageDiv.innerHTML = msg;
+            messageDiv.style.display = 'block';
+            if (duration > 0) {
+                setTimeout(() => {
+                    messageDiv.style.display = 'none';
+                }, duration);
+            }
+        }
+
+        function draw() {
+            if (!gameRunning) return;
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            drawBricks();
+            drawAllBalls();
+            drawPaddle();
+
+            movePaddle();
+            moveAllBalls();
+            checkBrickCollision();
+            checkAutoSplit();  // 檢查是否需要自動分裂
+
+            requestAnimationFrame(draw);
+        }
+
+        function startGame() {
+            if (!gameRunning) {
+                gameRunning = true;
+                gameStartTime = Date.now();
+                lastSplitTime = Date.now();
+                messageDiv.style.display = 'none';
+                draw();
+            }
+        }
+
+        function resetGame() {
+            score = 0;
+            lives = 10000;  // 重置為1萬生命值
+            level = 1;
+            scoreElement.textContent = score;
+            livesElement.textContent = lives;
+            levelElement.textContent = level;
+            
+            // 重置所有球
+            balls = [];
+            balls.push(createBall());
+            
+            paddle.x = canvas.width / 2 - paddle.baseWidth / 2;
+            paddle.width = paddle.baseWidth;  // 重置擋板寬度
+            createBricks();
+            gameRunning = false;
+            gameStartTime = 0;
+            lastSplitTime = 0;
+            messageDiv.style.display = 'none';
+        }
+
+        // Keyboard controls
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowLeft') {
+                paddle.dx = -paddle.speed;
+            } else if (e.key === 'ArrowRight') {
+                paddle.dx = paddle.speed;
+            } else if (e.key === ' ' && gameRunning) {
+                // 發射所有未發射的球
+                balls.forEach(ball => {
+                    if (!ball.launched) {
+                        ball.launched = true;
+                        let angle = (Math.random() - 0.5) * Math.PI * 0.3;
+                        ball.dx = ball.speed * Math.sin(angle);
+                        ball.dy = -ball.speed * Math.cos(angle);
+                    }
+                });
+                e.preventDefault();
+            }
+        });
+
+        document.addEventListener('keyup', (e) => {
+            if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+                paddle.dx = 0;
+            }
+        });
+
+        // Mouse controls
+        canvas.addEventListener('mousemove', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            const mouseX = e.clientX - rect.left;
+            paddle.x = mouseX - paddle.width / 2;
+
+            if (paddle.x < 0) paddle.x = 0;
+            if (paddle.x + paddle.width > canvas.width) {
+                paddle.x = canvas.width - paddle.width;
+            }
+        });
+
+        canvas.addEventListener('click', () => {
+            if (gameRunning) {
+                // 發射所有未發射的球
+                balls.forEach(ball => {
+                    if (!ball.launched) {
+                        ball.launched = true;
+                        let angle = (Math.random() - 0.5) * Math.PI * 0.3;
+                        ball.dx = ball.speed * Math.sin(angle);
+                        ball.dy = -ball.speed * Math.cos(angle);
+                    }
+                });
+            }
+        });
+
+        // Initialize
+        createBricks();
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        drawBricks();
+        drawAllBalls();
+        drawPaddle();
+        
+        // Update lives display
+        livesElement.textContent = lives;
+    </script>
+</body>
+</html>

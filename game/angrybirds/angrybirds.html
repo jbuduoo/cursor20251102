@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>憤怒鳥遊戲</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #FA8BFF 0%, #2BD2FF 50%, #2BFF88 100%);
+            font-family: 'Microsoft JhengHei', Arial, sans-serif;
+        }
+        .game-container {
+            display: flex;
+            flex-direction: column;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 20px;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            max-width: 1400px;
+            width: 95%;
+        }
+        .header-section {
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            margin-bottom: 15px;
+        }
+        h1 {
+            color: #333;
+            margin: 0;
+            margin-right: 30px;
+            font-size: 1.5em;
+        }
+        .info {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 20px;
+            font-size: 1.2em;
+            font-weight: bold;
+        }
+        .score {
+            color: #FF5722;
+        }
+        .birds-left {
+            color: #2196F3;
+        }
+        .level {
+            color: #4CAF50;
+        }
+        canvas {
+            border: 4px solid #333;
+            background: linear-gradient(180deg, #87CEEB 0%, #E8F5E9 100%);
+            display: block;
+            margin: 0 auto;
+            border-radius: 10px;
+            cursor: crosshair;
+            width: 100%;
+            max-width: 1200px;
+        }
+        .controls {
+            margin-top: 20px;
+            color: #666;
+            font-size: 0.9em;
+            line-height: 1.6;
+        }
+        .btn {
+            margin-top: 15px;
+            padding: 12px 30px;
+            font-size: 1.1em;
+            background: #FF5722;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s;
+            margin: 5px;
+        }
+        .btn:hover {
+            background: #E64A19;
+            transform: scale(1.05);
+        }
+        .power-meter {
+            margin-top: 15px;
+            text-align: left;
+        }
+        .power-bar {
+            width: 200px;
+            height: 20px;
+            background: #ddd;
+            border-radius: 10px;
+            overflow: hidden;
+            display: inline-block;
+            vertical-align: middle;
+            margin-left: 10px;
+        }
+        .power-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4CAF50 0%, #FFC107 50%, #FF5722 100%);
+            width: 0%;
+            transition: width 0.1s;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <div class="header-section">
+            <h1>😠🐦 憤怒鳥遊戲</h1>
+            <div class="info">
+            <div class="score">得分: <span id="score">0</span></div>
+            <div class="birds-left">剩餘鳥數: <span id="birds">3</span></div>
+            <div class="level">關卡: <span id="level">1</span></div>
+            </div>
+        </div>
+        <div class="power-meter">
+            力量: <div class="power-bar"><div class="power-fill" id="powerFill"></div></div>
+        </div>
+        <canvas id="gameCanvas" width="1200" height="500"></canvas>
+        <div class="controls">
+            1. 按住滑鼠左鍵拖曳憤怒鳥<br>
+            2. 拉動越長，力量越大<br>
+            3. 放開滑鼠發射憤怒鳥<br>
+            4. 擊倒所有綠色小豬過關
+        </div>
+        <button class="btn" onclick="resetLevel()">重置關卡</button>
+        <button class="btn" onclick="nextLevel()">下一關</button>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const scoreElement = document.getElementById('score');
+        const birdsElement = document.getElementById('birds');
+        const levelElement = document.getElementById('level');
+        const powerFill = document.getElementById('powerFill');
+
+        // Game state
+        let score = 0;
+        let level = 1;
+        let birdsLeft = 3;
+        let isDragging = false;
+        let dragStart = { x: 0, y: 0 };
+
+        // Physics - 調整參數讓結構更穩定
+        const gravity = 0.3;  // 減少重力
+        const friction = 0.98;  // 減少摩擦力，讓物體更容易保持運動
+        const blockMass = 1.5;  // 增加方塊質量感
+
+        // Slingshot - 調整位置適應更寬的畫面
+        const slingshot = {
+            x: 150,
+            y: 350,
+            radius: 15
+        };
+
+        // Bird
+        let bird = {
+            x: slingshot.x,
+            y: slingshot.y,
+            radius: 15,
+            vx: 0,
+            vy: 0,
+            launched: false,
+            active: true,
+            color: '#FF0000'
+        };
+
+        // Pigs
+        let pigs = [];
+
+        // Blocks
+        let blocks = [];
+
+        function initLevel() {
+            pigs = [];
+            blocks = [];
+
+            if (level === 1) {
+                // Level 1: Simple structure - 調整位置適應更寬的畫面
+                pigs.push({ x: 700, y: 420, radius: 20, alive: true });
+                pigs.push({ x: 800, y: 420, radius: 20, alive: true });
+
+                // Blocks - 增加結構穩定性，增加支撐
+                blocks.push({ x: 680, y: 400, width: 20, height: 60, vx: 0, vy: 0 });
+                blocks.push({ x: 780, y: 400, width: 20, height: 60, vx: 0, vy: 0 });
+                blocks.push({ x: 680, y: 380, width: 120, height: 20, vx: 0, vy: 0 });
+                // 增加額外的支撐柱
+                blocks.push({ x: 700, y: 400, width: 20, height: 60, vx: 0, vy: 0 });
+                blocks.push({ x: 760, y: 400, width: 20, height: 60, vx: 0, vy: 0 });
+            } else if (level === 2) {
+                // Level 2: Tower - 調整位置並增加穩定性
+                pigs.push({ x: 750, y: 380, radius: 20, alive: true });
+                pigs.push({ x: 750, y: 280, radius: 20, alive: true });
+
+                blocks.push({ x: 730, y: 400, width: 20, height: 60, vx: 0, vy: 0 });
+                blocks.push({ x: 760, y: 400, width: 20, height: 60, vx: 0, vy: 0 });
+                blocks.push({ x: 730, y: 360, width: 50, height: 20, vx: 0, vy: 0 });
+                blocks.push({ x: 730, y: 300, width: 20, height: 60, vx: 0, vy: 0 });
+                blocks.push({ x: 760, y: 300, width: 20, height: 60, vx: 0, vy: 0 });
+                blocks.push({ x: 730, y: 260, width: 50, height: 20, vx: 0, vy: 0 });
+                // 增加額外支撐
+                blocks.push({ x: 740, y: 400, width: 20, height: 60, vx: 0, vy: 0 });
+            } else {
+                // Level 3: Complex structure - 調整位置並增加穩定性
+                pigs.push({ x: 700, y: 380, radius: 20, alive: true });
+                pigs.push({ x: 800, y: 380, radius: 20, alive: true });
+                pigs.push({ x: 750, y: 280, radius: 20, alive: true });
+
+                // Base - 增加支撐
+                blocks.push({ x: 680, y: 400, width: 20, height: 60, vx: 0, vy: 0 });
+                blocks.push({ x: 780, y: 400, width: 20, height: 60, vx: 0, vy: 0 });
+                blocks.push({ x: 680, y: 380, width: 120, height: 20, vx: 0, vy: 0 });
+                blocks.push({ x: 700, y: 400, width: 20, height: 60, vx: 0, vy: 0 });
+                blocks.push({ x: 760, y: 400, width: 20, height: 60, vx: 0, vy: 0 });
+
+                // Middle
+                blocks.push({ x: 730, y: 300, width: 20, height: 60, vx: 0, vy: 0 });
+                blocks.push({ x: 760, y: 300, width: 20, height: 60, vx: 0, vy: 0 });
+                blocks.push({ x: 730, y: 260, width: 50, height: 20, vx: 0, vy: 0 });
+            }
+        }
+
+        function drawBackground() {
+            // Sky
+            const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+            gradient.addColorStop(0, '#87CEEB');
+            gradient.addColorStop(1, '#E8F5E9');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Ground
+            ctx.fillStyle = '#8BC34A';
+            ctx.fillRect(0, 460, canvas.width, 40);
+            ctx.fillStyle = '#7CB342';
+            for (let i = 0; i < canvas.width; i += 30) {
+                ctx.fillRect(i, 460, 20, 5);
+            }
+
+            // Clouds
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
+            ctx.beginPath();
+            ctx.arc(150, 80, 25, 0, Math.PI * 2);
+            ctx.arc(175, 80, 30, 0, Math.PI * 2);
+            ctx.arc(200, 80, 25, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        function drawSlingshot() {
+            // Slingshot base
+            ctx.fillStyle = '#8B4513';
+            ctx.fillRect(slingshot.x - 5, slingshot.y, 10, 110);
+
+            // Slingshot rubber bands
+            if (isDragging || !bird.launched) {
+                ctx.strokeStyle = '#654321';
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                ctx.moveTo(slingshot.x - 10, slingshot.y);
+                ctx.lineTo(bird.x, bird.y);
+                ctx.stroke();
+
+                ctx.beginPath();
+                ctx.moveTo(slingshot.x + 10, slingshot.y);
+                ctx.lineTo(bird.x, bird.y);
+                ctx.stroke();
+            }
+        }
+
+        function drawBird() {
+            if (!bird.active) return;
+
+            // Bird body
+            ctx.fillStyle = bird.color;
+            ctx.beginPath();
+            ctx.arc(bird.x, bird.y, bird.radius, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Bird eye
+            ctx.fillStyle = '#FFF';
+            ctx.beginPath();
+            ctx.arc(bird.x + 5, bird.y - 3, 5, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.fillStyle = '#000';
+            ctx.beginPath();
+            ctx.arc(bird.x + 7, bird.y - 3, 3, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Eyebrows (angry look)
+            ctx.strokeStyle = '#000';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(bird.x, bird.y - 8);
+            ctx.lineTo(bird.x + 8, bird.y - 5);
+            ctx.stroke();
+
+            // Beak
+            ctx.fillStyle = '#FFA500';
+            ctx.beginPath();
+            ctx.moveTo(bird.x + 12, bird.y);
+            ctx.lineTo(bird.x + 18, bird.y - 3);
+            ctx.lineTo(bird.x + 18, bird.y + 3);
+            ctx.closePath();
+            ctx.fill();
+        }
+
+        function drawPigs() {
+            pigs.forEach(pig => {
+                if (!pig.alive) return;
+
+                // Pig body
+                ctx.fillStyle = '#4CAF50';
+                ctx.beginPath();
+                ctx.arc(pig.x, pig.y, pig.radius, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Pig snout
+                ctx.fillStyle = '#66BB6A';
+                ctx.beginPath();
+                ctx.arc(pig.x + 8, pig.y, 8, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Nostrils
+                ctx.fillStyle = '#2E7D32';
+                ctx.beginPath();
+                ctx.arc(pig.x + 6, pig.y - 2, 2, 0, Math.PI * 2);
+                ctx.arc(pig.x + 10, pig.y - 2, 2, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Eyes
+                ctx.fillStyle = '#FFF';
+                ctx.beginPath();
+                ctx.arc(pig.x - 5, pig.y - 5, 4, 0, Math.PI * 2);
+                ctx.arc(pig.x + 5, pig.y - 5, 4, 0, Math.PI * 2);
+                ctx.fill();
+
+                ctx.fillStyle = '#000';
+                ctx.beginPath();
+                ctx.arc(pig.x - 4, pig.y - 5, 2, 0, Math.PI * 2);
+                ctx.arc(pig.x + 6, pig.y - 5, 2, 0, Math.PI * 2);
+                ctx.fill();
+            });
+        }
+
+        function drawBlocks() {
+            blocks.forEach(block => {
+                ctx.fillStyle = '#A0522D';
+                ctx.fillRect(block.x, block.y, block.width, block.height);
+                ctx.strokeStyle = '#654321';
+                ctx.lineWidth = 2;
+                ctx.strokeRect(block.x, block.y, block.width, block.height);
+
+                // Wood texture
+                ctx.strokeStyle = '#8B4513';
+                ctx.lineWidth = 1;
+                for (let i = 0; i < 3; i++) {
+                    const y = block.y + (block.height / 4) * (i + 1);
+                    ctx.beginPath();
+                    ctx.moveTo(block.x, y);
+                    ctx.lineTo(block.x + block.width, y);
+                    ctx.stroke();
+                }
+            });
+        }
+
+        function updatePhysics() {
+            if (!bird.launched || !bird.active) return;
+
+            // Update bird
+            bird.vy += gravity;
+            bird.vx *= friction;
+            bird.vy *= friction;
+            bird.x += bird.vx;
+            bird.y += bird.vy;
+
+            // Ground collision for bird
+            if (bird.y + bird.radius > 460) {
+                bird.y = 460 - bird.radius;
+                bird.vy *= -0.5;
+                bird.vx *= 0.8;
+
+                if (Math.abs(bird.vx) < 0.5 && Math.abs(bird.vy) < 0.5) {
+                    bird.active = false;
+                    resetBird();
+                }
+            }
+
+            // Bird out of bounds
+            if (bird.x > canvas.width || bird.x < 0 || bird.y > canvas.height) {
+                bird.active = false;
+                resetBird();
+            }
+
+            // Update blocks - 增加穩定性
+            blocks.forEach(block => {
+                block.vy += gravity * 0.8;  // 減少重力影響
+                block.vx *= friction;
+                block.vy *= friction;
+                block.x += block.vx;
+                block.y += block.vy;
+
+                // Ground collision for blocks - 減少彈跳
+                if (block.y + block.height > 460) {
+                    block.y = 460 - block.height;
+                    block.vy *= -0.2;  // 減少反彈
+                    block.vx *= 0.9;  // 減少水平速度損失
+                }
+            });
+
+            // Check collisions
+            checkCollisions();
+        }
+
+        function checkCollisions() {
+            // Bird-Pig collisions
+            pigs.forEach(pig => {
+                if (!pig.alive) return;
+
+                const dx = bird.x - pig.x;
+                const dy = bird.y - pig.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+
+                if (distance < bird.radius + pig.radius) {
+                    pig.alive = false;
+                    score += 100;
+                    scoreElement.textContent = score;
+                    checkWinCondition();
+                }
+            });
+
+            // Bird-Block collisions - 調整碰撞效果，減少結構破壞
+            blocks.forEach(block => {
+                if (
+                    bird.x + bird.radius > block.x &&
+                    bird.x - bird.radius < block.x + block.width &&
+                    bird.y + bird.radius > block.y &&
+                    bird.y - bird.radius < block.y + block.height
+                ) {
+                    const speed = Math.sqrt(bird.vx * bird.vx + bird.vy * bird.vy);
+                    // 減少傳遞給方塊的動量，讓結構更穩定
+                    block.vx = bird.vx * 0.3;
+                    block.vy = bird.vy * 0.3;
+                    bird.vx *= -0.4;
+                    bird.vy *= -0.4;
+                    score += 10;
+                    scoreElement.textContent = score;
+                }
+            });
+
+            // Block-Pig collisions
+            blocks.forEach(block => {
+                pigs.forEach(pig => {
+                    if (!pig.alive) return;
+
+                    if (
+                        block.x < pig.x + pig.radius &&
+                        block.x + block.width > pig.x - pig.radius &&
+                        block.y < pig.y + pig.radius &&
+                        block.y + block.height > pig.y - pig.radius
+                    ) {
+                        const speed = Math.sqrt(block.vx * block.vx + block.vy * block.vy);
+                        // 降低觸發速度，讓方塊更容易擊倒豬
+                        if (speed > 2) {
+                            pig.alive = false;
+                            score += 100;
+                            scoreElement.textContent = score;
+                            checkWinCondition();
+                        }
+                    }
+                });
+            });
+        }
+
+        function checkWinCondition() {
+            const allPigsDead = pigs.every(pig => !pig.alive);
+            if (allPigsDead) {
+                setTimeout(() => {
+                    alert('恭喜過關！得分：' + score);
+                }, 500);
+            }
+        }
+
+        function resetBird() {
+            if (birdsLeft > 0) {
+                setTimeout(() => {
+                    birdsLeft--;
+                    birdsElement.textContent = birdsLeft;
+                    bird = {
+                        x: slingshot.x,
+                        y: slingshot.y,
+                        radius: 15,
+                        vx: 0,
+                        vy: 0,
+                        launched: false,
+                        active: true,
+                        color: ['#FF0000', '#FFFF00', '#0000FF'][Math.floor(Math.random() * 3)]
+                    };
+
+                    if (birdsLeft === 0) {
+                        const allPigsDead = pigs.every(pig => !pig.alive);
+                        if (!allPigsDead) {
+                            setTimeout(() => {
+                                alert('遊戲結束！最終得分：' + score);
+                            }, 500);
+                        }
+                    }
+                }, 1000);
+            }
+        }
+
+        function resetLevel() {
+            birdsLeft = 3;
+            birdsElement.textContent = birdsLeft;
+            bird = {
+                x: slingshot.x,
+                y: slingshot.y,
+                radius: 15,
+                vx: 0,
+                vy: 0,
+                launched: false,
+                active: true,
+                color: '#FF0000'
+            };
+            initLevel();
+        }
+
+        function nextLevel() {
+            level++;
+            levelElement.textContent = level;
+            if (level > 3) level = 1;
+            resetLevel();
+        }
+
+        // Helper function to get mouse coordinates relative to canvas
+        function getCanvasMousePos(e) {
+            const rect = canvas.getBoundingClientRect();
+            const scaleX = canvas.width / rect.width;
+            const scaleY = canvas.height / rect.height;
+            return {
+                x: (e.clientX - rect.left) * scaleX,
+                y: (e.clientY - rect.top) * scaleY
+            };
+        }
+
+        // Mouse events
+        canvas.addEventListener('mousedown', (e) => {
+            if (bird.launched || !bird.active) return;
+
+            const mousePos = getCanvasMousePos(e);
+            const dx = mousePos.x - bird.x;
+            const dy = mousePos.y - bird.y;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+
+            if (distance < bird.radius * 2) {  // 增加點擊範圍
+                isDragging = true;
+                dragStart = { x: mousePos.x, y: mousePos.y };
+            }
+        });
+
+        canvas.addEventListener('mousemove', (e) => {
+            if (!isDragging) return;
+
+            const mousePos = getCanvasMousePos(e);
+
+            // Limit drag distance
+            const dx = mousePos.x - slingshot.x;
+            const dy = mousePos.y - slingshot.y;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+            const maxDistance = 100;
+
+            if (distance > maxDistance) {
+                const angle = Math.atan2(dy, dx);
+                bird.x = slingshot.x + Math.cos(angle) * maxDistance;
+                bird.y = slingshot.y + Math.sin(angle) * maxDistance;
+            } else {
+                bird.x = mousePos.x;
+                bird.y = mousePos.y;
+            }
+
+            // Update power meter
+            const power = Math.min(distance / maxDistance * 100, 100);
+            powerFill.style.width = power + '%';
+        });
+
+        canvas.addEventListener('mouseup', () => {
+            if (!isDragging) return;
+
+            isDragging = false;
+            bird.launched = true;
+
+            const dx = slingshot.x - bird.x;
+            const dy = slingshot.y - bird.y;
+            bird.vx = dx * 0.15;
+            bird.vy = dy * 0.15;
+
+            powerFill.style.width = '0%';
+        });
+
+        // Game loop
+        function gameLoop() {
+            drawBackground();
+            drawSlingshot();
+            drawBlocks();
+            drawPigs();
+            drawBird();
+            updatePhysics();
+
+            requestAnimationFrame(gameLoop);
+        }
+
+        // Initialize
+        initLevel();
+        gameLoop();
+    </script>
+</body>
+</html>
