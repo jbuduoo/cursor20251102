@@ -13,26 +13,62 @@
 
 ### 部署步驟
 
-1. **確保所有檔案已提交到 GitHub**
-   ```bash
-   git add .
-   git commit -m "準備 GitHub Pages 部署"
-   git push origin main
-   ```
+#### ✅ 步驟 1：確認文件已準備好（已完成）
+- `index.html` 已存在於根目錄 ✓
+- `.nojekyll` 文件已創建 ✓
+- 所有文件已提交並推送到 GitHub ✓
 
-2. **在 GitHub 上啟用 GitHub Pages**
-   - 前往倉庫頁面：https://github.com/jbuduoo/cursor20251102
-   - 點擊 **Settings**（設置）
-   - 在左側選單中找到 **Pages**
-   - 在 **Source** 部分選擇 **Deploy from a branch**
-   - 選擇分支：**main**
-   - 選擇資料夾：**/ (root)**
-   - 點擊 **Save**
+#### 🔧 步驟 2：在 GitHub 上啟用 Pages（重要！）
 
-3. **等待部署完成**
-   - GitHub 會在幾分鐘內完成部署
-   - 部署完成後，您會收到通知
-   - 網站將可通過上述 URL 訪問
+**這是解決 404 錯誤的關鍵步驟：**
+
+1. **前往倉庫設置頁面**
+   - 打開瀏覽器，訪問：https://github.com/jbuduoo/cursor20251102
+   - 點擊倉庫頂部的 **Settings**（設置）標籤
+   - ⚠️ 如果看不到 Settings，請確認您有倉庫的管理權限
+
+2. **啟用 GitHub Pages**
+   - 在左側選單中，向下滾動找到 **Pages** 選項
+   - 點擊 **Pages**
+
+3. **配置發布源**
+   - 在 **Source** 部分，點擊下拉選單
+   - 選擇 **Deploy from a branch**
+   - 在 **Branch** 下拉選單中：
+     - 選擇 **main**（確認這是您的默認分支）
+     - 選擇資料夾：**/ (root)**
+   - 點擊 **Save**（保存）
+
+4. **等待部署**
+   - GitHub 會顯示一個綠色提示框，顯示您的網站 URL
+   - 通常需要 1-2 分鐘來完成首次部署
+   - 您可以在 **Actions** 標籤中查看部署進度
+
+#### ⚠️ 如果仍然看到 404 錯誤
+
+**請檢查以下項目：**
+
+1. **確認 Pages 已啟用**
+   - 返回 Settings > Pages
+   - 確認顯示 "Your site is live at https://jbuduoo.github.io/cursor20251102/"
+   - 如果沒有顯示，請重新執行步驟 2
+
+2. **檢查部署狀態**
+   - 點擊倉庫的 **Actions** 標籤
+   - 查看是否有 "pages build and deployment" 工作流程
+   - 如果顯示紅色 X，點擊查看錯誤訊息
+
+3. **等待 DNS 傳播**
+   - 首次部署可能需要 5-10 分鐘
+   - 清除瀏覽器緩存後再試
+   - 嘗試使用無痕模式訪問
+
+4. **確認文件結構**
+   - 確認 `index.html` 在倉庫根目錄（不是子資料夾）
+   - 確認 `.nojekyll` 文件存在
+   - 確認分支名稱是 `main`（不是 `master`）
+
+**詳細故障排除指南請參考：[GITHUB_PAGES_SETUP.md](GITHUB_PAGES_SETUP.md)**
 
 ### 專案結構
 
