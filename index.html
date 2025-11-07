@@ -122,32 +122,6 @@
             line-height: 1.4;
         }
 
-        .program-meta {
-            display: flex;
-            justify-content: center;
-            margin-top: 10px;
-            padding-top: 10px;
-            border-top: 1px solid rgba(0, 0, 0, 0.1);
-            font-size: 0.75em;
-            color: #888;
-        }
-
-        .program-type {
-            background: #667eea;
-            color: white;
-            padding: 5px 12px;
-            border-radius: 6px;
-            font-size: 0.8em;
-            border: none;
-            cursor: pointer;
-            display: inline-block;
-            transition: all 0.3s ease;
-        }
-
-        .program-type:hover {
-            background: #764ba2;
-            transform: scale(1.05);
-        }
 
         .footer {
             text-align: center;
@@ -717,17 +691,7 @@
                 <div class="program-icon">${program.icon}</div>
                 <div class="program-name">${program.name}</div>
                 <div class="program-description">${program.description}</div>
-                <div class="program-meta">
-                    <button class="program-type" type="button">按鈕</button>
-                </div>
             `;
-            
-            // 阻止按鈕點擊觸發卡片連結
-            const button = card.querySelector('.program-type');
-            button.addEventListener('click', function(e) {
-                e.stopPropagation();
-                e.preventDefault();
-            });
             
             return card;
         }
