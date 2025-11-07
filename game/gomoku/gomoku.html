@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>五子棋</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            min-height: 100vh; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: 'Microsoft JhengHei', Arial, sans-serif;
+        }
+        .game-container {
+            text-align: center; background: rgba(255, 255, 255, 0.9); padding: 30px;
+            border-radius: 20px; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+        }
+        h1 { color: #333; margin-bottom: 20px; font-size: 2.5em; }
+        .info { margin-bottom: 20px; font-size: 1.2em; font-weight: bold; color: #4CAF50; }
+        canvas {
+            border: 4px solid #333; background: #DEB887; display: block; margin: 0 auto;
+        }
+        button {
+            margin-top: 15px; padding: 10px 20px; font-size: 1em;
+            background: #4CAF50; color: white; border: none; border-radius: 5px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <h1>⚫ 五子棋</h1>
+        <div class="info">當前玩家: <span id="currentPlayer">黑</span></div>
+        <canvas id="gameCanvas" width="600" height="600"></canvas>
+        <button onclick="startGame()">重新開始</button>
+    </div>
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const gridSize = 15; const cellSize = 40;
+        let board = Array(gridSize).fill().map(() => Array(gridSize).fill(0));
+        let currentPlayer = 1; let gameOver = false;
+        function startGame() {
+            board = Array(gridSize).fill().map(() => Array(gridSize).fill(0));
+            currentPlayer = 1; gameOver = false;
+            document.getElementById('currentPlayer').textContent = '黑';
+            render();
+        }
+        function render() {
+            ctx.fillStyle = '#DEB887';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.strokeStyle = '#000';
+            ctx.lineWidth = 1;
+            for (let i = 0; i < gridSize; i++) {
+                ctx.beginPath();
+                ctx.moveTo(20, 20 + i * cellSize);
+                ctx.lineTo(20 + (gridSize - 1) * cellSize, 20 + i * cellSize);
+                ctx.stroke();
+                ctx.beginPath();
+                ctx.moveTo(20 + i * cellSize, 20);
+                ctx.lineTo(20 + i * cellSize, 20 + (gridSize - 1) * cellSize);
+                ctx.stroke();
+            }
+            for (let y = 0; y < gridSize; y++) {
+                for (let x = 0; x < gridSize; x++) {
+                    if (board[y][x] === 1) {
+                        ctx.fillStyle = '#000';
+                        ctx.beginPath();
+                        ctx.arc(20 + x * cellSize, 20 + y * cellSize, 15, 0, Math.PI * 2);
+                        ctx.fill();
+                    } else if (board[y][x] === 2) {
+                        ctx.fillStyle = '#fff';
+                        ctx.beginPath();
+                        ctx.arc(20 + x * cellSize, 20 + y * cellSize, 15, 0, Math.PI * 2);
+                        ctx.fill();
+                        ctx.strokeStyle = '#000';
+                        ctx.lineWidth = 2;
+                        ctx.stroke();
+                    }
+                }
+            }
+        }
+        function checkWin(x, y, player) {
+            const directions = [[0,1], [1,0], [1,1], [1,-1]];
+            for (let [dx, dy] of directions) {
+                let count = 1;
+                for (let i = 1; i < 5; i++) {
+                    const nx = x + dx * i; const ny = y + dy * i;
+                    if (nx >= 0 && nx < gridSize && ny >= 0 && ny < gridSize && board[ny][nx] === player) count++;
+                    else break;
+                }
+                for (let i = 1; i < 5; i++) {
+                    const nx = x - dx * i; const ny = y - dy * i;
+                    if (nx >= 0 && nx < gridSize && ny >= 0 && ny < gridSize && board[ny][nx] === player) count++;
+                    else break;
+                }
+                if (count >= 5) return true;
+            }
+            return false;
+        }
+        canvas.addEventListener('click', (e) => {
+            if (gameOver) return;
+            const rect = canvas.getBoundingClientRect();
+            const x = Math.round((e.clientX - rect.left - 20) / cellSize);
+            const y = Math.round((e.clientY - rect.top - 20) / cellSize);
+            if (x >= 0 && x < gridSize && y >= 0 && y < gridSize && board[y][x] === 0) {
+                board[y][x] = currentPlayer;
+                if (checkWin(x, y, currentPlayer)) {
+                    gameOver = true;
+                    alert(`${currentPlayer === 1 ? '黑' : '白'}方獲勝！`);
+                } else {
+                    currentPlayer = currentPlayer === 1 ? 2 : 1;
+                    document.getElementById('currentPlayer').textContent = currentPlayer === 1 ? '黑' : '白';
+                }
+                render();
+            }
+        });
+        startGame();
+    </script>
+</body>
+</html>
+

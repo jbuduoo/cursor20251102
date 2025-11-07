@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>華容道</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            min-height: 100vh; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: 'Microsoft JhengHei', Arial, sans-serif;
+        }
+        .game-container {
+            text-align: center; background: rgba(255, 255, 255, 0.9); padding: 30px;
+            border-radius: 20px; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+        }
+        h1 { color: #333; margin-bottom: 20px; font-size: 2.5em; }
+        canvas {
+            border: 4px solid #333; background: #8B4513; display: block; margin: 0 auto;
+        }
+        button {
+            margin-top: 15px; padding: 10px 20px; font-size: 1em;
+            background: #4CAF50; color: white; border: none; border-radius: 5px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <h1>🧩 華容道</h1>
+        <canvas id="gameCanvas" width="400" height="500"></canvas>
+        <div style="margin-top: 20px;">
+            <p>拖動方塊移動，將紅色方塊移到出口</p>
+            <button onclick="startGame()">重新開始</button>
+        </div>
+    </div>
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        let blocks = []; let selectedBlock = null; let offset = {x: 0, y: 0};
+        function startGame() {
+            blocks = [
+                {x: 0, y: 0, w: 2, h: 2, color: '#ff0000', type: 'target'},
+                {x: 2, y: 0, w: 1, h: 2, color: '#0000ff'},
+                {x: 3, y: 0, w: 1, h: 2, color: '#00ff00'},
+                {x: 0, y: 2, w: 1, h: 2, color: '#ffff00'},
+                {x: 1, y: 2, w: 2, h: 1, color: '#ff00ff'},
+                {x: 3, y: 2, w: 1, h: 2, color: '#00ffff'},
+            ];
+            selectedBlock = null; render();
+        }
+        function getBlockAt(x, y) {
+            return blocks.find(b => x >= b.x && x < b.x + b.w && y >= b.y && y < b.y + b.h);
+        }
+        function canMove(block, dx, dy) {
+            const newX = block.x + dx; const newY = block.y + dy;
+            if (newX < 0 || newY < 0 || newX + block.w > 4 || newY + block.h > 5) return false;
+            return !blocks.some(b => b !== block && 
+                newX < b.x + b.w && newX + block.w > b.x &&
+                newY < b.y + b.h && newY + block.h > b.y);
+        }
+        canvas.addEventListener('mousedown', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            const x = Math.floor((e.clientX - rect.left) / 100);
+            const y = Math.floor((e.clientY - rect.top) / 100);
+            selectedBlock = getBlockAt(x, y);
+            if (selectedBlock) {
+                offset.x = e.clientX - rect.left - selectedBlock.x * 100;
+                offset.y = e.clientY - rect.top - selectedBlock.y * 100;
+            }
+        });
+        canvas.addEventListener('mousemove', (e) => {
+            if (selectedBlock) {
+                const rect = canvas.getBoundingClientRect();
+                const x = Math.floor((e.clientX - rect.left - offset.x) / 100);
+                const y = Math.floor((e.clientY - rect.top - offset.y) / 100);
+                const dx = x - selectedBlock.x;
+                const dy = y - selectedBlock.y;
+                if ((dx !== 0 || dy !== 0) && canMove(selectedBlock, dx, dy)) {
+                    selectedBlock.x += dx; selectedBlock.y += dy;
+                    render();
+                    if (selectedBlock.type === 'target' && selectedBlock.x === 1 && selectedBlock.y === 3) {
+                        setTimeout(() => alert('恭喜！完成關卡！'), 500);
+                    }
+                }
+            }
+        });
+        canvas.addEventListener('mouseup', () => { selectedBlock = null; });
+        function render() {
+            ctx.fillStyle = '#8B4513'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = '#90EE90'; ctx.fillRect(100, 300, 200, 100);
+            blocks.forEach(block => {
+                ctx.fillStyle = block.color;
+                ctx.fillRect(block.x * 100, block.y * 100, block.w * 100, block.h * 100);
+                ctx.strokeStyle = '#000'; ctx.lineWidth = 2;
+                ctx.strokeRect(block.x * 100, block.y * 100, block.w * 100, block.h * 100);
+            });
+        }
+        startGame();
+    </script>
+</body>
+</html>
+

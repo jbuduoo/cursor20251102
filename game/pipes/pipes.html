@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>管道連接</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            min-height: 100vh; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: 'Microsoft JhengHei', Arial, sans-serif;
+        }
+        .game-container {
+            text-align: center; background: rgba(255, 255, 255, 0.9); padding: 30px;
+            border-radius: 20px; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+        }
+        h1 { color: #333; margin-bottom: 20px; font-size: 2.5em; }
+        .info { margin-bottom: 20px; font-size: 1.2em; font-weight: bold; color: #4CAF50; }
+        .grid {
+            display: grid; grid-template-columns: repeat(6, 60px); gap: 5px;
+            background: #333; padding: 5px; border-radius: 5px; margin: 20px auto;
+        }
+        .pipe {
+            width: 60px; height: 60px; background: #8B4513; border-radius: 5px;
+            cursor: pointer; display: flex; align-items: center; justify-content: center;
+            font-size: 1.5em; transition: transform 0.3s;
+        }
+        .pipe:hover { transform: rotate(90deg); }
+        button {
+            margin-top: 15px; padding: 10px 20px; font-size: 1em;
+            background: #4CAF50; color: white; border: none; border-radius: 5px;
+            cursor: pointer; transition: background 0.3s;
+        }
+        button:hover { background: #45a049; }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <h1>🔧 管道連接</h1>
+        <div class="info">點擊管道旋轉，連接入口和出口</div>
+        <div class="grid" id="grid"></div>
+        <button onclick="startGame()">重新開始</button>
+    </div>
+    <script>
+        const pipes = ['─', '│', '┌', '┐', '└', '┘', '├', '┤', '┬', '┴', '┼'];
+        let grid = []; let rotation = [];
+        function startGame() {
+            grid = Array(6).fill().map(() => Array(6).fill().map(() => Math.floor(Math.random() * 11)));
+            rotation = Array(6).fill().map(() => Array(6).fill(0));
+            render();
+        }
+        function render() {
+            const gridEl = document.getElementById('grid');
+            gridEl.innerHTML = '';
+            for (let y = 0; y < 6; y++) {
+                for (let x = 0; x < 6; x++) {
+                    const pipe = document.createElement('div');
+                    pipe.className = 'pipe';
+                    const rot = rotation[y][x];
+                    pipe.textContent = pipes[grid[y][x]];
+                    pipe.style.transform = `rotate(${rot * 90}deg)`;
+                    pipe.onclick = () => {
+                        rotation[y][x] = (rotation[y][x] + 1) % 4;
+                        render();
+                    };
+                    gridEl.appendChild(pipe);
+                }
+            }
+        }
+        startGame();
+    </script>
+</body>
+</html>
+

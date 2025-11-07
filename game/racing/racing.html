@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>賽車遊戲</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            min-height: 100vh; background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            font-family: 'Microsoft JhengHei', Arial, sans-serif;
+        }
+        .game-container {
+            text-align: center; background: rgba(255, 255, 255, 0.1); padding: 30px;
+            border-radius: 20px; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5); color: white;
+        }
+        h1 { color: #fff; margin-bottom: 20px; font-size: 2.5em; }
+        .info { display: flex; justify-content: space-around; margin-bottom: 20px; font-size: 1.2em; font-weight: bold; }
+        .score { color: #f39c12; }
+        canvas {
+            border: 4px solid #fff; background: #34495e; display: block; margin: 0 auto;
+        }
+        button {
+            margin-top: 15px; padding: 10px 20px; font-size: 1em;
+            background: #e74c3c; color: white; border: none; border-radius: 5px;
+            cursor: pointer; transition: background 0.3s;
+        }
+        button:hover { background: #c0392b; }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <h1>🏎️ 賽車</h1>
+        <div class="info">
+            <div class="score">速度: <span id="speed">0</span> km/h</div>
+            <div class="score">距離: <span id="distance">0</span> m</div>
+        </div>
+        <canvas id="gameCanvas" width="400" height="600"></canvas>
+        <div style="margin-top: 20px;">
+            <p>⬅️ ➡️ 左右移動</p>
+            <button onclick="startGame()">開始遊戲</button>
+        </div>
+    </div>
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        let gameRunning = false; let speed = 0; let distance = 0;
+        const player = { x: 175, y: 500, width: 50, height: 80 };
+        let obstacles = []; let roadOffset = 0;
+        const keys = {};
+        document.addEventListener('keydown', (e) => { keys[e.key] = true; });
+        document.addEventListener('keyup', (e) => { keys[e.key] = false; });
+        function startGame() {
+            gameRunning = true; speed = 0; distance = 0; obstacles = [];
+            player.x = 175; updateDisplay(); gameLoop();
+        }
+        function updateDisplay() {
+            document.getElementById('speed').textContent = Math.floor(speed);
+            document.getElementById('distance').textContent = Math.floor(distance);
+        }
+        function updatePlayer() {
+            if (keys['ArrowLeft'] && player.x > 50) player.x -= 5;
+            if (keys['ArrowRight'] && player.x < canvas.width - 100) player.x += 5;
+        }
+        function updateGame() {
+            speed = Math.min(speed + 0.1, 10);
+            distance += speed;
+            roadOffset += speed * 2;
+            if (roadOffset > 40) roadOffset = 0;
+            if (Math.random() < 0.02) {
+                obstacles.push({ x: 50 + Math.random() * 300, y: -50, width: 50, height: 80 });
+            }
+            obstacles = obstacles.filter(obs => {
+                obs.y += speed * 3;
+                const dist = Math.sqrt((obs.x - player.x)**2 + (obs.y - player.y)**2);
+                if (dist < 60) {
+                    gameRunning = false; alert(`遊戲結束！距離: ${Math.floor(distance)}m`);
+                    return false;
+                }
+                return obs.y < canvas.height + 50;
+            });
+        }
+        function draw() {
+            ctx.fillStyle = '#34495e'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = '#7f8c8d'; ctx.fillRect(0, 0, 50, canvas.height);
+            ctx.fillRect(canvas.width - 50, 0, 50, canvas.height);
+            ctx.strokeStyle = '#fff'; ctx.lineWidth = 2;
+            for (let i = roadOffset; i < canvas.height; i += 40) {
+                ctx.beginPath(); ctx.moveTo(canvas.width/2, i);
+                ctx.lineTo(canvas.width/2, i + 20); ctx.stroke();
+            }
+            ctx.fillStyle = '#e74c3c'; ctx.fillRect(player.x, player.y, player.width, player.height);
+            obstacles.forEach(obs => {
+                ctx.fillStyle = '#3498db';
+                ctx.fillRect(obs.x, obs.y, obs.width, obs.height);
+            });
+        }
+        function gameLoop() {
+            if (gameRunning) {
+                updatePlayer(); updateGame(); draw(); updateDisplay();
+            }
+            requestAnimationFrame(gameLoop);
+        }
+        gameLoop();
+    </script>
+</body>
+</html>
+

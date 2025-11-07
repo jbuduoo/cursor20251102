@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>數獨</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            min-height: 100vh; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: 'Microsoft JhengHei', Arial, sans-serif;
+        }
+        .game-container {
+            text-align: center; background: rgba(255, 255, 255, 0.9); padding: 30px;
+            border-radius: 20px; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+        }
+        h1 { color: #333; margin-bottom: 20px; font-size: 2.5em; }
+        .grid {
+            display: grid; grid-template-columns: repeat(9, 40px); gap: 0;
+            border: 3px solid #333; margin: 20px auto;
+        }
+        .cell {
+            width: 40px; height: 40px; border: 1px solid #ccc;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.2em; cursor: pointer; background: #fff;
+        }
+        .cell:nth-child(3n) { border-right: 2px solid #333; }
+        .cell:nth-child(n+19):nth-child(-n+27),
+        .cell:nth-child(n+46):nth-child(-n+54) { border-bottom: 2px solid #333; }
+        .cell.fixed { background: #e0e0e0; font-weight: bold; }
+        .cell.selected { background: #ffeb3b; }
+        .cell.error { background: #ffcdd2; }
+        button {
+            margin: 10px 5px; padding: 10px 20px; font-size: 1em;
+            background: #4CAF50; color: white; border: none; border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover { background: #45a049; }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <h1>🔢 數獨</h1>
+        <div class="grid" id="grid"></div>
+        <div>
+            <button onclick="startGame()">新遊戲</button>
+            <button onclick="checkSolution()">檢查</button>
+        </div>
+    </div>
+    <script>
+        let grid = Array(9).fill().map(() => Array(9).fill(0));
+        let fixed = Array(9).fill().map(() => Array(9).fill(false));
+        let selected = null;
+        function generatePuzzle() {
+            grid = Array(9).fill().map(() => Array(9).fill(0));
+            solveSudoku(grid);
+            for (let i = 0; i < 30; i++) {
+                const x = Math.floor(Math.random() * 9);
+                const y = Math.floor(Math.random() * 9);
+                grid[y][x] = 0;
+            }
+            fixed = grid.map(row => row.map(val => val !== 0));
+        }
+        function solveSudoku(board) {
+            for (let y = 0; y < 9; y++) {
+                for (let x = 0; x < 9; x++) {
+                    if (board[y][x] === 0) {
+                        const nums = [1,2,3,4,5,6,7,8,9].sort(() => Math.random() - 0.5);
+                        for (let num of nums) {
+                            if (isValid(board, x, y, num)) {
+                                board[y][x] = num;
+                                if (solveSudoku(board)) return true;
+                                board[y][x] = 0;
+                            }
+                        }
+                        return false;
+                    }
+                }
+            }
+            return true;
+        }
+        function isValid(board, x, y, num) {
+            for (let i = 0; i < 9; i++) {
+                if (board[y][i] === num || board[i][x] === num) return false;
+            }
+            const startX = Math.floor(x / 3) * 3;
+            const startY = Math.floor(y / 3) * 3;
+            for (let i = 0; i < 3; i++) {
+                for (let j = 0; j < 3; j++) {
+                    if (board[startY + i][startX + j] === num) return false;
+                }
+            }
+            return true;
+        }
+        function startGame() {
+            generatePuzzle(); selected = null; render();
+        }
+        function render() {
+            const gridEl = document.getElementById('grid');
+            gridEl.innerHTML = '';
+            for (let y = 0; y < 9; y++) {
+                for (let x = 0; x < 9; x++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'cell';
+                    if (fixed[y][x]) cell.classList.add('fixed');
+                    if (selected && selected.x === x && selected.y === y) cell.classList.add('selected');
+                    cell.textContent = grid[y][x] || '';
+                    if (!fixed[y][x]) {
+                        cell.onclick = () => {
+                            selected = {x, y}; render();
+                        };
+                    }
+                    gridEl.appendChild(cell);
+                }
+            }
+        }
+        document.addEventListener('keydown', (e) => {
+            if (selected && !fixed[selected.y][selected.x] && e.key >= '1' && e.key <= '9') {
+                grid[selected.y][selected.x] = parseInt(e.key);
+                render();
+            }
+        });
+        function checkSolution() {
+            for (let y = 0; y < 9; y++) {
+                for (let x = 0; x < 9; x++) {
+                    if (grid[y][x] === 0 || !isValid(grid, x, y, grid[y][x])) {
+                        alert('解答不正確！'); return;
+                    }
+                }
+            }
+            alert('恭喜！解答正確！');
+        }
+        startGame();
+    </script>
+</body>
+</html>
+

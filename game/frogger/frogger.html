@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>青蛙過河</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            min-height: 100vh; background: linear-gradient(135deg, #87CEEB 0%, #98D8C8 100%);
+            font-family: 'Microsoft JhengHei', Arial, sans-serif;
+        }
+        .game-container {
+            text-align: center; background: rgba(255, 255, 255, 0.9); padding: 30px;
+            border-radius: 20px; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+        }
+        h1 { color: #333; margin-bottom: 20px; font-size: 2.5em; }
+        .info { display: flex; justify-content: space-around; margin-bottom: 20px; font-size: 1.2em; font-weight: bold; }
+        .score { color: #4CAF50; }
+        canvas {
+            border: 4px solid #333; background: #87CEEB; display: block; margin: 0 auto;
+        }
+        button {
+            margin-top: 15px; padding: 10px 20px; font-size: 1em;
+            background: #4CAF50; color: white; border: none; border-radius: 5px;
+            cursor: pointer; transition: background 0.3s;
+        }
+        button:hover { background: #45a049; }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <h1>🐸 青蛙過河</h1>
+        <div class="info">
+            <div class="score">分數: <span id="score">0</span></div>
+            <div class="score">生命: <span id="lives">3</span></div>
+        </div>
+        <canvas id="gameCanvas" width="600" height="600"></canvas>
+        <div style="margin-top: 20px;">
+            <p>⬆️ ⬇️ ⬅️ ➡️ 移動青蛙過馬路</p>
+            <button onclick="startGame()">開始遊戲</button>
+        </div>
+    </div>
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        let gameRunning = false; let score = 0; let lives = 3;
+        const frog = { x: 275, y: 550, size: 20 };
+        let cars = []; let logs = [];
+        const keys = {};
+        document.addEventListener('keydown', (e) => { keys[e.key] = true; });
+        document.addEventListener('keyup', (e) => { keys[e.key] = false; });
+        function startGame() {
+            gameRunning = true; score = 0; lives = 3;
+            frog.x = 275; frog.y = 550; cars = []; logs = [];
+            updateDisplay(); gameLoop();
+        }
+        function updateDisplay() {
+            document.getElementById('score').textContent = score;
+            document.getElementById('lives').textContent = lives;
+        }
+        function updateFrog() {
+            if (keys['ArrowUp'] && frog.y > 0) { frog.y -= 20; }
+            if (keys['ArrowDown'] && frog.y < canvas.height - frog.size) { frog.y += 20; }
+            if (keys['ArrowLeft'] && frog.x > 0) { frog.x -= 20; }
+            if (keys['ArrowRight'] && frog.x < canvas.width - frog.size) { frog.x += 20; }
+            if (frog.y < 50) { score += 10; frog.y = 550; updateDisplay(); }
+        }
+        function updateCars() {
+            if (Math.random() < 0.02) {
+                cars.push({ x: Math.random() > 0.5 ? -50 : canvas.width + 50, y: 200 + Math.floor(Math.random() * 4) * 80, width: 60, height: 30, speed: (Math.random() > 0.5 ? 1 : -1) * (2 + Math.random() * 2) });
+            }
+            cars = cars.filter(car => {
+                car.x += car.speed;
+                if (car.x < frog.x + frog.size && car.x + car.width > frog.x && car.y < frog.y + frog.size && car.y + car.height > frog.y) {
+                    lives--; frog.y = 550; updateDisplay();
+                    if (lives <= 0) { gameRunning = false; alert(`遊戲結束！得分: ${score}`); }
+                    return false;
+                }
+                return car.x > -100 && car.x < canvas.width + 100;
+            });
+        }
+        function draw() {
+            ctx.fillStyle = '#87CEEB'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = '#8B4513'; ctx.fillRect(0, 0, canvas.width, 50);
+            ctx.fillStyle = '#8B4513'; ctx.fillRect(0, 150, canvas.width, 50);
+            ctx.fillStyle = '#228B22'; ctx.fillRect(0, 550, canvas.width, 50);
+            cars.forEach(car => {
+                ctx.fillStyle = '#FF0000';
+                ctx.fillRect(car.x, car.y, car.width, car.height);
+            });
+            ctx.fillStyle = '#4CAF50';
+            ctx.fillRect(frog.x, frog.y, frog.size, frog.size);
+        }
+        function gameLoop() {
+            if (gameRunning) {
+                updateFrog(); updateCars(); draw();
+            }
+            requestAnimationFrame(gameLoop);
+        }
+        gameLoop();
+    </script>
+</body>
+</html>
+

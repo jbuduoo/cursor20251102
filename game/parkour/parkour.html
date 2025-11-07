@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>跑酷遊戲</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            min-height: 100vh; background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            font-family: 'Microsoft JhengHei', Arial, sans-serif; color: white;
+        }
+        .game-container {
+            text-align: center; background: rgba(255, 255, 255, 0.1); padding: 30px;
+            border-radius: 20px; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+        }
+        h1 { color: #fff; margin-bottom: 20px; font-size: 2.5em; }
+        .info { display: flex; justify-content: space-around; margin-bottom: 20px; font-size: 1.2em; font-weight: bold; }
+        .score { color: #00ffff; }
+        canvas {
+            border: 4px solid #00ffff; background: #000; display: block; margin: 0 auto;
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.5);
+        }
+        button {
+            margin-top: 15px; padding: 10px 20px; font-size: 1em;
+            background: #00ffff; color: #000; border: none; border-radius: 5px;
+            cursor: pointer; font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <h1>🏃 跑酷</h1>
+        <div class="info">
+            <div class="score">距離: <span id="distance">0</span>m</div>
+            <div class="score">速度: <span id="speed">0</span> km/h</div>
+        </div>
+        <canvas id="gameCanvas" width="800" height="400"></canvas>
+        <div style="margin-top: 20px;">
+            <p>空白鍵跳躍，避開障礙物</p>
+            <button onclick="startGame()">開始遊戲</button>
+        </div>
+    </div>
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        let gameRunning = false; let distance = 0; let speed = 0;
+        const player = { x: 100, y: 300, width: 40, height: 60, vy: 0, onGround: true };
+        let obstacles = [];
+        const keys = {};
+        document.addEventListener('keydown', (e) => {
+            keys[e.key] = true;
+            if (e.key === ' ') { e.preventDefault(); jump(); }
+        });
+        document.addEventListener('keyup', (e) => { keys[e.key] = false; });
+        function startGame() {
+            gameRunning = true; distance = 0; speed = 0;
+            player.y = 300; player.vy = 0; obstacles = [];
+            gameLoop();
+        }
+        function jump() {
+            if (player.onGround) { player.vy = -15; player.onGround = false; }
+        }
+        function updatePlayer() {
+            player.vy += 0.8;
+            player.y += player.vy;
+            if (player.y > 300) { player.y = 300; player.vy = 0; player.onGround = true; }
+        }
+        function updateGame() {
+            speed = Math.min(speed + 0.1, 15);
+            distance += speed * 0.1;
+            if (Math.random() < 0.02) {
+                obstacles.push({ x: canvas.width, y: 300, width: 30, height: 60 });
+            }
+            obstacles = obstacles.map(obs => ({ ...obs, x: obs.x - speed }));
+            obstacles = obstacles.filter(obs => {
+                if (player.x < obs.x + obs.width && player.x + player.width > obs.x &&
+                    player.y < obs.y + obs.height && player.y + player.height > obs.y) {
+                    gameRunning = false;
+                    alert(`遊戲結束！距離: ${Math.floor(distance)}m`);
+                    return false;
+                }
+                return obs.x > -50;
+            });
+            document.getElementById('distance').textContent = Math.floor(distance);
+            document.getElementById('speed').textContent = Math.floor(speed);
+        }
+        function draw() {
+            ctx.fillStyle = '#000';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = '#228B22';
+            ctx.fillRect(0, 360, canvas.width, 40);
+            ctx.fillStyle = '#FF6B6B';
+            ctx.fillRect(player.x, player.y, player.width, player.height);
+            ctx.fillStyle = '#8B4513';
+            obstacles.forEach(obs => {
+                ctx.fillRect(obs.x, obs.y, obs.width, obs.height);
+            });
+        }
+        function gameLoop() {
+            if (gameRunning) {
+                updatePlayer(); updateGame(); draw();
+            }
+            requestAnimationFrame(gameLoop);
+        }
+        gameLoop();
+    </script>
+</body>
+</html>
+

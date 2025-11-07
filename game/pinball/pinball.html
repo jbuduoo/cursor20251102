@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>彈球台遊戲</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            min-height: 100vh; background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            font-family: 'Microsoft JhengHei', Arial, sans-serif; color: white;
+        }
+        .game-container {
+            text-align: center; background: rgba(255, 255, 255, 0.1); padding: 30px;
+            border-radius: 20px; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+        }
+        h1 { color: #fff; margin-bottom: 20px; font-size: 2.5em; }
+        .info { display: flex; justify-content: space-around; margin-bottom: 20px; font-size: 1.2em; font-weight: bold; }
+        .score { color: #f39c12; }
+        canvas {
+            border: 4px solid #fff; background: #1a1a1a; display: block; margin: 0 auto;
+        }
+        button {
+            margin-top: 15px; padding: 10px 20px; font-size: 1em;
+            background: #e74c3c; color: white; border: none; border-radius: 5px;
+            cursor: pointer; transition: background 0.3s;
+        }
+        button:hover { background: #c0392b; }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <h1>🎱 彈球台</h1>
+        <div class="info">
+            <div class="score">分數: <span id="score">0</span></div>
+            <div class="score">球數: <span id="balls">3</span></div>
+        </div>
+        <canvas id="gameCanvas" width="600" height="800"></canvas>
+        <div style="margin-top: 20px;">
+            <p>空白鍵發射球，⬅️ ➡️ 控制擋板</p>
+            <button onclick="startGame()">開始遊戲</button>
+        </div>
+    </div>
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        let gameRunning = false; let score = 0; let balls = 3;
+        const paddle = { x: 250, y: 750, width: 100, height: 15, speed: 5 };
+        let ball = null; let blocks = [];
+        const keys = {};
+        document.addEventListener('keydown', (e) => {
+            keys[e.key] = true;
+            if (e.key === ' ' && !ball) { launchBall(); }
+        });
+        document.addEventListener('keyup', (e) => { keys[e.key] = false; });
+        function initBlocks() {
+            blocks = [];
+            for (let row = 0; row < 5; row++) {
+                for (let col = 0; col < 8; col++) {
+                    blocks.push({
+                        x: 50 + col * 65, y: 50 + row * 40,
+                        width: 60, height: 30, alive: true
+                    });
+                }
+            }
+        }
+        function startGame() {
+            gameRunning = true; score = 0; balls = 3;
+            paddle.x = 250; ball = null; initBlocks();
+            updateDisplay(); gameLoop();
+        }
+        function updateDisplay() {
+            document.getElementById('score').textContent = score;
+            document.getElementById('balls').textContent = balls;
+        }
+        function launchBall() {
+            if (balls > 0 && !ball) {
+                ball = { x: paddle.x + paddle.width/2, y: paddle.y - 10, vx: (Math.random() - 0.5) * 4, vy: -5, radius: 8 };
+                balls--;
+                updateDisplay();
+            }
+        }
+        function updatePaddle() {
+            if (keys['ArrowLeft'] && paddle.x > 0) paddle.x -= paddle.speed;
+            if (keys['ArrowRight'] && paddle.x < canvas.width - paddle.width) paddle.x += paddle.speed;
+        }
+        function updateBall() {
+            if (!ball) return;
+            ball.x += ball.vx; ball.y += ball.vy;
+            if (ball.x <= ball.radius || ball.x >= canvas.width - ball.radius) ball.vx = -ball.vx;
+            if (ball.y <= ball.radius) ball.vy = -ball.vy;
+            if (ball.y > paddle.y + paddle.height + ball.radius) {
+                ball = null;
+                if (balls <= 0) { gameRunning = false; alert(`遊戲結束！得分: ${score}`); }
+                return;
+            }
+            if (ball.x > paddle.x && ball.x < paddle.x + paddle.width &&
+                ball.y > paddle.y - ball.radius && ball.y < paddle.y + paddle.height) {
+                ball.vy = -Math.abs(ball.vy);
+                ball.vx += (ball.x - (paddle.x + paddle.width/2)) * 0.1;
+            }
+            blocks.forEach((block, i) => {
+                if (block.alive && ball.x > block.x && ball.x < block.x + block.width &&
+                    ball.y > block.y && ball.y < block.y + block.height) {
+                    block.alive = false; score += 10; updateDisplay();
+                    ball.vy = -ball.vy;
+                    if (blocks.every(b => !b.alive)) { initBlocks(); }
+                }
+            });
+        }
+        function draw() {
+            ctx.fillStyle = '#1a1a1a'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = '#3498db';
+            blocks.forEach(block => {
+                if (block.alive) ctx.fillRect(block.x, block.y, block.width, block.height);
+            });
+            ctx.fillStyle = '#e74c3c';
+            ctx.fillRect(paddle.x, paddle.y, paddle.width, paddle.height);
+            if (ball) {
+                ctx.fillStyle = '#fff';
+                ctx.beginPath();
+                ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+        function gameLoop() {
+            if (gameRunning) {
+                updatePaddle(); updateBall(); draw();
+            }
+            requestAnimationFrame(gameLoop);
+        }
+        gameLoop();
+    </script>
+</body>
+</html>
+

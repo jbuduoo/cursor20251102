@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>小行星遊戲</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            min-height: 100vh; background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 100%);
+            font-family: 'Microsoft JhengHei', Arial, sans-serif; color: white;
+        }
+        .game-container {
+            text-align: center; background: rgba(255, 255, 255, 0.1); padding: 30px;
+            border-radius: 20px; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+        }
+        h1 { color: #fff; margin-bottom: 20px; font-size: 2.5em; text-shadow: 0 0 10px #00ffff; }
+        .info { display: flex; justify-content: space-around; margin-bottom: 20px; font-size: 1.2em; font-weight: bold; }
+        .score { color: #00ffff; }
+        canvas {
+            border: 4px solid #00ffff; background: #000; display: block; margin: 0 auto;
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.5);
+        }
+        button {
+            margin-top: 15px; padding: 10px 20px; font-size: 1em;
+            background: #00ffff; color: #000; border: none; border-radius: 5px;
+            cursor: pointer; font-weight: bold; transition: all 0.3s;
+        }
+        button:hover { background: #00cccc; box-shadow: 0 0 10px #00ffff; }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <h1>🌌 小行星</h1>
+        <div class="info">
+            <div class="score">分數: <span id="score">0</span></div>
+            <div class="score">生命: <span id="lives">3</span></div>
+        </div>
+        <canvas id="gameCanvas" width="800" height="600"></canvas>
+        <div style="margin-top: 20px;">
+            <p>⬆️ 加速 ⬅️ ➡️ 旋轉 空白鍵射擊</p>
+            <button onclick="startGame()">開始遊戲</button>
+        </div>
+    </div>
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        let gameRunning = false; let score = 0; let lives = 3;
+        const ship = { x: 400, y: 300, angle: 0, vx: 0, vy: 0, radius: 10 };
+        let bullets = []; let asteroids = [];
+        const keys = {};
+        document.addEventListener('keydown', (e) => {
+            keys[e.key] = true;
+            if (e.key === ' ') { e.preventDefault(); shoot(); }
+        });
+        document.addEventListener('keyup', (e) => { keys[e.key] = false; });
+        function startGame() {
+            gameRunning = true; score = 0; lives = 3;
+            ship.x = 400; ship.y = 300; ship.vx = 0; ship.vy = 0; ship.angle = 0;
+            bullets = []; asteroids = [];
+            for (let i = 0; i < 5; i++) {
+                asteroids.push({
+                    x: Math.random() * canvas.width, y: Math.random() * canvas.height,
+                    vx: (Math.random() - 0.5) * 2, vy: (Math.random() - 0.5) * 2,
+                    radius: 30 + Math.random() * 20, rotation: Math.random() * Math.PI * 2
+                });
+            }
+            updateDisplay(); gameLoop();
+        }
+        function updateDisplay() {
+            document.getElementById('score').textContent = score;
+            document.getElementById('lives').textContent = lives;
+        }
+        function updateShip() {
+            if (keys['ArrowLeft']) ship.angle -= 0.1;
+            if (keys['ArrowRight']) ship.angle += 0.1;
+            if (keys['ArrowUp']) {
+                ship.vx += Math.cos(ship.angle) * 0.2;
+                ship.vy += Math.sin(ship.angle) * 0.2;
+            }
+            ship.x += ship.vx; ship.y += ship.vy;
+            ship.vx *= 0.98; ship.vy *= 0.98;
+            if (ship.x < 0) ship.x = canvas.width;
+            if (ship.x > canvas.width) ship.x = 0;
+            if (ship.y < 0) ship.y = canvas.height;
+            if (ship.y > canvas.height) ship.y = 0;
+        }
+        function shoot() {
+            if (bullets.length < 10) {
+                bullets.push({
+                    x: ship.x, y: ship.y, vx: Math.cos(ship.angle) * 5,
+                    vy: Math.sin(ship.angle) * 5, life: 60
+                });
+            }
+        }
+        function updateBullets() {
+            bullets = bullets.filter(bullet => {
+                bullet.x += bullet.vx; bullet.y += bullet.vy;
+                bullet.life--;
+                if (bullet.x < 0 || bullet.x > canvas.width || bullet.y < 0 || bullet.y > canvas.height) return false;
+                return bullet.life > 0;
+            });
+        }
+        function updateAsteroids() {
+            asteroids.forEach((asteroid, i) => {
+                asteroid.x += asteroid.vx; asteroid.y += asteroid.vy;
+                if (asteroid.x < 0) asteroid.x = canvas.width;
+                if (asteroid.x > canvas.width) asteroid.x = 0;
+                if (asteroid.y < 0) asteroid.y = canvas.height;
+                if (asteroid.y > canvas.height) asteroid.y = 0;
+                const dist = Math.sqrt((asteroid.x - ship.x)**2 + (asteroid.y - ship.y)**2);
+                if (dist < asteroid.radius + ship.radius) {
+                    lives--; updateDisplay();
+                    if (lives <= 0) { gameRunning = false; alert(`遊戲結束！得分: ${score}`); }
+                    asteroids.splice(i, 1);
+                }
+                bullets.forEach((bullet, bi) => {
+                    const bdist = Math.sqrt((asteroid.x - bullet.x)**2 + (asteroid.y - bullet.y)**2);
+                    if (bdist < asteroid.radius) {
+                        score += 100; updateDisplay();
+                        if (asteroid.radius > 15) {
+                            asteroids.push({
+                                x: asteroid.x, y: asteroid.y,
+                                vx: (Math.random() - 0.5) * 3, vy: (Math.random() - 0.5) * 3,
+                                radius: asteroid.radius / 2, rotation: Math.random() * Math.PI * 2
+                            });
+                            asteroids.push({
+                                x: asteroid.x, y: asteroid.y,
+                                vx: (Math.random() - 0.5) * 3, vy: (Math.random() - 0.5) * 3,
+                                radius: asteroid.radius / 2, rotation: Math.random() * Math.PI * 2
+                            });
+                        }
+                        asteroids.splice(i, 1);
+                        bullets.splice(bi, 1);
+                    }
+                });
+            });
+            if (asteroids.length === 0) {
+                for (let i = 0; i < 5; i++) {
+                    asteroids.push({
+                        x: Math.random() * canvas.width, y: Math.random() * canvas.height,
+                        vx: (Math.random() - 0.5) * 2, vy: (Math.random() - 0.5) * 2,
+                        radius: 30 + Math.random() * 20, rotation: Math.random() * Math.PI * 2
+                    });
+                }
+            }
+        }
+        function draw() {
+            ctx.fillStyle = '#000'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.strokeStyle = '#fff'; ctx.lineWidth = 2;
+            ctx.save(); ctx.translate(ship.x, ship.y); ctx.rotate(ship.angle);
+            ctx.beginPath(); ctx.moveTo(15, 0); ctx.lineTo(-10, -10); ctx.lineTo(-10, 10); ctx.closePath();
+            ctx.stroke(); ctx.restore();
+            bullets.forEach(bullet => {
+                ctx.fillStyle = '#fff'; ctx.fillRect(bullet.x - 2, bullet.y - 2, 4, 4);
+            });
+            asteroids.forEach(asteroid => {
+                ctx.strokeStyle = '#fff'; ctx.beginPath();
+                ctx.arc(asteroid.x, asteroid.y, asteroid.radius, 0, Math.PI * 2);
+                ctx.stroke();
+            });
+        }
+        function gameLoop() {
+            if (gameRunning) {
+                updateShip(); updateBullets(); updateAsteroids(); draw();
+            }
+            requestAnimationFrame(gameLoop);
+        }
+        gameLoop();
+    </script>
+</body>
+</html>
+

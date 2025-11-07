@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>參與活動</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: "Microsoft JhengHei", "微軟正黑體", Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1000px;
+            width: 90%;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            color: white;
+            margin-bottom: 20px;
+        }
+
+        header h1 {
+            font-size: 2em;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            margin-bottom: 20px;
+        }
+
+        .card-title {
+            font-size: 1.5em;
+            color: #333;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #667eea;
+        }
+
+        /* 問答模式樣式 */
+        .question-display {
+            margin-bottom: 30px;
+        }
+
+        .question-text {
+            font-size: 1.8em;
+            color: #333;
+            margin-bottom: 25px;
+            line-height: 1.6;
+        }
+
+        .options-list {
+            display: grid;
+            gap: 15px;
+        }
+
+        .option-btn {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            border: 3px solid transparent;
+            padding: 20px;
+            border-radius: 10px;
+            font-size: 1.1em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: left;
+            color: #333;
+            font-weight: bold;
+        }
+
+        .option-btn:hover {
+            transform: translateX(10px);
+            border-color: #667eea;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .option-btn.selected {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-color: #667eea;
+        }
+
+        .option-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .option-label {
+            display: inline-block;
+            width: 30px;
+            height: 30px;
+            line-height: 30px;
+            text-align: center;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            margin-right: 15px;
+            font-weight: bold;
+        }
+
+        .option-btn.selected .option-label {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        /* 回饋模式樣式 */
+        .feedback-form {
+            margin-bottom: 30px;
+        }
+
+        .feedback-input {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 1em;
+            font-family: inherit;
+            resize: vertical;
+            min-height: 120px;
+        }
+
+        .feedback-input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .submit-btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 8px;
+            font-size: 1em;
+            cursor: pointer;
+            font-weight: bold;
+            margin-top: 15px;
+            transition: all 0.3s ease;
+        }
+
+        .submit-btn:hover {
+            background: #764ba2;
+            transform: scale(1.05);
+        }
+
+        .submit-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .feedbacks-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .feedback-item {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            border-left: 4px solid #667eea;
+        }
+
+        .feedback-text {
+            color: #333;
+            margin-bottom: 10px;
+            line-height: 1.6;
+        }
+
+        .feedback-time {
+            font-size: 0.85em;
+            color: #666;
+        }
+
+        /* 排行榜樣式 */
+        .leaderboard-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .leaderboard-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            margin-bottom: 10px;
+        }
+
+        .leaderboard-item.me {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .leaderboard-rank {
+            font-weight: bold;
+            width: 30px;
+        }
+
+        .leaderboard-name {
+            flex: 1;
+            margin-left: 10px;
+        }
+
+        .leaderboard-score {
+            font-weight: bold;
+            font-size: 1.1em;
+        }
+
+        /* 我的資訊 */
+        .my-info {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .my-info .info-item {
+            display: inline-block;
+            margin: 0 20px;
+        }
+
+        .my-info .info-label {
+            font-size: 0.9em;
+            opacity: 0.9;
+        }
+
+        .my-info .info-value {
+            font-size: 2em;
+            font-weight: bold;
+            display: block;
+        }
+
+        .empty-message {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+            font-style: italic;
+        }
+
+        .error-message {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .success-message {
+            background: #d4edda;
+            color: #155724;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+
+        .status-badge.active {
+            background: #28a745;
+            color: white;
+        }
+
+        .status-badge.ended {
+            background: #dc3545;
+            color: white;
+        }
+
+        @media (max-width: 768px) {
+            .my-info .info-item {
+                display: block;
+                margin: 10px 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1 id="activityTitle">參與活動 <span class="status-badge" id="statusBadge"></span></h1>
+        </header>
+
+        <div id="errorContainer"></div>
+        <div id="successContainer"></div>
+
+        <div id="qaMode" style="display: none;">
+            <div class="card">
+                <div class="my-info">
+                    <div class="info-item">
+                        <span class="info-label">我的分數</span>
+                        <span class="info-value" id="myScore">0</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">我的排名</span>
+                        <span class="info-value" id="myRank">-</span>
+                    </div>
+                </div>
+
+                <div class="card-title">當前問題</div>
+                <div class="question-display">
+                    <div class="question-text" id="questionText"></div>
+                    <div class="options-list" id="optionsList"></div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">即時排行榜</div>
+                <div class="leaderboard-list" id="leaderboardList"></div>
+            </div>
+        </div>
+
+        <div id="feedbackMode" style="display: none;">
+            <div class="card">
+                <div class="card-title">提交回饋</div>
+                <div class="feedback-form">
+                    <textarea 
+                        class="feedback-input" 
+                        id="feedbackInput" 
+                        placeholder="請輸入您的意見或問題..."
+                        maxlength="500"></textarea>
+                    <button class="submit-btn" onclick="submitFeedback()">提交回饋</button>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">所有回饋</div>
+                <div class="feedbacks-list" id="feedbacksList"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="activity-manager.js"></script>
+    <script>
+        let roomId = null;
+        let activity = null;
+        let participantId = null;
+        let participantName = null;
+        let syncInterval = null;
+        let selectedAnswer = null;
+
+        // 取得 URL 參數
+        function getUrlParameter(name) {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get(name);
+        }
+
+        // 載入活動
+        function loadActivity() {
+            roomId = getUrlParameter('room');
+            if (!roomId) {
+                showError('缺少房間 ID，請確認連結是否正確');
+                return;
+            }
+
+            // 生成參與者 ID
+            participantId = ActivityManager.generateParticipantId();
+            
+            // 取得參與者名稱（可選）
+            const nameInput = sessionStorage.getItem('participantName');
+            if (nameInput) {
+                participantName = nameInput;
+            } else {
+                participantName = prompt('請輸入您的名稱（可選）:') || null;
+                if (participantName) {
+                    sessionStorage.setItem('participantName', participantName);
+                }
+            }
+
+            activity = ActivityManager.getActivity(roomId);
+            if (!activity) {
+                showError('活動不存在或已被刪除');
+                return;
+            }
+
+            document.getElementById('activityTitle').textContent = activity.title;
+            updateStatusBadge();
+
+            if (activity.status === 'ended') {
+                showError('活動已結束');
+                return;
+            }
+
+            if (activity.type === 'qa') {
+                showQAMode();
+            } else {
+                showFeedbackMode();
+            }
+
+            // 開始同步
+            startSyncing();
+        }
+
+        // 更新狀態標籤
+        function updateStatusBadge() {
+            const badge = document.getElementById('statusBadge');
+            if (activity.status === 'active') {
+                badge.textContent = '進行中';
+                badge.className = 'status-badge active';
+            } else {
+                badge.textContent = '已結束';
+                badge.className = 'status-badge ended';
+            }
+        }
+
+        // 顯示問答模式
+        function showQAMode() {
+            document.getElementById('qaMode').style.display = 'block';
+            document.getElementById('feedbackMode').style.display = 'none';
+            updateQAView();
+        }
+
+        // 顯示回饋模式
+        function showFeedbackMode() {
+            document.getElementById('qaMode').style.display = 'none';
+            document.getElementById('feedbackMode').style.display = 'block';
+            updateFeedbackView();
+        }
+
+        // 更新問答視圖
+        function updateQAView() {
+            if (!activity || !activity.questions || activity.questions.length === 0) {
+                return;
+            }
+
+            const currentIndex = activity.currentQuestion || 0;
+            const question = activity.questions[currentIndex];
+
+            if (!question) return;
+
+            document.getElementById('questionText').textContent = 
+                `問題 ${currentIndex + 1}/${activity.questions.length}: ${question.question}`;
+
+            // 更新選項列表
+            const optionsList = document.getElementById('optionsList');
+            optionsList.innerHTML = question.options.map((option, index) => {
+                const isSelected = selectedAnswer === index;
+                return `
+                    <button 
+                        class="option-btn ${isSelected ? 'selected' : ''}" 
+                        onclick="selectAnswer(${index})"
+                        ${isSelected ? 'disabled' : ''}>
+                        <span class="option-label">${String.fromCharCode(65 + index)}</span>
+                        ${option}
+                    </button>
+                `;
+            }).join('');
+
+            // 更新排行榜
+            updateLeaderboard();
+        }
+
+        // 選擇答案
+        function selectAnswer(answerIndex) {
+            if (!activity || activity.type !== 'qa') return;
+            if (selectedAnswer !== null) return; // 已選擇過
+
+            const currentIndex = activity.currentQuestion || 0;
+            const question = activity.questions[currentIndex];
+
+            const result = ActivityManager.submitAnswer(
+                roomId,
+                question.id,
+                answerIndex,
+                participantId,
+                participantName
+            );
+
+            if (result.success) {
+                selectedAnswer = answerIndex;
+                showSuccess('答案已提交！');
+                updateQAView();
+                
+                // 重新載入活動以取得最新數據
+                setTimeout(() => {
+                    activity = ActivityManager.getActivity(roomId);
+                    updateLeaderboard();
+                }, 500);
+            } else {
+                showError(result.message || '提交失敗，請重試');
+            }
+        }
+
+        // 更新排行榜
+        function updateLeaderboard() {
+            const leaderboard = activity.leaderboard || [];
+            const list = document.getElementById('leaderboardList');
+
+            // 找到自己的排名和分數
+            const myRankIndex = leaderboard.findIndex(p => p.participantId === participantId);
+            const myScore = myRankIndex >= 0 ? leaderboard[myRankIndex].score : 0;
+            const myRank = myRankIndex >= 0 ? myRankIndex + 1 : '-';
+
+            document.getElementById('myScore').textContent = myScore;
+            document.getElementById('myRank').textContent = myRank;
+
+            if (leaderboard.length === 0) {
+                list.innerHTML = '<div class="empty-message">還沒有參與者</div>';
+            } else {
+                list.innerHTML = leaderboard.slice(0, 10).map((participant, index) => {
+                    const isMe = participant.participantId === participantId;
+                    return `
+                        <div class="leaderboard-item ${isMe ? 'me' : ''}">
+                            <span class="leaderboard-rank">${index + 1}</span>
+                            <span class="leaderboard-name">${escapeHtml(participant.name)}</span>
+                            <span class="leaderboard-score">${participant.score} 分</span>
+                        </div>
+                    `;
+                }).join('');
+            }
+        }
+
+        // 提交回饋
+        function submitFeedback() {
+            const input = document.getElementById('feedbackInput');
+            const feedback = input.value.trim();
+
+            if (!feedback) {
+                showError('請輸入回饋內容');
+                return;
+            }
+
+            const result = ActivityManager.submitFeedback(roomId, feedback, participantId);
+
+            if (result.success) {
+                showSuccess('回饋已提交！');
+                input.value = '';
+                // 重新載入活動
+                setTimeout(() => {
+                    activity = ActivityManager.getActivity(roomId);
+                    updateFeedbackView();
+                }, 500);
+            } else {
+                showError(result.message || '提交失敗，請重試');
+            }
+        }
+
+        // 更新回饋視圖
+        function updateFeedbackView() {
+            const feedbacks = activity.feedbacks || [];
+            const list = document.getElementById('feedbacksList');
+
+            if (feedbacks.length === 0) {
+                list.innerHTML = '<div class="empty-message">還沒有回饋</div>';
+            } else {
+                list.innerHTML = feedbacks.map(feedback => `
+                    <div class="feedback-item">
+                        <div class="feedback-text">${escapeHtml(feedback.text)}</div>
+                        <div class="feedback-time">${formatDate(feedback.timestamp)}</div>
+                    </div>
+                `).join('');
+            }
+        }
+
+        // 開始同步
+        function startSyncing() {
+            syncInterval = setInterval(() => {
+                const updatedActivity = ActivityManager.getActivity(roomId);
+                if (!updatedActivity) {
+                    showError('活動不存在或已被刪除');
+                    stopSyncing();
+                    return;
+                }
+
+                // 檢查活動狀態
+                if (updatedActivity.status === 'ended' && activity.status !== 'ended') {
+                    showError('活動已結束');
+                    updateStatusBadge();
+                }
+
+                // 檢查問題是否改變
+                const oldQuestionIndex = activity.currentQuestion || 0;
+                const newQuestionIndex = updatedActivity.currentQuestion || 0;
+                
+                if (oldQuestionIndex !== newQuestionIndex && updatedActivity.type === 'qa') {
+                    selectedAnswer = null; // 重置選擇
+                }
+
+                activity = updatedActivity;
+                updateStatusBadge();
+
+                if (activity.type === 'qa') {
+                    updateQAView();
+                } else {
+                    updateFeedbackView();
+                }
+            }, 2000); // 每 2 秒同步一次
+        }
+
+        // 停止同步
+        function stopSyncing() {
+            if (syncInterval) {
+                clearInterval(syncInterval);
+                syncInterval = null;
+            }
+        }
+
+        // 顯示錯誤
+        function showError(message) {
+            const container = document.getElementById('errorContainer');
+            container.innerHTML = `<div class="error-message">${escapeHtml(message)}</div>`;
+            setTimeout(() => {
+                container.innerHTML = '';
+            }, 5000);
+        }
+
+        // 顯示成功訊息
+        function showSuccess(message) {
+            const container = document.getElementById('successContainer');
+            container.innerHTML = `<div class="success-message">${escapeHtml(message)}</div>`;
+            setTimeout(() => {
+                container.innerHTML = '';
+            }, 3000);
+        }
+
+        // 工具函數
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleString('zh-TW', {
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+
+        // 回饋輸入框 Enter 鍵提交（Ctrl+Enter）
+        document.getElementById('feedbackInput')?.addEventListener('keydown', function(e) {
+            if (e.ctrlKey && e.key === 'Enter') {
+                submitFeedback();
+            }
+        });
+
+        // 頁面卸載時停止同步
+        window.addEventListener('beforeunload', stopSyncing);
+
+        // 初始化
+        loadActivity();
+    </script>
+</body>
+</html>
+

@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>接水果遊戲</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            min-height: 100vh; background: linear-gradient(135deg, #87CEEB 0%, #98D8C8 100%);
+            font-family: 'Microsoft JhengHei', Arial, sans-serif;
+        }
+        .game-container {
+            text-align: center; background: rgba(255, 255, 255, 0.9); padding: 30px;
+            border-radius: 20px; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+        }
+        h1 { color: #333; margin-bottom: 20px; font-size: 2.5em; }
+        .info { display: flex; justify-content: space-around; margin-bottom: 20px; font-size: 1.2em; font-weight: bold; }
+        .score { color: #4CAF50; }
+        canvas {
+            border: 4px solid #333; background: #E0F7FA; display: block; margin: 0 auto;
+        }
+        button {
+            margin-top: 15px; padding: 10px 20px; font-size: 1em;
+            background: #4CAF50; color: white; border: none; border-radius: 5px;
+            cursor: pointer; transition: background 0.3s;
+        }
+        button:hover { background: #45a049; }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <h1>🍎 接水果</h1>
+        <div class="info">
+            <div class="score">分數: <span id="score">0</span></div>
+            <div class="score">生命: <span id="lives">3</span></div>
+        </div>
+        <canvas id="gameCanvas" width="600" height="600"></canvas>
+        <div style="margin-top: 20px;">
+            <p>使用 ⬅️ ➡️ 移動籃子接水果</p>
+            <button onclick="startGame()">開始遊戲</button>
+        </div>
+    </div>
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        let gameRunning = false; let score = 0; let lives = 3;
+        const basket = { x: 250, y: 550, width: 100, height: 20 };
+        let fruits = [];
+        const keys = {};
+        document.addEventListener('keydown', (e) => { keys[e.key] = true; });
+        document.addEventListener('keyup', (e) => { keys[e.key] = false; });
+        function startGame() {
+            gameRunning = true; score = 0; lives = 3; fruits = [];
+            basket.x = 250; updateDisplay();
+            gameLoop();
+        }
+        function updateDisplay() {
+            document.getElementById('score').textContent = score;
+            document.getElementById('lives').textContent = lives;
+        }
+        function updateBasket() {
+            if (keys['ArrowLeft'] && basket.x > 0) basket.x -= 5;
+            if (keys['ArrowRight'] && basket.x < canvas.width - basket.width) basket.x += 5;
+        }
+        function updateFruits() {
+            if (Math.random() < 0.02) {
+                fruits.push({ x: Math.random() * (canvas.width - 30), y: 0, size: 20, type: Math.floor(Math.random() * 3) });
+            }
+            fruits = fruits.filter(fruit => {
+                fruit.y += 2;
+                if (fruit.x < basket.x + basket.width && fruit.x + fruit.size > basket.x && fruit.y + fruit.size > basket.y && fruit.y < basket.y + basket.height) {
+                    score += 10; return false;
+                }
+                if (fruit.y > canvas.height) { lives--; return false; }
+                return true;
+            });
+            if (lives <= 0) { gameRunning = false; alert(`遊戲結束！得分: ${score}`); }
+        }
+        function draw() {
+            ctx.fillStyle = '#E0F7FA'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = '#8B4513'; ctx.fillRect(basket.x, basket.y, basket.width, basket.height);
+            fruits.forEach(fruit => {
+                const colors = ['#FF6B6B', '#4ECDC4', '#FFE66D'];
+                ctx.fillStyle = colors[fruit.type];
+                ctx.beginPath(); ctx.arc(fruit.x + fruit.size/2, fruit.y + fruit.size/2, fruit.size/2, 0, Math.PI * 2);
+                ctx.fill();
+            });
+        }
+        function gameLoop() {
+            if (gameRunning) {
+                updateBasket(); updateFruits(); draw(); updateDisplay();
+            }
+            requestAnimationFrame(gameLoop);
+        }
+        gameLoop();
+    </script>
+</body>
+</html>
+

@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>吃豆人</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            min-height: 100vh; background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            font-family: 'Microsoft JhengHei', Arial, sans-serif; color: white;
+        }
+        .game-container {
+            text-align: center; background: rgba(255, 255, 255, 0.1); padding: 30px;
+            border-radius: 20px; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+        }
+        h1 { color: #ffd700; margin-bottom: 20px; font-size: 2.5em; text-shadow: 0 0 10px #ffd700; }
+        .info { display: flex; justify-content: space-around; margin-bottom: 20px; font-size: 1.2em; font-weight: bold; }
+        .score { color: #ffd700; }
+        canvas {
+            border: 4px solid #ffd700; background: #000; display: block; margin: 0 auto;
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
+        }
+        button {
+            margin-top: 15px; padding: 10px 20px; font-size: 1em;
+            background: #ffd700; color: #000; border: none; border-radius: 5px;
+            cursor: pointer; font-weight: bold; transition: all 0.3s;
+        }
+        button:hover { background: #ffed4e; box-shadow: 0 0 10px #ffd700; }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <h1>👻 吃豆人</h1>
+        <div class="info">
+            <div class="score">分數: <span id="score">0</span></div>
+            <div class="score">生命: <span id="lives">3</span></div>
+        </div>
+        <canvas id="gameCanvas" width="600" height="600"></canvas>
+        <div style="margin-top: 20px;">
+            <p>⬆️ ⬇️ ⬅️ ➡️ 移動吃豆子</p>
+            <button onclick="startGame()">開始遊戲</button>
+        </div>
+    </div>
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const gridSize = 20; const tileCount = canvas.width / gridSize;
+        let gameRunning = false; let score = 0; let lives = 3;
+        const pacman = { x: 10, y: 10, dx: 0, dy: 0, nextDx: 0, nextDy: 0 };
+        let dots = []; let ghosts = [];
+        const maze = Array(tileCount).fill().map(() => Array(tileCount).fill(0));
+        for (let y = 0; y < tileCount; y++) {
+            for (let x = 0; x < tileCount; x++) {
+                if (x === 0 || x === tileCount - 1 || y === 0 || y === tileCount - 1 || 
+                    (x % 3 === 0 && y % 3 === 0 && x > 2 && x < tileCount - 3 && y > 2 && y < tileCount - 3)) {
+                    maze[y][x] = 1;
+                } else {
+                    dots.push({ x, y });
+                }
+            }
+        }
+        const keys = {};
+        document.addEventListener('keydown', (e) => {
+            keys[e.key] = true;
+            if (e.key === 'ArrowUp') { pacman.nextDy = -1; pacman.nextDx = 0; }
+            if (e.key === 'ArrowDown') { pacman.nextDy = 1; pacman.nextDx = 0; }
+            if (e.key === 'ArrowLeft') { pacman.nextDx = -1; pacman.nextDy = 0; }
+            if (e.key === 'ArrowRight') { pacman.nextDx = 1; pacman.nextDy = 0; }
+        });
+        function startGame() {
+            gameRunning = true; score = 0; lives = 3;
+            pacman.x = 10; pacman.y = 10; pacman.dx = 0; pacman.dy = 0;
+            ghosts = [{ x: 15, y: 15, dx: 1, dy: 0 }];
+            updateDisplay(); gameLoop();
+        }
+        function updateDisplay() {
+            document.getElementById('score').textContent = score;
+            document.getElementById('lives').textContent = lives;
+        }
+        function updatePacman() {
+            const nextX = pacman.x + pacman.nextDx;
+            const nextY = pacman.y + pacman.nextDy;
+            if (nextX >= 0 && nextX < tileCount && nextY >= 0 && nextY < tileCount && maze[nextY][nextX] === 0) {
+                pacman.dx = pacman.nextDx; pacman.dy = pacman.nextDy;
+            }
+            const newX = pacman.x + pacman.dx;
+            const newY = pacman.y + pacman.dy;
+            if (newX >= 0 && newX < tileCount && newY >= 0 && newY < tileCount && maze[newY][newX] === 0) {
+                pacman.x = newX; pacman.y = newY;
+            }
+            dots = dots.filter(dot => {
+                if (dot.x === pacman.x && dot.y === pacman.y) {
+                    score += 10; updateDisplay(); return false;
+                }
+                return true;
+            });
+            if (dots.length === 0) { gameRunning = false; alert(`恭喜！得分: ${score}`); }
+        }
+        function updateGhosts() {
+            ghosts.forEach(ghost => {
+                const nextX = ghost.x + ghost.dx;
+                const nextY = ghost.y + ghost.dy;
+                if (nextX < 0 || nextX >= tileCount || nextY < 0 || nextY >= tileCount || maze[nextY][nextX] === 1) {
+                    ghost.dx = (Math.random() - 0.5) > 0 ? 1 : -1;
+                    ghost.dy = (Math.random() - 0.5) > 0 ? 1 : -1;
+                } else {
+                    ghost.x = nextX; ghost.y = nextY;
+                }
+                if (ghost.x === pacman.x && ghost.y === pacman.y) {
+                    lives--; pacman.x = 10; pacman.y = 10; updateDisplay();
+                    if (lives <= 0) { gameRunning = false; alert(`遊戲結束！得分: ${score}`); }
+                }
+            });
+        }
+        function draw() {
+            ctx.fillStyle = '#000'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = '#0000ff';
+            for (let y = 0; y < tileCount; y++) {
+                for (let x = 0; x < tileCount; x++) {
+                    if (maze[y][x] === 1) ctx.fillRect(x * gridSize, y * gridSize, gridSize, gridSize);
+                }
+            }
+            ctx.fillStyle = '#ffd700';
+            dots.forEach(dot => {
+                ctx.beginPath();
+                ctx.arc(dot.x * gridSize + gridSize/2, dot.y * gridSize + gridSize/2, 3, 0, Math.PI * 2);
+                ctx.fill();
+            });
+            ctx.fillStyle = '#ffff00';
+            ctx.beginPath();
+            ctx.arc(pacman.x * gridSize + gridSize/2, pacman.y * gridSize + gridSize/2, gridSize/2 - 2, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = '#ff0000';
+            ghosts.forEach(ghost => {
+                ctx.fillRect(ghost.x * gridSize + 2, ghost.y * gridSize + 2, gridSize - 4, gridSize - 4);
+            });
+        }
+        function gameLoop() {
+            if (gameRunning) {
+                updatePacman(); updateGhosts(); draw();
+            }
+            setTimeout(gameLoop, 200);
+        }
+        gameLoop();
+    </script>
+</body>
+</html>
+

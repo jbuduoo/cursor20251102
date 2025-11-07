@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>猜數字</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            min-height: 100vh; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: 'Microsoft JhengHei', Arial, sans-serif;
+        }
+        .game-container {
+            text-align: center; background: rgba(255, 255, 255, 0.9); padding: 30px;
+            border-radius: 20px; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+        }
+        h1 { color: #333; margin-bottom: 20px; font-size: 2.5em; }
+        .info { margin-bottom: 20px; font-size: 1.2em; font-weight: bold; color: #4CAF50; }
+        input {
+            padding: 10px; font-size: 1.2em; border: 2px solid #333; border-radius: 5px;
+            margin: 10px; width: 200px;
+        }
+        button {
+            padding: 10px 20px; font-size: 1em;
+            background: #4CAF50; color: white; border: none; border-radius: 5px;
+            cursor: pointer; margin: 5px;
+        }
+        button:hover { background: #45a049; }
+        .hint { margin-top: 20px; font-size: 1.1em; color: #666; }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <h1>🔢 猜數字</h1>
+        <div class="info">猜一個1-100之間的數字</div>
+        <input type="number" id="guessInput" min="1" max="100" placeholder="輸入數字">
+        <div>
+            <button onclick="guess()">猜測</button>
+            <button onclick="startGame()">重新開始</button>
+        </div>
+        <div class="hint" id="hint"></div>
+        <div class="info">嘗試次數: <span id="attempts">0</span></div>
+    </div>
+    <script>
+        let targetNumber = 0; let attempts = 0;
+        function startGame() {
+            targetNumber = Math.floor(Math.random() * 100) + 1;
+            attempts = 0;
+            document.getElementById('attempts').textContent = attempts;
+            document.getElementById('hint').textContent = '';
+            document.getElementById('guessInput').value = '';
+        }
+        function guess() {
+            const guess = parseInt(document.getElementById('guessInput').value);
+            if (isNaN(guess) || guess < 1 || guess > 100) {
+                alert('請輸入1-100之間的數字！');
+                return;
+            }
+            attempts++;
+            document.getElementById('attempts').textContent = attempts;
+            if (guess === targetNumber) {
+                document.getElementById('hint').textContent = `恭喜！猜對了！用了${attempts}次`;
+                setTimeout(startGame, 2000);
+            } else if (guess < targetNumber) {
+                document.getElementById('hint').textContent = '太小了！';
+            } else {
+                document.getElementById('hint').textContent = '太大了！';
+            }
+        }
+        document.getElementById('guessInput').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') guess();
+        });
+        startGame();
+    </script>
+</body>
+</html>
+

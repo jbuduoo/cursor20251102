@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>拼圖遊戲</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            min-height: 100vh; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: 'Microsoft JhengHei', Arial, sans-serif;
+        }
+        .game-container {
+            text-align: center; background: rgba(255, 255, 255, 0.9); padding: 30px;
+            border-radius: 20px; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+        }
+        h1 { color: #333; margin-bottom: 20px; font-size: 2.5em; }
+        .grid {
+            display: grid; grid-template-columns: repeat(3, 100px); gap: 2px;
+            margin: 20px auto; border: 2px solid #333;
+        }
+        .piece {
+            width: 100px; height: 100px; background: #4CAF50; cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 2em; border: 1px solid #333;
+        }
+        .piece.empty { background: #ccc; }
+        button {
+            margin-top: 15px; padding: 10px 20px; font-size: 1em;
+            background: #4CAF50; color: white; border: none; border-radius: 5px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <h1>🧩 拼圖</h1>
+        <div class="grid" id="grid"></div>
+        <button onclick="startGame()">重新開始</button>
+    </div>
+    <script>
+        let pieces = [1,2,3,4,5,6,7,8,0]; let emptyIndex = 8;
+        function startGame() {
+            pieces = [1,2,3,4,5,6,7,8,0].sort(() => Math.random() - 0.5);
+            emptyIndex = pieces.indexOf(0); render();
+        }
+        function render() {
+            const grid = document.getElementById('grid');
+            grid.innerHTML = '';
+            pieces.forEach((val, i) => {
+                const piece = document.createElement('div');
+                piece.className = 'piece' + (val === 0 ? ' empty' : '');
+                piece.textContent = val || '';
+                piece.onclick = () => move(i);
+                grid.appendChild(piece);
+            });
+            if (pieces.slice(0,8).every((v,i) => v === i+1)) {
+                setTimeout(() => alert('恭喜！完成拼圖！'), 500);
+            }
+        }
+        function move(index) {
+            const row = Math.floor(index / 3); const col = index % 3;
+            const emptyRow = Math.floor(emptyIndex / 3); const emptyCol = emptyIndex % 3;
+            if ((row === emptyRow && Math.abs(col - emptyCol) === 1) ||
+                (col === emptyCol && Math.abs(row - emptyRow) === 1)) {
+                [pieces[index], pieces[emptyIndex]] = [pieces[emptyIndex], pieces[index]];
+                emptyIndex = index; render();
+            }
+        }
+        startGame();
+    </script>
+</body>
+</html>
+

@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>重力球</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            min-height: 100vh; background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            font-family: 'Microsoft JhengHei', Arial, sans-serif; color: white;
+        }
+        .game-container {
+            text-align: center; background: rgba(255, 255, 255, 0.1); padding: 30px;
+            border-radius: 20px; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+        }
+        h1 { color: #fff; margin-bottom: 20px; font-size: 2.5em; }
+        .info { margin-bottom: 20px; font-size: 1.2em; font-weight: bold; color: #00ffff; }
+        canvas {
+            border: 4px solid #00ffff; background: #000; display: block; margin: 0 auto;
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.5);
+        }
+        button {
+            margin-top: 15px; padding: 10px 20px; font-size: 1em;
+            background: #00ffff; color: #000; border: none; border-radius: 5px;
+            cursor: pointer; font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <h1>⚫ 重力球</h1>
+        <div class="info">移動滑鼠控制重力方向，收集所有星星</div>
+        <canvas id="gameCanvas" width="600" height="600"></canvas>
+        <button onclick="startGame()">重新開始</button>
+    </div>
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        let gameRunning = false;
+        const ball = { x: 300, y: 300, vx: 0, vy: 0, radius: 15 };
+        let stars = []; let mouse = { x: 300, y: 300 };
+        canvas.addEventListener('mousemove', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            mouse.x = e.clientX - rect.left;
+            mouse.y = e.clientY - rect.top;
+        });
+        function startGame() {
+            gameRunning = true;
+            ball.x = 300; ball.y = 300; ball.vx = 0; ball.vy = 0;
+            stars = [];
+            for (let i = 0; i < 10; i++) {
+                stars.push({
+                    x: Math.random() * 500 + 50,
+                    y: Math.random() * 500 + 50,
+                    collected: false
+                });
+            }
+            gameLoop();
+        }
+        function updateBall() {
+            const dx = mouse.x - ball.x;
+            const dy = mouse.y - ball.y;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            if (dist > 0) {
+                ball.vx += (dx / dist) * 0.2;
+                ball.vy += (dy / dist) * 0.2;
+            }
+            ball.vx *= 0.95;
+            ball.vy *= 0.95;
+            ball.x += ball.vx;
+            ball.y += ball.vy;
+            if (ball.x < ball.radius) { ball.x = ball.radius; ball.vx *= -0.8; }
+            if (ball.x > canvas.width - ball.radius) { ball.x = canvas.width - ball.radius; ball.vx *= -0.8; }
+            if (ball.y < ball.radius) { ball.y = ball.radius; ball.vy *= -0.8; }
+            if (ball.y > canvas.height - ball.radius) { ball.y = canvas.height - ball.radius; ball.vy *= -0.8; }
+            stars.forEach((star, i) => {
+                if (!star.collected) {
+                    const dist = Math.sqrt((star.x - ball.x)**2 + (star.y - ball.y)**2);
+                    if (dist < ball.radius + 10) {
+                        star.collected = true;
+                        if (stars.every(s => s.collected)) {
+                            setTimeout(() => alert('恭喜！收集所有星星！'), 500);
+                        }
+                    }
+                }
+            });
+        }
+        function draw() {
+            ctx.fillStyle = '#000';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = '#ffff00';
+            stars.forEach(star => {
+                if (!star.collected) {
+                    ctx.beginPath();
+                    ctx.arc(star.x, star.y, 10, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+            });
+            ctx.fillStyle = '#00ffff';
+            ctx.beginPath();
+            ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
+            ctx.fill();
+        }
+        function gameLoop() {
+            if (gameRunning) {
+                updateBall(); draw();
+            }
+            requestAnimationFrame(gameLoop);
+        }
+        startGame();
+    </script>
+</body>
+</html>
+

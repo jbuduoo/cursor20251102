@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>記憶翻牌</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            min-height: 100vh; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: 'Microsoft JhengHei', Arial, sans-serif;
+        }
+        .game-container {
+            text-align: center; background: rgba(255, 255, 255, 0.9); padding: 30px;
+            border-radius: 20px; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+        }
+        h1 { color: #333; margin-bottom: 20px; font-size: 2.5em; }
+        .info { display: flex; justify-content: space-around; margin-bottom: 20px; font-size: 1.2em; font-weight: bold; }
+        .score { color: #4CAF50; }
+        .grid {
+            display: grid; grid-template-columns: repeat(4, 100px); gap: 10px;
+            justify-content: center; margin: 20px 0;
+        }
+        .card {
+            width: 100px; height: 100px; background: #4CAF50; border-radius: 10px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 2em; cursor: pointer; transition: all 0.3s;
+            color: transparent; user-select: none;
+        }
+        .card.flipped { background: #fff; color: #333; }
+        .card.matched { background: #9E9E9E; opacity: 0.5; cursor: default; }
+        button {
+            margin-top: 15px; padding: 10px 20px; font-size: 1em;
+            background: #4CAF50; color: white; border: none; border-radius: 5px;
+            cursor: pointer; transition: background 0.3s;
+        }
+        button:hover { background: #45a049; }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <h1>🧠 記憶翻牌</h1>
+        <div class="info">
+            <div class="score">配對: <span id="pairs">0</span>/8</div>
+            <div class="score">移動: <span id="moves">0</span></div>
+        </div>
+        <div class="grid" id="grid"></div>
+        <button onclick="startGame()">重新開始</button>
+    </div>
+    <script>
+        const symbols = ['🐶', '🐱', '🐭', '🐹', '🐰', '🦊', '🐻', '🐼'];
+        let cards = []; let flippedCards = []; let matchedPairs = 0; let moves = 0;
+        function startGame() {
+            matchedPairs = 0; moves = 0;
+            cards = [...symbols, ...symbols].sort(() => Math.random() - 0.5);
+            flippedCards = []; render();
+            document.getElementById('pairs').textContent = matchedPairs;
+            document.getElementById('moves').textContent = moves;
+        }
+        function render() {
+            const grid = document.getElementById('grid');
+            grid.innerHTML = '';
+            cards.forEach((symbol, index) => {
+                const card = document.createElement('div');
+                card.className = 'card';
+                card.textContent = symbol;
+                card.onclick = () => flipCard(index);
+                grid.appendChild(card);
+            });
+        }
+        function flipCard(index) {
+            const card = document.querySelectorAll('.card')[index];
+            if (card.classList.contains('flipped') || card.classList.contains('matched') || flippedCards.length === 2) return;
+            card.classList.add('flipped');
+            flippedCards.push({index, symbol: cards[index]});
+            if (flippedCards.length === 2) {
+                moves++;
+                document.getElementById('moves').textContent = moves;
+                setTimeout(() => {
+                    if (flippedCards[0].symbol === flippedCards[1].symbol) {
+                        document.querySelectorAll('.card')[flippedCards[0].index].classList.add('matched');
+                        document.querySelectorAll('.card')[flippedCards[1].index].classList.add('matched');
+                        matchedPairs++;
+                        document.getElementById('pairs').textContent = matchedPairs;
+                        if (matchedPairs === 8) {
+                            setTimeout(() => alert(`恭喜！完成遊戲！移動次數: ${moves}`), 500);
+                        }
+                    } else {
+                        document.querySelectorAll('.card')[flippedCards[0].index].classList.remove('flipped');
+                        document.querySelectorAll('.card')[flippedCards[1].index].classList.remove('flipped');
+                    }
+                    flippedCards = [];
+                }, 1000);
+            }
+        }
+        startGame();
+    </script>
+</body>
+</html>
+

@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>消消樂</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            min-height: 100vh; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: 'Microsoft JhengHei', Arial, sans-serif;
+        }
+        .game-container {
+            text-align: center; background: rgba(255, 255, 255, 0.9); padding: 30px;
+            border-radius: 20px; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+        }
+        h1 { color: #333; margin-bottom: 20px; font-size: 2.5em; }
+        .info { display: flex; justify-content: space-around; margin-bottom: 20px; font-size: 1.2em; font-weight: bold; }
+        .score { color: #4CAF50; }
+        .grid {
+            display: grid; grid-template-columns: repeat(8, 50px); gap: 2px;
+            background: #333; padding: 2px; border-radius: 5px; margin: 20px auto;
+        }
+        .cell {
+            width: 50px; height: 50px; border-radius: 5px; cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.5em; transition: transform 0.2s;
+        }
+        .cell:hover { transform: scale(1.1); }
+        .cell.selected { border: 3px solid #fff; }
+        button {
+            margin-top: 15px; padding: 10px 20px; font-size: 1em;
+            background: #4CAF50; color: white; border: none; border-radius: 5px;
+            cursor: pointer; transition: background 0.3s;
+        }
+        button:hover { background: #45a049; }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <h1>💎 消消樂</h1>
+        <div class="info">
+            <div class="score">分數: <span id="score">0</span></div>
+            <div class="score">移動: <span id="moves">30</span></div>
+        </div>
+        <div class="grid" id="grid"></div>
+        <button onclick="startGame()">重新開始</button>
+    </div>
+    <script>
+        const colors = ['#FF6B6B', '#4ECDC4', '#FFE66D', '#95E1D3', '#F38181'];
+        let grid = []; let score = 0; let moves = 30; let selected = null;
+        function startGame() {
+            score = 0; moves = 30;
+            grid = Array(8).fill().map(() => Array(8).fill().map(() => Math.floor(Math.random() * 5)));
+            selected = null; updateDisplay(); render();
+        }
+        function updateDisplay() {
+            document.getElementById('score').textContent = score;
+            document.getElementById('moves').textContent = moves;
+        }
+        function render() {
+            const gridEl = document.getElementById('grid');
+            gridEl.innerHTML = '';
+            for (let y = 0; y < 8; y++) {
+                for (let x = 0; x < 8; x++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'cell';
+                    cell.style.background = colors[grid[y][x]];
+                    cell.onclick = () => handleClick(x, y);
+                    if (selected && selected.x === x && selected.y === y) cell.classList.add('selected');
+                    gridEl.appendChild(cell);
+                }
+            }
+        }
+        function handleClick(x, y) {
+            if (selected) {
+                if (selected.x === x && selected.y === y) {
+                    selected = null; render(); return;
+                }
+                const dx = Math.abs(selected.x - x);
+                const dy = Math.abs(selected.y - y);
+                if ((dx === 1 && dy === 0) || (dx === 0 && dy === 1)) {
+                    [grid[selected.y][selected.x], grid[y][x]] = [grid[y][x], grid[selected.y][selected.x]];
+                    const matches = findMatches();
+                    if (matches.length > 0) {
+                        removeMatches(matches);
+                        score += matches.length * 10;
+                        moves--;
+                        updateDisplay();
+                        if (moves <= 0) {
+                            setTimeout(() => alert(`遊戲結束！得分: ${score}`), 500);
+                        }
+                    } else {
+                        [grid[selected.y][selected.x], grid[y][x]] = [grid[y][x], grid[selected.y][selected.x]];
+                    }
+                }
+                selected = null;
+            } else {
+                selected = {x, y};
+            }
+            render();
+        }
+        function findMatches() {
+            const matches = [];
+            for (let y = 0; y < 8; y++) {
+                for (let x = 0; x < 8; x++) {
+                    if (x < 6 && grid[y][x] === grid[y][x+1] && grid[y][x] === grid[y][x+2]) {
+                        matches.push({x, y}, {x: x+1, y}, {x: x+2, y});
+                    }
+                    if (y < 6 && grid[y][x] === grid[y+1][x] && grid[y][x] === grid[y+2][x]) {
+                        matches.push({x, y}, {x, y: y+1}, {x, y: y+2});
+                    }
+                }
+            }
+            return matches;
+        }
+        function removeMatches(matches) {
+            const unique = [...new Set(matches.map(m => `${m.x},${m.y}`))];
+            unique.forEach(pos => {
+                const [x, y] = pos.split(',').map(Number);
+                grid[y][x] = Math.floor(Math.random() * 5);
+            });
+            setTimeout(() => {
+                const newMatches = findMatches();
+                if (newMatches.length > 0) {
+                    removeMatches(newMatches);
+                    score += newMatches.length * 10;
+                    updateDisplay();
+                }
+            }, 300);
+        }
+        startGame();
+    </script>
+</body>
+</html>
+
