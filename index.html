@@ -332,7 +332,10 @@
         // 生成程式卡片
         function createProgramCard(program) {
             const card = document.createElement('a');
-            card.href = program.file;
+            // 對中文路徑進行 URL 編碼
+            const pathParts = program.file.split('/');
+            const encodedPath = pathParts.map(part => encodeURIComponent(part)).join('/');
+            card.href = encodedPath;
             card.target = '_blank';
             card.className = 'program-card';
             
