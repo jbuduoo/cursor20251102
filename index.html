@@ -336,11 +336,19 @@
             ]
         };
 
-        // 記錄點擊次數
+        // 記錄點擊次數（包含日期）
         function recordClick(filePath) {
             try {
                 const stats = JSON.parse(localStorage.getItem('programClickStats') || '{}');
-                stats[filePath] = (stats[filePath] || 0) + 1;
+                const today = new Date().toISOString().split('T')[0]; // 格式：YYYY-MM-DD
+                
+                if (!stats[filePath]) {
+                    stats[filePath] = {};
+                }
+                
+                // 記錄當日點擊次數
+                stats[filePath][today] = (stats[filePath][today] || 0) + 1;
+                
                 localStorage.setItem('programClickStats', JSON.stringify(stats));
             } catch (e) {
                 console.error('記錄點擊次數失敗:', e);

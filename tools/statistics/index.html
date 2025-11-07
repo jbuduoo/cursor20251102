@@ -170,6 +170,78 @@
             font-weight: bold;
         }
 
+        .table-container {
+            overflow-x: auto;
+            margin-top: 15px;
+        }
+
+        .stats-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .stats-table thead {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .stats-table th {
+            padding: 15px;
+            text-align: left;
+            font-weight: bold;
+            font-size: 1.1em;
+        }
+
+        .stats-table td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .stats-table tbody tr {
+            transition: background-color 0.2s ease;
+        }
+
+        .stats-table tbody tr:hover {
+            background-color: #f5f7fa;
+        }
+
+        .stats-table tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        .program-name-cell {
+            font-weight: bold;
+            color: #333;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .program-icon-cell {
+            font-size: 1.2em;
+        }
+
+        .date-cell {
+            color: #666;
+        }
+
+        .count-cell {
+            font-weight: bold;
+            color: #667eea;
+            text-align: right;
+        }
+
+        .empty-table-message {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+            font-style: italic;
+        }
+
         @media (max-width: 768px) {
             .stats-grid {
                 grid-template-columns: 1fr;
@@ -177,6 +249,15 @@
 
             header h1 {
                 font-size: 2em;
+            }
+
+            .stats-table {
+                font-size: 0.9em;
+            }
+
+            .stats-table th,
+            .stats-table td {
+                padding: 10px 8px;
             }
         }
     </style>
@@ -202,8 +283,19 @@
 
         <div class="stats-section">
             <h2 class="section-title">🛠️ 工具專案</h2>
-            <div class="stats-grid" id="tools-stats">
-                <!-- 統計卡片將由 JavaScript 動態生成 -->
+            <div class="table-container">
+                <table class="stats-table" id="tools-stats-table">
+                    <thead>
+                        <tr>
+                            <th>功能</th>
+                            <th>日期</th>
+                            <th>點擊次數</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tools-stats-body">
+                        <!-- 表格內容將由 JavaScript 動態生成 -->
+                    </tbody>
+                </table>
             </div>
         </div>
 
@@ -225,6 +317,23 @@
         function getStats() {
             const stats = localStorage.getItem('programClickStats');
             return stats ? JSON.parse(stats) : {};
+        }
+
+        // 計算總點擊次數
+        function getTotalClicks(dateStats) {
+            if (!dateStats || typeof dateStats !== 'object') {
+                return 0;
+            }
+            return Object.values(dateStats).reduce((sum, count) => sum + (typeof count === 'number' ? count : 0), 0);
+        }
+
+        // 格式化日期顯示
+        function formatDate(dateString) {
+            const date = new Date(dateString + 'T00:00:00');
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
         }
 
         // 獲取所有程式列表（需要與 index.html 中的程式列表一致）
@@ -280,14 +389,72 @@
                 gameContainer.appendChild(createStatCard(program, count));
             });
 
-            // 顯示工具統計
-            const toolsContainer = document.getElementById('tools-stats');
-            toolsContainer.innerHTML = '';
-            programs.tools.forEach(program => {
-                const count = stats[program.file] || 0;
-                totalCount += count;
-                toolsContainer.appendChild(createStatCard(program, count));
-            });
+            // 顯示工具統計（表格形式）
+            const toolsTableBody = document.getElementById('tools-stats-body');
+            toolsTableBody.innerHTML = '';
+            
+            if (programs.tools.length === 0) {
+                toolsTableBody.innerHTML = '<tr><td colspan="3" class="empty-table-message">暫無工具統計資料</td></tr>';
+            } else {
+                programs.tools.forEach(program => {
+                    let dateStats = stats[program.file] || {};
+                    let totalClicks = 0;
+                    
+                    // 處理舊格式（只有總數）和新格式（按日期記錄）
+                    if (typeof dateStats === 'number') {
+                        // 舊格式：只有總數，轉換為新格式
+                        const today = new Date().toISOString().split('T')[0];
+                        dateStats = { [today]: dateStats };
+                    }
+                    
+                    totalClicks = getTotalClicks(dateStats);
+                    totalCount += totalClicks;
+                    
+                    // 獲取所有日期並排序（降序，最新的在前）
+                    const dates = Object.keys(dateStats).filter(key => typeof dateStats[key] === 'number').sort().reverse();
+                    
+                    if (dates.length === 0) {
+                        // 如果沒有點擊記錄，顯示一行總計為0
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td class="program-name-cell">
+                                <span class="program-icon-cell">${program.icon}</span>
+                                ${program.name}
+                            </td>
+                            <td class="date-cell">-</td>
+                            <td class="count-cell">0</td>
+                        `;
+                        toolsTableBody.appendChild(row);
+                    } else {
+                        // 為每個日期創建一行
+                        dates.forEach((date, index) => {
+                            const row = document.createElement('tr');
+                            const isFirstRow = index === 0;
+                            const rowspan = dates.length;
+                            
+                            row.innerHTML = `
+                                ${isFirstRow ? `<td class="program-name-cell" rowspan="${rowspan}">
+                                    <span class="program-icon-cell">${program.icon}</span>
+                                    ${program.name}
+                                </td>` : ''}
+                                <td class="date-cell">${formatDate(date)}</td>
+                                <td class="count-cell">${dateStats[date]}</td>
+                            `;
+                            toolsTableBody.appendChild(row);
+                        });
+                        
+                        // 添加總計行（顯示該工具的總共點擊次數）
+                        const totalRow = document.createElement('tr');
+                        totalRow.style.backgroundColor = '#f8f9fa';
+                        totalRow.style.fontWeight = 'bold';
+                        totalRow.innerHTML = `
+                            <td colspan="2" style="text-align: right; padding-right: 20px;">${program.name} 總共點擊次數：</td>
+                            <td class="count-cell">${totalClicks}</td>
+                        `;
+                        toolsTableBody.appendChild(totalRow);
+                    }
+                });
+            }
 
             // 顯示故事統計
             const storyContainer = document.getElementById('story-stats');
