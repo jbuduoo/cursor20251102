@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>节奏游戏</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            min-height: 100vh; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: 'Microsoft JhengHei', Arial, sans-serif;
+        }
+        .game-container {
+            text-align: center; background: rgba(255, 255, 255, 0.9); padding: 30px;
+            border-radius: 20px; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+        }
+        h1 { color: #333; margin-bottom: 20px; font-size: 2.5em; }
+        .info { display: flex; justify-content: space-around; margin-bottom: 20px; font-size: 1.2em; font-weight: bold; }
+        .score { color: #4CAF50; }
+        .lanes {
+            display: flex; gap: 10px; justify-content: center; margin: 20px 0;
+        }
+        .lane {
+            width: 100px; height: 400px; background: #333; position: relative;
+            border-radius: 10px; overflow: hidden;
+        }
+        .hit-line {
+            position: absolute; bottom: 50px; width: 100%; height: 4px;
+            background: #FFE66D; z-index: 10;
+        }
+        .note {
+            position: absolute; width: 90px; height: 30px; background: #4ECDC4;
+            border-radius: 5px; left: 5px; transition: top 0.05s linear;
+        }
+        .key {
+            width: 100px; height: 60px; background: #666; color: white;
+            border: none; border-radius: 10px; font-size: 1.5em; font-weight: bold;
+            cursor: pointer; margin: 5px;
+        }
+        .key:active { background: #4CAF50; }
+        button {
+            margin-top: 15px; padding: 10px 20px; font-size: 1em;
+            background: #4CAF50; color: white; border: none; border-radius: 5px;
+            cursor: pointer; transition: background 0.3s; margin: 5px;
+        }
+        button:hover { background: #45a049; }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <h1>🎵 節奏遊戲</h1>
+        <div class="info">
+            <div class="score">分數: <span id="score">0</span></div>
+            <div class="score">連擊: <span id="combo">0</span></div>
+        </div>
+        <div class="lanes" id="lanes"></div>
+        <div>
+            <button class="key" data-key="a">A</button>
+            <button class="key" data-key="s">S</button>
+            <button class="key" data-key="d">D</button>
+            <button class="key" data-key="f">F</button>
+        </div>
+        <button onclick="startGame()">開始遊戲</button>
+    </div>
+    <script>
+        const keys = ['a', 's', 'd', 'f'];
+        let score = 0;
+        let combo = 0;
+        let gameRunning = false;
+        let notes = [];
+        let noteSpeed = 2;
+
+        function startGame() {
+            gameRunning = true;
+            score = 0;
+            combo = 0;
+            notes = [];
+            updateDisplay();
+            createLanes();
+            spawnNotes();
+            gameLoop();
+        }
+
+        function createLanes() {
+            const lanesEl = document.getElementById('lanes');
+            lanesEl.innerHTML = '';
+            keys.forEach((key, idx) => {
+                const lane = document.createElement('div');
+                lane.className = 'lane';
+                lane.id = `lane-${idx}`;
+                const hitLine = document.createElement('div');
+                hitLine.className = 'hit-line';
+                lane.appendChild(hitLine);
+                lanesEl.appendChild(lane);
+            });
+        }
+
+        function spawnNotes() {
+            if (!gameRunning) return;
+            const laneIdx = Math.floor(Math.random() * keys.length);
+            notes.push({
+                lane: laneIdx,
+                y: -30,
+                id: Date.now()
+            });
+            setTimeout(spawnNotes, 1000 + Math.random() * 1000);
+        }
+
+        function gameLoop() {
+            if (!gameRunning) return;
+            updateNotes();
+            render();
+            requestAnimationFrame(gameLoop);
+        }
+
+        function updateNotes() {
+            notes.forEach(note => {
+                note.y += noteSpeed;
+            });
+            notes = notes.filter(note => note.y < 450);
+        }
+
+        function render() {
+            keys.forEach((key, idx) => {
+                const lane = document.getElementById(`lane-${idx}`);
+                const existingNotes = lane.querySelectorAll('.note');
+                existingNotes.forEach(n => n.remove());
+                
+                notes.filter(n => n.lane === idx).forEach(note => {
+                    const noteEl = document.createElement('div');
+                    noteEl.className = 'note';
+                    noteEl.style.top = note.y + 'px';
+                    noteEl.dataset.id = note.id;
+                    lane.appendChild(noteEl);
+                });
+            });
+        }
+
+        function hitNote(laneIdx) {
+            const hitY = 350;
+            const hitNotes = notes.filter(n => 
+                n.lane === laneIdx && Math.abs(n.y - hitY) < 30
+            );
+            if (hitNotes.length > 0) {
+                const note = hitNotes[0];
+                notes = notes.filter(n => n.id !== note.id);
+                score += 10;
+                combo++;
+                updateDisplay();
+            } else {
+                combo = 0;
+                updateDisplay();
+            }
+        }
+
+        keys.forEach((key, idx) => {
+            document.querySelector(`[data-key="${key}"]`).addEventListener('click', () => {
+                hitNote(idx);
+            });
+            document.addEventListener('keydown', (e) => {
+                if (e.key.toLowerCase() === key) {
+                    hitNote(idx);
+                }
+            });
+        });
+
+        function updateDisplay() {
+            document.getElementById('score').textContent = score;
+            document.getElementById('combo').textContent = combo;
+        }
+
+        startGame();
+    </script>
+</body>
+</html>
+

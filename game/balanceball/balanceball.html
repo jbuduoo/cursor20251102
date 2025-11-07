@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>平衡球</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            min-height: 100vh; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: 'Microsoft JhengHei', Arial, sans-serif;
+        }
+        .game-container {
+            text-align: center; background: rgba(255, 255, 255, 0.9); padding: 30px;
+            border-radius: 20px; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+        }
+        h1 { color: #333; margin-bottom: 20px; font-size: 2.5em; }
+        .info { display: flex; justify-content: space-around; margin-bottom: 20px; font-size: 1.2em; font-weight: bold; }
+        .score { color: #4CAF50; }
+        canvas {
+            border: 3px solid #333; background: #222; display: block; margin: 20px auto;
+        }
+        button {
+            margin-top: 15px; padding: 10px 20px; font-size: 1em;
+            background: #4CAF50; color: white; border: none; border-radius: 5px;
+            cursor: pointer; transition: background 0.3s; margin: 5px;
+        }
+        button:hover { background: #45a049; }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <h1>⚖️ 平衡球</h1>
+        <div class="info">
+            <div class="score">關卡: <span id="level">1</span></div>
+            <div class="score">時間: <span id="time">0</span>秒</div>
+        </div>
+        <canvas id="gameCanvas" width="600" height="400"></canvas>
+        <p>使用 ⬅️ ➡️ ⬆️ ⬇️ 控制平台傾斜</p>
+        <button onclick="startGame()">開始遊戲</button>
+    </div>
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        let gameRunning = false;
+        let level = 1;
+        let startTime = null;
+        let timer = null;
+
+        const ball = {x: 300, y: 50, radius: 15, vx: 0, vy: 0};
+        const platform = {x: 300, y: 350, width: 200, height: 20, angle: 0};
+        const target = {x: 550, y: 350, radius: 20};
+        const keys = {};
+
+        document.addEventListener('keydown', (e) => {
+            keys[e.key] = true;
+        });
+        document.addEventListener('keyup', (e) => {
+            keys[e.key] = false;
+        });
+
+        function startGame() {
+            gameRunning = true;
+            ball.x = 50;
+            ball.y = 50;
+            ball.vx = 0;
+            ball.vy = 0;
+            platform.angle = 0;
+            startTime = Date.now();
+            if (timer) clearInterval(timer);
+            timer = setInterval(() => {
+                document.getElementById('time').textContent = Math.floor((Date.now() - startTime) / 1000);
+            }, 1000);
+            gameLoop();
+        }
+
+        function update() {
+            if (!gameRunning) return;
+
+            // 控制平台倾斜
+            if (keys['ArrowLeft']) platform.angle = Math.max(-0.3, platform.angle - 0.02);
+            if (keys['ArrowRight']) platform.angle = Math.min(0.3, platform.angle + 0.02);
+            if (keys['ArrowUp']) platform.angle = Math.max(-0.3, platform.angle - 0.02);
+            if (keys['ArrowDown']) platform.angle = Math.min(0.3, platform.angle + 0.02);
+
+            // 重力
+            ball.vy += 0.3;
+
+            // 平台倾斜影响
+            ball.vx += Math.sin(platform.angle) * 0.2;
+
+            // 更新球位置
+            ball.x += ball.vx;
+            ball.y += ball.vy;
+
+            // 摩擦力
+            ball.vx *= 0.98;
+            ball.vy *= 0.98;
+
+            // 平台碰撞
+            const platformTop = platform.y - platform.height / 2;
+            const platformBottom = platform.y + platform.height / 2;
+            const platformLeft = platform.x - platform.width / 2;
+            const platformRight = platform.x + platform.width / 2;
+
+            if (ball.y + ball.radius >= platformTop && ball.y - ball.radius <= platformBottom &&
+                ball.x + ball.radius >= platformLeft && ball.x - ball.radius <= platformRight) {
+                ball.y = platformTop - ball.radius;
+                ball.vy *= -0.8;
+                ball.vx += Math.sin(platform.angle) * 2;
+            }
+
+            // 边界碰撞
+            if (ball.x - ball.radius < 0 || ball.x + ball.radius > canvas.width) {
+                ball.vx *= -0.8;
+                ball.x = Math.max(ball.radius, Math.min(canvas.width - ball.radius, ball.x));
+            }
+            if (ball.y - ball.radius < 0) {
+                ball.vy *= -0.8;
+                ball.y = ball.radius;
+            }
+            if (ball.y + ball.radius > canvas.height) {
+                ball.x = 50;
+                ball.y = 50;
+                ball.vx = 0;
+                ball.vy = 0;
+            }
+
+            // 检查到达目标
+            const dist = Math.sqrt(Math.pow(ball.x - target.x, 2) + Math.pow(ball.y - target.y, 2));
+            if (dist < ball.radius + target.radius) {
+                level++;
+                document.getElementById('level').textContent = level;
+                target.x = 50 + Math.random() * 500;
+                target.y = 50 + Math.random() * 300;
+                ball.x = 50;
+                ball.y = 50;
+                ball.vx = 0;
+                ball.vy = 0;
+            }
+        }
+
+        function render() {
+            ctx.fillStyle = '#222';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // 绘制目标
+            ctx.fillStyle = '#4CAF50';
+            ctx.beginPath();
+            ctx.arc(target.x, target.y, target.radius, 0, Math.PI * 2);
+            ctx.fill();
+
+            // 绘制平台
+            ctx.save();
+            ctx.translate(platform.x, platform.y);
+            ctx.rotate(platform.angle);
+            ctx.fillStyle = '#666';
+            ctx.fillRect(-platform.width / 2, -platform.height / 2, platform.width, platform.height);
+            ctx.restore();
+
+            // 绘制球
+            ctx.fillStyle = '#FFE66D';
+            ctx.beginPath();
+            ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        function gameLoop() {
+            if (!gameRunning) return;
+            update();
+            render();
+            requestAnimationFrame(gameLoop);
+        }
+
+        startGame();
+    </script>
+</body>
+</html>
+

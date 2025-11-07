@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>方块消除</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            min-height: 100vh; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: 'Microsoft JhengHei', Arial, sans-serif;
+        }
+        .game-container {
+            text-align: center; background: rgba(255, 255, 255, 0.9); padding: 30px;
+            border-radius: 20px; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+        }
+        h1 { color: #333; margin-bottom: 20px; font-size: 2.5em; }
+        .info { display: flex; justify-content: space-around; margin-bottom: 20px; font-size: 1.2em; font-weight: bold; }
+        .score { color: #4CAF50; }
+        .next-blocks { margin: 20px 0; }
+        .next-title { font-weight: bold; margin-bottom: 10px; }
+        .next-grid {
+            display: inline-grid; grid-template-columns: repeat(3, 30px); gap: 2px;
+            background: #333; padding: 5px; border-radius: 5px;
+        }
+        .main-grid {
+            display: grid; grid-template-columns: repeat(9, 40px); gap: 2px;
+            background: #333; padding: 2px; border-radius: 5px; margin: 20px auto;
+        }
+        .cell {
+            width: 40px; height: 40px; border-radius: 3px; cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.2em; transition: transform 0.2s;
+        }
+        .cell.filled { border: 2px solid #fff; }
+        .cell:hover:not(.filled) { background: rgba(255,255,255,0.3); }
+        button {
+            margin-top: 15px; padding: 10px 20px; font-size: 1em;
+            background: #4CAF50; color: white; border: none; border-radius: 5px;
+            cursor: pointer; transition: background 0.3s; margin: 5px;
+        }
+        button:hover { background: #45a049; }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <h1>🧩 方块消除</h1>
+        <div class="info">
+            <div class="score">分數: <span id="score">0</span></div>
+            <div class="score">等級: <span id="level">1</span></div>
+        </div>
+        <div class="next-blocks">
+            <div class="next-title">下一個方塊組</div>
+            <div class="next-grid" id="nextBlocks"></div>
+        </div>
+        <div class="main-grid" id="grid"></div>
+        <button onclick="startGame()">開始遊戲</button>
+        <button onclick="rotateBlock()">旋轉方塊</button>
+    </div>
+    <script>
+        const colors = ['#FF6B6B', '#4ECDC4', '#FFE66D', '#95E1D3', '#F38181'];
+        let grid = Array(9).fill().map(() => Array(9).fill(0));
+        let score = 0, level = 1;
+        let currentBlock = null;
+        let nextBlock = null;
+
+        const blockShapes = [
+            [[1,1,1],[0,1,0]], [[1,1],[1,1]], [[1,1,1,1]], 
+            [[1,1,0],[0,1,1]], [[1],[1],[1]], [[1,1,1],[1,0,0]]
+        ];
+
+        function startGame() {
+            score = 0; level = 1;
+            grid = Array(9).fill().map(() => Array(9).fill(0));
+            generateNextBlock();
+            generateNextBlock();
+            updateDisplay();
+            render();
+        }
+
+        function generateNextBlock() {
+            currentBlock = nextBlock;
+            const shape = blockShapes[Math.floor(Math.random() * blockShapes.length)];
+            const color = Math.floor(Math.random() * colors.length);
+            nextBlock = { shape, color, x: 3, y: 0 };
+            renderNext();
+        }
+
+        function renderNext() {
+            const nextEl = document.getElementById('nextBlocks');
+            nextEl.innerHTML = '';
+            if (nextBlock) {
+                for (let y = 0; y < 3; y++) {
+                    for (let x = 0; x < 3; x++) {
+                        const cell = document.createElement('div');
+                        cell.className = 'cell';
+                        if (nextBlock.shape[y] && nextBlock.shape[y][x]) {
+                            cell.style.background = colors[nextBlock.color];
+                            cell.classList.add('filled');
+                        } else {
+                            cell.style.background = '#ddd';
+                        }
+                        nextEl.appendChild(cell);
+                    }
+                }
+            }
+        }
+
+        function updateDisplay() {
+            document.getElementById('score').textContent = score;
+            document.getElementById('level').textContent = level;
+        }
+
+        function render() {
+            const gridEl = document.getElementById('grid');
+            gridEl.innerHTML = '';
+            for (let y = 0; y < 9; y++) {
+                for (let x = 0; x < 9; x++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'cell';
+                    if (grid[y][x]) {
+                        cell.style.background = colors[grid[y][x] - 1];
+                        cell.classList.add('filled');
+                    } else {
+                        cell.style.background = '#fff';
+                    }
+                    cell.onclick = () => placeBlock(x, y);
+                    gridEl.appendChild(cell);
+                }
+            }
+        }
+
+        function canPlace(block, x, y) {
+            for (let by = 0; by < block.shape.length; by++) {
+                for (let bx = 0; bx < block.shape[by].length; bx++) {
+                    if (block.shape[by][bx]) {
+                        const nx = x + bx, ny = y + by;
+                        if (nx < 0 || nx >= 9 || ny < 0 || ny >= 9) return false;
+                        if (grid[ny][nx]) return false;
+                    }
+                }
+            }
+            return true;
+        }
+
+        function placeBlock(x, y) {
+            if (!currentBlock || !canPlace(currentBlock, x, y)) return;
+            for (let by = 0; by < currentBlock.shape.length; by++) {
+                for (let bx = 0; bx < currentBlock.shape[by].length; bx++) {
+                    if (currentBlock.shape[by][bx]) {
+                        grid[y + by][x + bx] = currentBlock.color + 1;
+                    }
+                }
+            }
+            checkLines();
+            generateNextBlock();
+            render();
+            if (!canPlace(currentBlock, 3, 0)) {
+                setTimeout(() => alert(`遊戲結束！得分: ${score}`), 500);
+            }
+        }
+
+        function checkLines() {
+            let linesCleared = 0;
+            for (let y = 8; y >= 0; y--) {
+                if (grid[y].every(cell => cell !== 0)) {
+                    grid.splice(y, 1);
+                    grid.unshift(Array(9).fill(0));
+                    linesCleared++;
+                    y++;
+                }
+            }
+            for (let x = 8; x >= 0; x--) {
+                if (grid.every(row => row[x] !== 0)) {
+                    grid.forEach(row => row.splice(x, 1));
+                    grid.forEach(row => row.unshift(0));
+                    linesCleared++;
+                    x++;
+                }
+            }
+            if (linesCleared > 0) {
+                score += linesCleared * 100;
+                level = Math.floor(score / 500) + 1;
+                updateDisplay();
+            }
+        }
+
+        function rotateBlock() {
+            if (!currentBlock) return;
+            const rotated = currentBlock.shape[0].map((_, i) =>
+                currentBlock.shape.map(row => row[i]).reverse()
+            );
+            currentBlock.shape = rotated;
+            render();
+        }
+
+        startGame();
+    </script>
+</body>
+</html>
+

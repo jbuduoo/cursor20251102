@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>找不同</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            min-height: 100vh; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: 'Microsoft JhengHei', Arial, sans-serif;
+        }
+        .game-container {
+            text-align: center; background: rgba(255, 255, 255, 0.9); padding: 30px;
+            border-radius: 20px; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+        }
+        h1 { color: #333; margin-bottom: 20px; font-size: 2.5em; }
+        .info { display: flex; justify-content: space-around; margin-bottom: 20px; font-size: 1.2em; font-weight: bold; }
+        .score { color: #4CAF50; }
+        .images-container {
+            display: flex; gap: 20px; justify-content: center; margin: 20px 0;
+        }
+        .image-wrapper {
+            position: relative; border: 3px solid #333; border-radius: 10px;
+            overflow: hidden; cursor: crosshair;
+        }
+        canvas {
+            display: block; background: #f0f0f0;
+        }
+        .marker {
+            position: absolute; width: 30px; height: 30px;
+            border: 3px solid red; border-radius: 50%;
+            pointer-events: none; transform: translate(-50%, -50%);
+        }
+        button {
+            margin-top: 15px; padding: 10px 20px; font-size: 1em;
+            background: #4CAF50; color: white; border: none; border-radius: 5px;
+            cursor: pointer; transition: background 0.3s; margin: 5px;
+        }
+        button:hover { background: #45a049; }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <h1>🔍 找不同</h1>
+        <div class="info">
+            <div class="score">找到: <span id="found">0</span> / <span id="total">5</span></div>
+            <div class="score">時間: <span id="time">0</span>秒</div>
+        </div>
+        <div class="images-container">
+            <div class="image-wrapper" id="leftImage">
+                <canvas id="canvas1" width="400" height="300"></canvas>
+            </div>
+            <div class="image-wrapper" id="rightImage">
+                <canvas id="canvas2" width="400" height="300"></canvas>
+            </div>
+        </div>
+        <button onclick="startGame()">開始遊戲</button>
+        <button onclick="generateNew()">新關卡</button>
+    </div>
+    <script>
+        const canvas1 = document.getElementById('canvas1');
+        const canvas2 = document.getElementById('canvas2');
+        const ctx1 = canvas1.getContext('2d');
+        const ctx2 = canvas2.getContext('2d');
+        let differences = [];
+        let found = [];
+        let startTime = null;
+        let timer = null;
+
+        function startGame() {
+            found = [];
+            differences = [];
+            startTime = Date.now();
+            generateDifferences();
+            render();
+            updateDisplay();
+            if (timer) clearInterval(timer);
+            timer = setInterval(() => {
+                const elapsed = Math.floor((Date.now() - startTime) / 1000);
+                document.getElementById('time').textContent = elapsed;
+            }, 1000);
+        }
+
+        function generateDifferences() {
+            differences = [];
+            for (let i = 0; i < 5; i++) {
+                differences.push({
+                    x: Math.random() * 350 + 25,
+                    y: Math.random() * 250 + 25,
+                    radius: 15
+                });
+            }
+        }
+
+        function render() {
+            ctx1.fillStyle = '#e8f4f8';
+            ctx1.fillRect(0, 0, 400, 300);
+            ctx2.fillStyle = '#e8f4f8';
+            ctx2.fillRect(0, 0, 400, 300);
+
+            // 绘制基础图形
+            drawShapes(ctx1);
+            drawShapes(ctx2);
+
+            // 在第二张图上添加不同点
+            differences.forEach((diff, i) => {
+                if (!found.includes(i)) {
+                    ctx2.fillStyle = '#FF6B6B';
+                    ctx2.beginPath();
+                    ctx2.arc(diff.x, diff.y, diff.radius, 0, Math.PI * 2);
+                    ctx2.fill();
+                }
+            });
+
+            // 标记已找到的差异
+            found.forEach(i => {
+                const diff = differences[i];
+                const marker1 = document.createElement('div');
+                marker1.className = 'marker';
+                marker1.style.left = diff.x + 'px';
+                marker1.style.top = diff.y + 'px';
+                document.getElementById('leftImage').appendChild(marker1);
+
+                const marker2 = document.createElement('div');
+                marker2.className = 'marker';
+                marker2.style.left = diff.x + 'px';
+                marker2.style.top = diff.y + 'px';
+                document.getElementById('rightImage').appendChild(marker2);
+            });
+        }
+
+        function drawShapes(ctx) {
+            ctx.fillStyle = '#4ECDC4';
+            ctx.fillRect(50, 50, 80, 60);
+            ctx.fillStyle = '#FFE66D';
+            ctx.beginPath();
+            ctx.arc(200, 150, 40, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = '#95E1D3';
+            ctx.fillRect(250, 100, 100, 80);
+        }
+
+        function checkClick(x, y, canvas) {
+            differences.forEach((diff, i) => {
+                if (!found.includes(i)) {
+                    const dist = Math.sqrt(Math.pow(x - diff.x, 2) + Math.pow(y - diff.y, 2));
+                    if (dist < diff.radius + 10) {
+                        found.push(i);
+                        updateDisplay();
+                        render();
+                        if (found.length === differences.length) {
+                            clearInterval(timer);
+                            setTimeout(() => alert(`恭喜！找到所有不同！用时: ${Math.floor((Date.now() - startTime) / 1000)}秒`), 500);
+                        }
+                    }
+                }
+            });
+        }
+
+        canvas1.addEventListener('click', (e) => {
+            const rect = canvas1.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            checkClick(x, y, canvas1);
+        });
+
+        canvas2.addEventListener('click', (e) => {
+            const rect = canvas2.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            checkClick(x, y, canvas2);
+        });
+
+        function updateDisplay() {
+            document.getElementById('found').textContent = found.length;
+            document.getElementById('total').textContent = differences.length;
+        }
+
+        function generateNew() {
+            document.querySelectorAll('.marker').forEach(m => m.remove());
+            startGame();
+        }
+
+        startGame();
+    </script>
+</body>
+</html>
+

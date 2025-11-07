@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>填字游戏</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            min-height: 100vh; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: 'Microsoft JhengHei', Arial, sans-serif;
+        }
+        .game-container {
+            text-align: center; background: rgba(255, 255, 255, 0.9); padding: 30px;
+            border-radius: 20px; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            max-width: 900px;
+        }
+        h1 { color: #333; margin-bottom: 20px; font-size: 2.5em; }
+        .info { display: flex; justify-content: space-around; margin-bottom: 20px; font-size: 1.2em; font-weight: bold; }
+        .score { color: #4CAF50; }
+        .crossword-container {
+            display: flex; gap: 30px; justify-content: center; margin: 20px 0;
+        }
+        .clues {
+            flex: 1; text-align: left; padding: 15px; background: #f0f0f0; border-radius: 10px;
+        }
+        .clue-item { margin: 10px 0; padding: 5px; cursor: pointer; }
+        .clue-item:hover { background: #e0e0e0; }
+        .clue-item.active { background: #4CAF50; color: white; }
+        .grid {
+            display: grid; grid-template-columns: repeat(10, 35px); gap: 2px;
+            background: #333; padding: 2px; border-radius: 5px;
+        }
+        .cell {
+            width: 35px; height: 35px; border-radius: 3px; cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1em; font-weight: bold; background: #fff;
+            position: relative; user-select: none;
+        }
+        .cell.blocked { background: #333; cursor: default; }
+        .cell.active { background: #FFE66D; }
+        .cell input {
+            width: 100%; height: 100%; border: none; text-align: center;
+            font-size: 1em; font-weight: bold; background: transparent;
+            text-transform: uppercase;
+        }
+        .cell-number {
+            position: absolute; top: 2px; left: 2px; font-size: 0.6em; color: #666;
+        }
+        button {
+            margin-top: 15px; padding: 10px 20px; font-size: 1em;
+            background: #4CAF50; color: white; border: none; border-radius: 5px;
+            cursor: pointer; transition: background 0.3s; margin: 5px;
+        }
+        button:hover { background: #45a049; }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <h1>📝 填字遊戲</h1>
+        <div class="info">
+            <div class="score">完成度: <span id="progress">0</span>%</div>
+        </div>
+        <div class="crossword-container">
+            <div class="grid" id="grid"></div>
+            <div class="clues" id="clues"></div>
+        </div>
+        <button onclick="checkAnswers()">檢查答案</button>
+        <button onclick="startGame()">新遊戲</button>
+    </div>
+    <script>
+        const puzzle = {
+            grid: [
+                [1,1,1,1,1,0,1,1,1,1],
+                [1,0,0,0,1,0,1,0,0,0],
+                [1,0,0,0,1,1,1,0,0,0],
+                [1,1,1,1,0,0,1,1,1,1],
+                [0,0,0,1,0,0,1,0,0,0],
+                [1,1,1,1,1,1,1,1,1,1],
+                [0,0,0,1,0,0,0,0,0,1],
+                [1,1,1,1,0,0,1,1,1,1],
+                [1,0,0,0,0,0,1,0,0,0],
+                [1,1,1,1,1,1,1,1,1,1]
+            ],
+            words: [
+                {word: 'HELLO', row: 0, col: 0, dir: 'across', clue: '1. 打招呼'},
+                {word: 'WORLD', row: 0, col: 6, dir: 'across', clue: '2. 世界'},
+                {word: 'GAME', row: 3, col: 0, dir: 'across', clue: '3. 遊戲'},
+                {word: 'PLAY', row: 5, col: 0, dir: 'across', clue: '4. 玩'},
+                {word: 'FUN', row: 7, col: 0, dir: 'across', clue: '5. 有趣'},
+                {word: 'HTML', row: 0, col: 0, dir: 'down', clue: '6. 網頁標記語言'},
+                {word: 'CSS', row: 0, col: 3, dir: 'down', clue: '7. 樣式表'},
+                {word: 'CODE', row: 0, col: 6, dir: 'down', clue: '8. 代碼'}
+            ]
+        };
+
+        let currentWord = null;
+        let userAnswers = {};
+
+        function startGame() {
+            userAnswers = {};
+            render();
+        }
+
+        function render() {
+            const gridEl = document.getElementById('grid');
+            gridEl.innerHTML = '';
+            const cluesEl = document.getElementById('clues');
+            cluesEl.innerHTML = '<h3>提示</h3>';
+
+            puzzle.words.forEach((w, idx) => {
+                const clueEl = document.createElement('div');
+                clueEl.className = 'clue-item';
+                clueEl.textContent = w.clue;
+                clueEl.onclick = () => selectWord(w);
+                cluesEl.appendChild(clueEl);
+            });
+
+            for (let y = 0; y < 10; y++) {
+                for (let x = 0; x < 10; x++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'cell';
+                    
+                    if (puzzle.grid[y][x] === 0) {
+                        cell.classList.add('blocked');
+                    } else {
+                        const wordNum = getWordNumber(x, y);
+                        if (wordNum) {
+                            const numEl = document.createElement('span');
+                            numEl.className = 'cell-number';
+                            numEl.textContent = wordNum;
+                            cell.appendChild(numEl);
+                        }
+                        
+                        const input = document.createElement('input');
+                        input.type = 'text';
+                        input.maxLength = 1;
+                        input.dataset.x = x;
+                        input.dataset.y = y;
+                        const key = `${x},${y}`;
+                        if (userAnswers[key]) {
+                            input.value = userAnswers[key];
+                        }
+                        input.addEventListener('input', (e) => {
+                            userAnswers[`${x},${y}`] = e.target.value.toUpperCase();
+                            moveToNext(x, y, e.target.value);
+                        });
+                        cell.appendChild(input);
+                    }
+                    gridEl.appendChild(cell);
+                }
+            }
+            updateProgress();
+        }
+
+        function getWordNumber(x, y) {
+            for (let i = 0; i < puzzle.words.length; i++) {
+                const w = puzzle.words[i];
+                if (w.row === y && w.col === x) {
+                    return i + 1;
+                }
+            }
+            return null;
+        }
+
+        function selectWord(word) {
+            currentWord = word;
+            document.querySelectorAll('.clue-item').forEach(el => el.classList.remove('active'));
+            event.target.classList.add('active');
+            highlightWord(word);
+        }
+
+        function highlightWord(word) {
+            document.querySelectorAll('.cell').forEach(cell => cell.classList.remove('active'));
+            for (let i = 0; i < word.word.length; i++) {
+                const x = word.dir === 'across' ? word.col + i : word.col;
+                const y = word.dir === 'across' ? word.row : word.row + i;
+                const cell = document.querySelector(`[data-x="${x}"][data-y="${y}"]`)?.parentElement;
+                if (cell) cell.classList.add('active');
+            }
+        }
+
+        function moveToNext(x, y, value) {
+            if (!value) return;
+            const word = puzzle.words.find(w => {
+                const inWord = word.dir === 'across' ? 
+                    (w.row === y && x >= w.col && x < w.col + w.word.length) :
+                    (w.col === x && y >= w.row && y < w.row + w.word.length);
+                return inWord;
+            });
+            if (word) {
+                const idx = word.dir === 'across' ? x - word.col : y - word.row;
+                if (idx < word.word.length - 1) {
+                    const nextX = word.dir === 'across' ? x + 1 : x;
+                    const nextY = word.dir === 'across' ? y : y + 1;
+                    const nextInput = document.querySelector(`[data-x="${nextX}"][data-y="${nextY}"]`);
+                    if (nextInput) nextInput.focus();
+                }
+            }
+        }
+
+        function checkAnswers() {
+            let correct = 0;
+            puzzle.words.forEach(word => {
+                let userWord = '';
+                for (let i = 0; i < word.word.length; i++) {
+                    const x = word.dir === 'across' ? word.col + i : word.col;
+                    const y = word.dir === 'across' ? word.row : word.row + i;
+                    userWord += userAnswers[`${x},${y}`] || '';
+                }
+                if (userWord === word.word) correct++;
+            });
+            alert(`正確: ${correct} / ${puzzle.words.length}`);
+        }
+
+        function updateProgress() {
+            let filled = 0;
+            let total = 0;
+            puzzle.words.forEach(word => {
+                total += word.word.length;
+                for (let i = 0; i < word.word.length; i++) {
+                    const x = word.dir === 'across' ? word.col + i : word.col;
+                    const y = word.dir === 'across' ? word.row : word.row + i;
+                    if (userAnswers[`${x},${y}`]) filled++;
+                }
+            });
+            const progress = Math.floor((filled / total) * 100);
+            document.getElementById('progress').textContent = progress;
+        }
+
+        startGame();
+    </script>
+</body>
+</html>
+

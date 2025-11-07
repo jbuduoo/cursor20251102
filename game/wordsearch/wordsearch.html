@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>单词搜索</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            min-height: 100vh; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: 'Microsoft JhengHei', Arial, sans-serif;
+        }
+        .game-container {
+            text-align: center; background: rgba(255, 255, 255, 0.9); padding: 30px;
+            border-radius: 20px; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+        }
+        h1 { color: #333; margin-bottom: 20px; font-size: 2.5em; }
+        .info { display: flex; justify-content: space-around; margin-bottom: 20px; font-size: 1.2em; font-weight: bold; }
+        .score { color: #4CAF50; }
+        .words-list {
+            margin: 20px 0; padding: 15px; background: #f0f0f0; border-radius: 10px;
+        }
+        .word-item {
+            display: inline-block; margin: 5px; padding: 5px 10px;
+            background: #fff; border-radius: 5px;
+        }
+        .word-item.found { background: #4CAF50; color: white; text-decoration: line-through; }
+        .grid {
+            display: grid; grid-template-columns: repeat(15, 30px); gap: 2px;
+            background: #333; padding: 2px; border-radius: 5px; margin: 20px auto;
+        }
+        .cell {
+            width: 30px; height: 30px; border-radius: 3px; cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.9em; font-weight: bold; background: #fff;
+            transition: all 0.2s; user-select: none;
+        }
+        .cell.selected { background: #FFE66D; }
+        .cell.found { background: #4CAF50; color: white; }
+        button {
+            margin-top: 15px; padding: 10px 20px; font-size: 1em;
+            background: #4CAF50; color: white; border: none; border-radius: 5px;
+            cursor: pointer; transition: background 0.3s; margin: 5px;
+        }
+        button:hover { background: #45a049; }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <h1>🔤 單詞搜索</h1>
+        <div class="info">
+            <div class="score">找到: <span id="found">0</span> / <span id="total">0</span></div>
+        </div>
+        <div class="words-list" id="wordsList"></div>
+        <div class="grid" id="grid"></div>
+        <button onclick="startGame()">開始遊戲</button>
+        <button onclick="generateNew()">新關卡</button>
+    </div>
+    <script>
+        const words = ['HELLO', 'WORLD', 'GAME', 'PLAY', 'FUN', 'CODE', 'HTML', 'CSS'];
+        let grid = [];
+        let wordList = [];
+        let foundWords = [];
+        let selectedCells = [];
+        let isSelecting = false;
+
+        function startGame() {
+            foundWords = [];
+            selectedCells = [];
+            wordList = words.slice(0, 5);
+            generateGrid();
+            render();
+            updateDisplay();
+        }
+
+        function generateGrid() {
+            grid = Array(15).fill().map(() => Array(15).fill(''));
+            const directions = [
+                [0, 1], [1, 0], [1, 1], [1, -1]
+            ];
+            
+            wordList.forEach(word => {
+                let placed = false;
+                while (!placed) {
+                    const dir = directions[Math.floor(Math.random() * directions.length)];
+                    const x = Math.floor(Math.random() * (15 - word.length * Math.abs(dir[0])));
+                    const y = Math.floor(Math.random() * (15 - word.length * Math.abs(dir[1])));
+                    
+                    let canPlace = true;
+                    for (let i = 0; i < word.length; i++) {
+                        const nx = x + dir[0] * i;
+                        const ny = y + dir[1] * i;
+                        if (grid[ny][nx] && grid[ny][nx] !== word[i]) {
+                            canPlace = false;
+                            break;
+                        }
+                    }
+                    
+                    if (canPlace) {
+                        for (let i = 0; i < word.length; i++) {
+                            const nx = x + dir[0] * i;
+                            const ny = y + dir[1] * i;
+                            grid[ny][nx] = word[i];
+                        }
+                        placed = true;
+                    }
+                }
+            });
+
+            // 填充随机字母
+            for (let y = 0; y < 15; y++) {
+                for (let x = 0; x < 15; x++) {
+                    if (!grid[y][x]) {
+                        grid[y][x] = String.fromCharCode(65 + Math.floor(Math.random() * 26));
+                    }
+                }
+            }
+        }
+
+        function render() {
+            const gridEl = document.getElementById('grid');
+            gridEl.innerHTML = '';
+            for (let y = 0; y < 15; y++) {
+                for (let x = 0; x < 15; x++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'cell';
+                    cell.textContent = grid[y][x];
+                    cell.dataset.x = x;
+                    cell.dataset.y = y;
+                    
+                    const isSelected = selectedCells.some(c => c.x === x && c.y === y);
+                    const isFound = foundWords.some(word => {
+                        const wordCells = getWordCells(word);
+                        return wordCells.some(c => c.x === x && c.y === y);
+                    });
+                    
+                    if (isFound) cell.classList.add('found');
+                    else if (isSelected) cell.classList.add('selected');
+                    
+                    cell.addEventListener('mousedown', () => startSelect(x, y));
+                    cell.addEventListener('mouseenter', () => continueSelect(x, y));
+                    cell.addEventListener('mouseup', () => endSelect());
+                    
+                    gridEl.appendChild(cell);
+                }
+            }
+
+            const wordsListEl = document.getElementById('wordsList');
+            wordsListEl.innerHTML = '';
+            wordList.forEach(word => {
+                const wordEl = document.createElement('span');
+                wordEl.className = 'word-item';
+                wordEl.textContent = word;
+                if (foundWords.includes(word)) {
+                    wordEl.classList.add('found');
+                }
+                wordsListEl.appendChild(wordEl);
+            });
+        }
+
+        function startSelect(x, y) {
+            isSelecting = true;
+            selectedCells = [{x, y}];
+            render();
+        }
+
+        function continueSelect(x, y) {
+            if (!isSelecting) return;
+            const last = selectedCells[selectedCells.length - 1];
+            const dx = x - last.x;
+            const dy = y - last.y;
+            if (Math.abs(dx) <= 1 && Math.abs(dy) <= 1 && (dx !== 0 || dy !== 0)) {
+                if (selectedCells.length === 1 || 
+                    (dx === selectedCells[1].x - selectedCells[0].x && 
+                     dy === selectedCells[1].y - selectedCells[0].y)) {
+                    selectedCells.push({x, y});
+                    render();
+                }
+            }
+        }
+
+        function endSelect() {
+            if (!isSelecting) return;
+            isSelecting = false;
+            checkWord();
+            selectedCells = [];
+            render();
+        }
+
+        function getWordCells(word) {
+            const cells = [];
+            for (let y = 0; y < 15; y++) {
+                for (let x = 0; x < 15; x++) {
+                    const found = findWordAt(x, y, word);
+                    if (found) return found;
+                }
+            }
+            return [];
+        }
+
+        function findWordAt(x, y, word) {
+            const directions = [[0,1], [1,0], [1,1], [1,-1]];
+            for (const [dx, dy] of directions) {
+                const cells = [];
+                let valid = true;
+                for (let i = 0; i < word.length; i++) {
+                    const nx = x + dx * i;
+                    const ny = y + dy * i;
+                    if (nx < 0 || nx >= 15 || ny < 0 || ny >= 15 || grid[ny][nx] !== word[i]) {
+                        valid = false;
+                        break;
+                    }
+                    cells.push({x: nx, y: ny});
+                }
+                if (valid) return cells;
+            }
+            return null;
+        }
+
+        function checkWord() {
+            if (selectedCells.length < 3) return;
+            const selectedWord = selectedCells.map(c => grid[c.y][c.x]).join('');
+            const reversedWord = selectedWord.split('').reverse().join('');
+            
+            wordList.forEach(word => {
+                if ((selectedWord === word || reversedWord === word) && !foundWords.includes(word)) {
+                    foundWords.push(word);
+                    updateDisplay();
+                    if (foundWords.length === wordList.length) {
+                        setTimeout(() => alert('恭喜！找到所有单词！'), 500);
+                    }
+                }
+            });
+        }
+
+        function updateDisplay() {
+            document.getElementById('found').textContent = foundWords.length;
+            document.getElementById('total').textContent = wordList.length;
+        }
+
+        function generateNew() {
+            startGame();
+        }
+
+        startGame();
+    </script>
+</body>
+</html>
+

@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>光线反射</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            min-height: 100vh; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: 'Microsoft JhengHei', Arial, sans-serif;
+        }
+        .game-container {
+            text-align: center; background: rgba(255, 255, 255, 0.9); padding: 30px;
+            border-radius: 20px; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+        }
+        h1 { color: #333; margin-bottom: 20px; font-size: 2.5em; }
+        .info { display: flex; justify-content: space-around; margin-bottom: 20px; font-size: 1.2em; font-weight: bold; }
+        .score { color: #4CAF50; }
+        canvas {
+            border: 3px solid #333; background: #000; display: block; margin: 20px auto;
+            cursor: crosshair;
+        }
+        button {
+            margin-top: 15px; padding: 10px 20px; font-size: 1em;
+            background: #4CAF50; color: white; border: none; border-radius: 5px;
+            cursor: pointer; transition: background 0.3s; margin: 5px;
+        }
+        button:hover { background: #45a049; }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <h1>💡 光線反射</h1>
+        <div class="info">
+            <div class="score">關卡: <span id="level">1</span></div>
+            <div class="score">鏡子: <span id="mirrors">0</span></div>
+        </div>
+        <canvas id="gameCanvas" width="600" height="600"></canvas>
+        <button onclick="startGame()">開始遊戲</button>
+        <button onclick="nextLevel()">下一關</button>
+    </div>
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        let level = 1;
+        let mirrors = [];
+        let lightSource = {x: 50, y: 300};
+        let target = {x: 550, y: 300};
+        let lightPath = [];
+        let maxMirrors = 3;
+
+        function startGame() {
+            mirrors = [];
+            lightPath = [];
+            generateLevel();
+            render();
+        }
+
+        function generateLevel() {
+            target.x = 550;
+            target.y = 50 + Math.random() * 500;
+            maxMirrors = 2 + level;
+        }
+
+        function render() {
+            ctx.fillStyle = '#000';
+            ctx.fillRect(0, 0, 600, 600);
+
+            // 绘制目标
+            ctx.fillStyle = '#4CAF50';
+            ctx.beginPath();
+            ctx.arc(target.x, target.y, 20, 0, Math.PI * 2);
+            ctx.fill();
+
+            // 绘制光源
+            ctx.fillStyle = '#FFE66D';
+            ctx.beginPath();
+            ctx.arc(lightSource.x, lightSource.y, 15, 0, Math.PI * 2);
+            ctx.fill();
+
+            // 绘制镜子
+            mirrors.forEach(mirror => {
+                ctx.strokeStyle = '#fff';
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                const dx = Math.cos(mirror.angle);
+                const dy = Math.sin(mirror.angle);
+                ctx.moveTo(mirror.x - dx * 30, mirror.y - dy * 30);
+                ctx.lineTo(mirror.x + dx * 30, mirror.y + dy * 30);
+                ctx.stroke();
+            });
+
+            // 计算并绘制光线路径
+            calculateLightPath();
+            if (lightPath.length > 1) {
+                ctx.strokeStyle = '#00ffff';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.moveTo(lightPath[0].x, lightPath[0].y);
+                for (let i = 1; i < lightPath.length; i++) {
+                    ctx.lineTo(lightPath[i].x, lightPath[i].y);
+                }
+                ctx.stroke();
+            }
+
+            document.getElementById('mirrors').textContent = mirrors.length + ' / ' + maxMirrors;
+            document.getElementById('level').textContent = level;
+        }
+
+        function calculateLightPath() {
+            lightPath = [{x: lightSource.x, y: lightSource.y}];
+            let currentX = lightSource.x;
+            let currentY = lightSource.y;
+            let dirX = 1;
+            let dirY = 0;
+            const maxBounces = 20;
+
+            for (let bounce = 0; bounce < maxBounces; bounce++) {
+                let closestMirror = null;
+                let closestT = Infinity;
+                let closestNormal = null;
+
+                mirrors.forEach(mirror => {
+                    const dx = Math.cos(mirror.angle);
+                    const dy = Math.sin(mirror.angle);
+                    const normal = {x: -dy, y: dx};
+                    const t = intersectLineLine(currentX, currentY, dirX, dirY, mirror.x, mirror.y, dx, dy);
+                    if (t > 0.1 && t < closestT) {
+                        closestT = t;
+                        closestMirror = mirror;
+                        closestNormal = normal;
+                    }
+                });
+
+                const targetT = intersectLineCircle(currentX, currentY, dirX, dirY, target.x, target.y, 20);
+                if (targetT > 0 && targetT < closestT) {
+                    lightPath.push({x: target.x, y: target.y});
+                    if (Math.abs(targetT - closestT) < 0.1) {
+                        setTimeout(() => {
+                            alert('成功！光線到達目標！');
+                            nextLevel();
+                        }, 500);
+                    }
+                    break;
+                }
+
+                if (closestMirror) {
+                    const hitX = currentX + dirX * closestT;
+                    const hitY = currentY + dirY * closestT;
+                    lightPath.push({x: hitX, y: hitY});
+                    
+                    const dot = dirX * closestNormal.x + dirY * closestNormal.y;
+                    dirX = dirX - 2 * dot * closestNormal.x;
+                    dirY = dirY - 2 * dot * closestNormal.y;
+                    
+                    currentX = hitX;
+                    currentY = hitY;
+                } else {
+                    break;
+                }
+            }
+        }
+
+        function intersectLineLine(x1, y1, dx1, dy1, x2, y2, dx2, dy2) {
+            const denom = dx1 * dy2 - dy1 * dx2;
+            if (Math.abs(denom) < 0.001) return Infinity;
+            const t = ((x2 - x1) * dy2 - (y2 - y1) * dx2) / denom;
+            return t;
+        }
+
+        function intersectLineCircle(x, y, dx, dy, cx, cy, r) {
+            const a = dx * dx + dy * dy;
+            const b = 2 * (dx * (x - cx) + dy * (y - cy));
+            const c = (x - cx) * (x - cx) + (y - cy) * (y - cy) - r * r;
+            const disc = b * b - 4 * a * c;
+            if (disc < 0) return -1;
+            const t = (-b - Math.sqrt(disc)) / (2 * a);
+            return t > 0 ? t : -1;
+        }
+
+        canvas.addEventListener('click', (e) => {
+            if (mirrors.length >= maxMirrors) return;
+            const rect = canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            mirrors.push({x, y, angle: Math.random() * Math.PI * 2});
+            render();
+        });
+
+        function nextLevel() {
+            level++;
+            startGame();
+        }
+
+        startGame();
+    </script>
+</body>
+</html>
+

@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>黑白棋</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            min-height: 100vh; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: 'Microsoft JhengHei', Arial, sans-serif;
+        }
+        .game-container {
+            text-align: center; background: rgba(255, 255, 255, 0.9); padding: 30px;
+            border-radius: 20px; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+        }
+        h1 { color: #333; margin-bottom: 20px; font-size: 2.5em; }
+        .info { display: flex; justify-content: space-around; margin-bottom: 20px; font-size: 1.2em; font-weight: bold; }
+        .score { color: #4CAF50; }
+        .grid {
+            display: grid; grid-template-columns: repeat(8, 60px); gap: 2px;
+            background: #8B4513; padding: 2px; border-radius: 5px; margin: 20px auto;
+        }
+        .cell {
+            width: 60px; height: 60px; border-radius: 3px; cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 2em; background: #D2691E; transition: all 0.2s;
+        }
+        .cell:hover { background: #CD853F; }
+        .cell.black { background: #000; }
+        .cell.white { background: #fff; }
+        .cell.valid { background: #90EE90; opacity: 0.5; }
+        button {
+            margin-top: 15px; padding: 10px 20px; font-size: 1em;
+            background: #4CAF50; color: white; border: none; border-radius: 5px;
+            cursor: pointer; transition: background 0.3s; margin: 5px;
+        }
+        button:hover { background: #45a049; }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <h1>⚫⚪ 黑白棋</h1>
+        <div class="info">
+            <div class="score">黑: <span id="blackCount">2</span></div>
+            <div class="score">白: <span id="whiteCount">2</span></div>
+            <div class="score">當前: <span id="currentPlayer">黑</span></div>
+        </div>
+        <div class="grid" id="grid"></div>
+        <button onclick="startGame()">重新開始</button>
+    </div>
+    <script>
+        const gridSize = 8;
+        let grid = [];
+        let currentPlayer = 1; // 1 = 黑, 2 = 白
+
+        function startGame() {
+            grid = Array(gridSize).fill().map(() => Array(gridSize).fill(0));
+            grid[3][3] = 2;
+            grid[3][4] = 1;
+            grid[4][3] = 1;
+            grid[4][4] = 2;
+            currentPlayer = 1;
+            render();
+            updateDisplay();
+        }
+
+        function render() {
+            const gridEl = document.getElementById('grid');
+            gridEl.innerHTML = '';
+            for (let y = 0; y < gridSize; y++) {
+                for (let x = 0; x < gridSize; x++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'cell';
+                    if (grid[y][x] === 1) {
+                        cell.classList.add('black');
+                        cell.textContent = '⚫';
+                    } else if (grid[y][x] === 2) {
+                        cell.classList.add('white');
+                        cell.textContent = '⚪';
+                    } else if (isValidMove(x, y)) {
+                        cell.classList.add('valid');
+                    }
+                    cell.onclick = () => makeMove(x, y);
+                    gridEl.appendChild(cell);
+                }
+            }
+        }
+
+        function isValidMove(x, y) {
+            if (grid[y][x] !== 0) return false;
+            const directions = [[-1,-1],[-1,0],[-1,1],[0,-1],[0,1],[1,-1],[1,0],[1,1]];
+            for (const [dx, dy] of directions) {
+                let nx = x + dx, ny = y + dy;
+                let foundOpponent = false;
+                while (nx >= 0 && nx < gridSize && ny >= 0 && ny < gridSize) {
+                    if (grid[ny][nx] === 0) break;
+                    if (grid[ny][nx] === currentPlayer) {
+                        if (foundOpponent) return true;
+                        break;
+                    }
+                    foundOpponent = true;
+                    nx += dx;
+                    ny += dy;
+                }
+            }
+            return false;
+        }
+
+        function makeMove(x, y) {
+            if (!isValidMove(x, y)) return;
+            grid[y][x] = currentPlayer;
+            const directions = [[-1,-1],[-1,0],[-1,1],[0,-1],[0,1],[1,-1],[1,0],[1,1]];
+            for (const [dx, dy] of directions) {
+                let nx = x + dx, ny = y + dy;
+                const toFlip = [];
+                while (nx >= 0 && nx < gridSize && ny >= 0 && ny < gridSize) {
+                    if (grid[ny][nx] === 0) break;
+                    if (grid[ny][nx] === currentPlayer) {
+                        toFlip.forEach(({x: fx, y: fy}) => grid[fy][fx] = currentPlayer);
+                        break;
+                    }
+                    toFlip.push({x: nx, y: ny});
+                    nx += dx;
+                    ny += dy;
+                }
+            }
+            currentPlayer = currentPlayer === 1 ? 2 : 1;
+            if (!hasValidMove()) {
+                currentPlayer = currentPlayer === 1 ? 2 : 1;
+                if (!hasValidMove()) {
+                    endGame();
+                    return;
+                }
+            }
+            render();
+            updateDisplay();
+        }
+
+        function hasValidMove() {
+            for (let y = 0; y < gridSize; y++) {
+                for (let x = 0; x < gridSize; x++) {
+                    if (isValidMove(x, y)) return true;
+                }
+            }
+            return false;
+        }
+
+        function updateDisplay() {
+            let black = 0, white = 0;
+            for (let y = 0; y < gridSize; y++) {
+                for (let x = 0; x < gridSize; x++) {
+                    if (grid[y][x] === 1) black++;
+                    else if (grid[y][x] === 2) white++;
+                }
+            }
+            document.getElementById('blackCount').textContent = black;
+            document.getElementById('whiteCount').textContent = white;
+            document.getElementById('currentPlayer').textContent = currentPlayer === 1 ? '黑' : '白';
+        }
+
+        function endGame() {
+            let black = 0, white = 0;
+            for (let y = 0; y < gridSize; y++) {
+                for (let x = 0; x < gridSize; x++) {
+                    if (grid[y][x] === 1) black++;
+                    else if (grid[y][x] === 2) white++;
+                }
+            }
+            const winner = black > white ? '黑' : white > black ? '白' : '平局';
+            alert(`遊戲結束！${winner}方獲勝！黑: ${black}, 白: ${white}`);
+        }
+
+        startGame();
+    </script>
+</body>
+</html>
+
