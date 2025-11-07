@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>彈球物理</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            min-height: 100vh; background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            font-family: 'Microsoft JhengHei', Arial, sans-serif; color: white;
+        }
+        .game-container {
+            text-align: center; background: rgba(255, 255, 255, 0.1); padding: 30px;
+            border-radius: 20px; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+        }
+        h1 { color: #fff; margin-bottom: 20px; font-size: 2.5em; }
+        canvas {
+            border: 4px solid #00ffff; background: #000; display: block; margin: 0 auto;
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.5);
+        }
+        button {
+            margin-top: 15px; padding: 10px 20px; font-size: 1em;
+            background: #00ffff; color: #000; border: none; border-radius: 5px;
+            cursor: pointer; font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <h1>🔵 彈球物理</h1>
+        <canvas id="gameCanvas" width="600" height="600"></canvas>
+        <div style="margin-top: 20px;">
+            <p>點擊畫布添加球</p>
+            <button onclick="startGame()">重新開始</button>
+        </div>
+    </div>
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        let balls = [];
+        canvas.addEventListener('click', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            balls.push({
+                x: e.clientX - rect.left,
+                y: e.clientY - rect.top,
+                vx: (Math.random() - 0.5) * 5,
+                vy: (Math.random() - 0.5) * 5,
+                radius: 10 + Math.random() * 20,
+                color: `hsl(${Math.random() * 360}, 70%, 50%)`
+            });
+        });
+        function startGame() {
+            balls = [];
+            gameLoop();
+        }
+        function updateBalls() {
+            balls.forEach((ball, i) => {
+                ball.vy += 0.3;
+                ball.x += ball.vx;
+                ball.y += ball.vy;
+                if (ball.x < ball.radius || ball.x > canvas.width - ball.radius) {
+                    ball.vx = -ball.vx * 0.8;
+                    ball.x = Math.max(ball.radius, Math.min(canvas.width - ball.radius, ball.x));
+                }
+                if (ball.y > canvas.height - ball.radius) {
+                    ball.vy = -ball.vy * 0.8;
+                    ball.y = canvas.height - ball.radius;
+                }
+                balls.forEach((other, j) => {
+                    if (i !== j) {
+                        const dx = other.x - ball.x;
+                        const dy = other.y - ball.y;
+                        const dist = Math.sqrt(dx * dx + dy * dy);
+                        if (dist < ball.radius + other.radius) {
+                            const angle = Math.atan2(dy, dx);
+                            const sin = Math.sin(angle);
+                            const cos = Math.cos(angle);
+                            const vx1 = ball.vx * cos + ball.vy * sin;
+                            const vy1 = ball.vy * cos - ball.vx * sin;
+                            const vx2 = other.vx * cos + other.vy * sin;
+                            const vy2 = other.vy * cos - other.vx * sin;
+                            const finalVx1 = ((ball.radius - other.radius) * vx1 + 2 * other.radius * vx2) / (ball.radius + other.radius);
+                            const finalVx2 = ((other.radius - ball.radius) * vx2 + 2 * ball.radius * vx1) / (ball.radius + other.radius);
+                            ball.vx = finalVx1 * cos - vy1 * sin;
+                            ball.vy = vy1 * cos + finalVx1 * sin;
+                            other.vx = finalVx2 * cos - vy2 * sin;
+                            other.vy = vy2 * cos + finalVx2 * sin;
+                            const overlap = ball.radius + other.radius - dist;
+                            const sepX = (dx / dist) * overlap * 0.5;
+                            const sepY = (dy / dist) * overlap * 0.5;
+                            ball.x -= sepX;
+                            ball.y -= sepY;
+                            other.x += sepX;
+                            other.y += sepY;
+                        }
+                    }
+                });
+            });
+        }
+        function draw() {
+            ctx.fillStyle = '#000';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            balls.forEach(ball => {
+                ctx.fillStyle = ball.color;
+                ctx.beginPath();
+                ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
+                ctx.fill();
+            });
+        }
+        function gameLoop() {
+            updateBalls();
+            draw();
+            requestAnimationFrame(gameLoop);
+        }
+        startGame();
+    </script>
+</body>
+</html>
+

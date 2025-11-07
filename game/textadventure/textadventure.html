@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>文字冒險</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            min-height: 100vh; background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            font-family: 'Microsoft JhengHei', Arial, sans-serif; color: white;
+        }
+        .game-container {
+            text-align: center; background: rgba(255, 255, 255, 0.1); padding: 30px;
+            border-radius: 20px; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+            max-width: 800px; width: 90%;
+        }
+        h1 { color: #fff; margin-bottom: 20px; font-size: 2.5em; }
+        .story {
+            background: rgba(0, 0, 0, 0.5); padding: 20px; border-radius: 10px;
+            margin: 20px 0; min-height: 200px; text-align: left;
+        }
+        .choices {
+            display: flex; flex-direction: column; gap: 10px; margin: 20px 0;
+        }
+        button {
+            padding: 15px 20px; font-size: 1em;
+            background: #3498db; color: white; border: none; border-radius: 5px;
+            cursor: pointer; text-align: left;
+        }
+        button:hover { background: #2980b9; }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <h1>📖 文字冒險</h1>
+        <div class="story" id="story">你站在一個神秘的森林入口，前方有兩條路...</div>
+        <div class="choices" id="choices"></div>
+    </div>
+    <script>
+        const story = {
+            start: {
+                text: "你站在一個神秘的森林入口，前方有兩條路。左邊的路看起來陰暗，右邊的路看起來明亮。",
+                choices: [
+                    { text: "走左邊的路", next: "left" },
+                    { text: "走右邊的路", next: "right" }
+                ]
+            },
+            left: {
+                text: "你走進了陰暗的森林。突然，你發現了一個寶箱！",
+                choices: [
+                    { text: "打開寶箱", next: "treasure" },
+                    { text: "繼續前進", next: "continue" }
+                ]
+            },
+            right: {
+                text: "你走進了明亮的森林。你看到了一座美麗的城堡。",
+                choices: [
+                    { text: "進入城堡", next: "castle" },
+                    { text: "繞過城堡", next: "around" }
+                ]
+            },
+            treasure: {
+                text: "你打開了寶箱，發現了滿滿的黃金！恭喜你獲得了寶藏！",
+                choices: [{ text: "重新開始", next: "start" }]
+            },
+            continue: {
+                text: "你繼續前進，但什麼也沒發現。遊戲結束。",
+                choices: [{ text: "重新開始", next: "start" }]
+            },
+            castle: {
+                text: "你進入了城堡，遇到了國王。國王賜予你榮譽！",
+                choices: [{ text: "重新開始", next: "start" }]
+            },
+            around: {
+                text: "你繞過了城堡，回到了起點。",
+                choices: [{ text: "重新開始", next: "start" }]
+            }
+        };
+        let currentScene = 'start';
+        function showScene(scene) {
+            currentScene = scene;
+            const sceneData = story[scene];
+            document.getElementById('story').textContent = sceneData.text;
+            const choicesDiv = document.getElementById('choices');
+            choicesDiv.innerHTML = '';
+            sceneData.choices.forEach(choice => {
+                const btn = document.createElement('button');
+                btn.textContent = choice.text;
+                btn.onclick = () => showScene(choice.next);
+                choicesDiv.appendChild(btn);
+            });
+        }
+        showScene('start');
+    </script>
+</body>
+</html>
+

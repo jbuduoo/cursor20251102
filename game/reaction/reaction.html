@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>反應測試</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            min-height: 100vh; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: 'Microsoft JhengHei', Arial, sans-serif;
+        }
+        .game-container {
+            text-align: center; background: rgba(255, 255, 255, 0.9); padding: 30px;
+            border-radius: 20px; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+        }
+        h1 { color: #333; margin-bottom: 20px; font-size: 2.5em; }
+        .info { margin-bottom: 20px; font-size: 1.2em; font-weight: bold; color: #4CAF50; }
+        .test-area {
+            width: 400px; height: 400px; background: #ccc;
+            border: 4px solid #333; border-radius: 10px;
+            margin: 20px auto; cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 2em; color: #666;
+        }
+        .test-area.waiting { background: #ffeb3b; }
+        .test-area.ready { background: #4CAF50; color: white; }
+        button {
+            margin-top: 15px; padding: 10px 20px; font-size: 1em;
+            background: #4CAF50; color: white; border: none; border-radius: 5px;
+            cursor: pointer;
+        }
+        .results { margin-top: 20px; }
+        .result-item { margin: 10px 0; font-size: 1.1em; }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <h1>⚡ 反應測試</h1>
+        <div class="info">點擊綠色區域測試反應速度</div>
+        <div class="test-area" id="testArea" onclick="clickTest()">等待變綠...</div>
+        <div class="results">
+            <div class="result-item">最快: <span id="best">-</span>ms</div>
+            <div class="result-item">平均: <span id="average">-</span>ms</div>
+            <div class="result-item">測試次數: <span id="count">0</span></div>
+        </div>
+        <button onclick="startTest()">開始測試</button>
+    </div>
+    <script>
+        let waiting = false; let startTime = 0;
+        let results = [];
+        function startTest() {
+            waiting = true;
+            const testArea = document.getElementById('testArea');
+            testArea.className = 'test-area waiting';
+            testArea.textContent = '等待變綠...';
+            setTimeout(() => {
+                if (waiting) {
+                    testArea.className = 'test-area ready';
+                    testArea.textContent = '點擊！';
+                    startTime = Date.now();
+                }
+            }, Math.random() * 3000 + 1000);
+        }
+        function clickTest() {
+            const testArea = document.getElementById('testArea');
+            if (testArea.classList.contains('ready')) {
+                const reactionTime = Date.now() - startTime;
+                results.push(reactionTime);
+                testArea.className = 'test-area';
+                testArea.textContent = `${reactionTime}ms`;
+                updateResults();
+                waiting = false;
+            } else if (testArea.classList.contains('waiting')) {
+                testArea.className = 'test-area';
+                testArea.textContent = '太早了！重新開始';
+                waiting = false;
+            }
+        }
+        function updateResults() {
+            document.getElementById('count').textContent = results.length;
+            document.getElementById('best').textContent = Math.min(...results);
+            const avg = Math.round(results.reduce((a, b) => a + b, 0) / results.length);
+            document.getElementById('average').textContent = avg;
+        }
+    </script>
+</body>
+</html>
+

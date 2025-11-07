@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>四子棋</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            min-height: 100vh; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: 'Microsoft JhengHei', Arial, sans-serif;
+        }
+        .game-container {
+            text-align: center; background: rgba(255, 255, 255, 0.9); padding: 30px;
+            border-radius: 20px; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+        }
+        h1 { color: #333; margin-bottom: 20px; font-size: 2.5em; }
+        .info { margin-bottom: 20px; font-size: 1.2em; font-weight: bold; color: #4CAF50; }
+        .grid {
+            display: grid; grid-template-columns: repeat(7, 60px); gap: 5px;
+            background: #0000ff; padding: 5px; border-radius: 5px; margin: 20px auto;
+        }
+        .cell {
+            width: 60px; height: 60px; background: #fff; border-radius: 50%;
+            cursor: pointer; transition: all 0.3s;
+        }
+        .cell.red { background: #ff0000; }
+        .cell.yellow { background: #ffff00; }
+        button {
+            margin-top: 15px; padding: 10px 20px; font-size: 1em;
+            background: #4CAF50; color: white; border: none; border-radius: 5px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <h1>🔴 四子棋</h1>
+        <div class="info">當前玩家: <span id="currentPlayer">紅</span></div>
+        <div class="grid" id="grid"></div>
+        <button onclick="startGame()">重新開始</button>
+    </div>
+    <script>
+        const rows = 6; const cols = 7;
+        let board = Array(rows).fill().map(() => Array(cols).fill(0));
+        let currentPlayer = 1; let gameOver = false;
+        function startGame() {
+            board = Array(rows).fill().map(() => Array(cols).fill(0));
+            currentPlayer = 1; gameOver = false;
+            document.getElementById('currentPlayer').textContent = '紅';
+            render();
+        }
+        function render() {
+            const grid = document.getElementById('grid');
+            grid.innerHTML = '';
+            for (let row = 0; row < rows; row++) {
+                for (let col = 0; col < cols; col++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'cell';
+                    if (board[row][col] === 1) cell.classList.add('red');
+                    else if (board[row][col] === 2) cell.classList.add('yellow');
+                    cell.onclick = () => dropPiece(col);
+                    grid.appendChild(cell);
+                }
+            }
+        }
+        function dropPiece(col) {
+            if (gameOver) return;
+            for (let row = rows - 1; row >= 0; row--) {
+                if (board[row][col] === 0) {
+                    board[row][col] = currentPlayer;
+                    if (checkWin(row, col, currentPlayer)) {
+                        gameOver = true;
+                        alert(`${currentPlayer === 1 ? '紅' : '黃'}方獲勝！`);
+                    } else {
+                        currentPlayer = currentPlayer === 1 ? 2 : 1;
+                        document.getElementById('currentPlayer').textContent = currentPlayer === 1 ? '紅' : '黃';
+                    }
+                    render();
+                    return;
+                }
+            }
+        }
+        function checkWin(row, col, player) {
+            const directions = [[0,1], [1,0], [1,1], [1,-1]];
+            for (let [dx, dy] of directions) {
+                let count = 1;
+                for (let i = 1; i < 4; i++) {
+                    const nr = row + dy * i; const nc = col + dx * i;
+                    if (nr >= 0 && nr < rows && nc >= 0 && nc < cols && board[nr][nc] === player) count++;
+                    else break;
+                }
+                for (let i = 1; i < 4; i++) {
+                    const nr = row - dy * i; const nc = col - dx * i;
+                    if (nr >= 0 && nr < rows && nc >= 0 && nc < cols && board[nr][nc] === player) count++;
+                    else break;
+                }
+                if (count >= 4) return true;
+            }
+            return false;
+        }
+        startGame();
+    </script>
+</body>
+</html>
+

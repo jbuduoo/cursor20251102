@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>點擊速度</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            min-height: 100vh; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: 'Microsoft JhengHei', Arial, sans-serif;
+        }
+        .game-container {
+            text-align: center; background: rgba(255, 255, 255, 0.9); padding: 30px;
+            border-radius: 20px; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+        }
+        h1 { color: #333; margin-bottom: 20px; font-size: 2.5em; }
+        .info { margin-bottom: 20px; font-size: 1.2em; font-weight: bold; color: #4CAF50; }
+        .click-area {
+            width: 300px; height: 300px; background: #4CAF50;
+            border: 4px solid #333; border-radius: 10px;
+            margin: 20px auto; cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 3em; color: white;
+            transition: transform 0.1s;
+        }
+        .click-area:active { transform: scale(0.95); }
+        button {
+            margin-top: 15px; padding: 10px 20px; font-size: 1em;
+            background: #4CAF50; color: white; border: none; border-radius: 5px;
+            cursor: pointer;
+        }
+        .results { margin-top: 20px; font-size: 1.2em; }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <h1>👆 點擊速度</h1>
+        <div class="info">時間: <span id="time">10</span>秒</div>
+        <div class="click-area" id="clickArea" onclick="clicked()">點擊我！</div>
+        <div class="results">
+            <div>點擊次數: <span id="clicks">0</span></div>
+            <div>每秒點擊: <span id="cps">0</span></div>
+        </div>
+        <button onclick="startTest()">開始測試</button>
+    </div>
+    <script>
+        let gameRunning = false; let clicks = 0; let timeLeft = 10;
+        function startTest() {
+            gameRunning = true; clicks = 0; timeLeft = 10;
+            document.getElementById('clicks').textContent = clicks;
+            document.getElementById('cps').textContent = 0;
+            const timer = setInterval(() => {
+                timeLeft--;
+                document.getElementById('time').textContent = timeLeft;
+                if (timeLeft <= 0) {
+                    clearInterval(timer);
+                    gameRunning = false;
+                    const cps = (clicks / 10).toFixed(1);
+                    document.getElementById('cps').textContent = cps;
+                    alert(`測試結束！\n點擊次數: ${clicks}\n每秒點擊: ${cps}`);
+                }
+            }, 1000);
+        }
+        function clicked() {
+            if (gameRunning) {
+                clicks++;
+                document.getElementById('clicks').textContent = clicks;
+                const cps = (clicks / (10 - timeLeft + 1)).toFixed(1);
+                document.getElementById('cps').textContent = cps;
+            }
+        }
+    </script>
+</body>
+</html>
+

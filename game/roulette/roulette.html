@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>輪盤賭</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            min-height: 100vh; background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            font-family: 'Microsoft JhengHei', Arial, sans-serif; color: white;
+        }
+        .game-container {
+            text-align: center; background: rgba(255, 255, 255, 0.1); padding: 30px;
+            border-radius: 20px; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+        }
+        h1 { color: #fff; margin-bottom: 20px; font-size: 2.5em; }
+        .info { margin-bottom: 20px; font-size: 1.2em; font-weight: bold; color: #f39c12; }
+        canvas {
+            border: 4px solid #fff; background: #1a1a1a; display: block; margin: 0 auto;
+            border-radius: 50%;
+        }
+        button {
+            margin-top: 15px; padding: 10px 20px; font-size: 1em;
+            background: #e74c3c; color: white; border: none; border-radius: 5px;
+            cursor: pointer; font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <h1>🎰 輪盤賭</h1>
+        <div class="info">點擊轉盤開始</div>
+        <canvas id="gameCanvas" width="400" height="400"></canvas>
+        <div id="result" style="margin-top: 20px; font-size: 1.5em;"></div>
+    </div>
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        let spinning = false; let angle = 0; let spinSpeed = 0;
+        const colors = ['#e74c3c', '#000', '#e74c3c', '#000', '#e74c3c', '#000',
+                       '#e74c3c', '#000', '#e74c3c', '#000', '#e74c3c', '#000',
+                       '#e74c3c', '#000', '#e74c3c', '#000', '#e74c3c', '#000',
+                       '#e74c3c', '#000', '#e74c3c', '#000', '#e74c3c', '#000',
+                       '#e74c3c', '#000', '#e74c3c', '#000', '#e74c3c', '#000',
+                       '#e74c3c', '#000', '#e74c3c', '#000', '#e74c3c', '#000', '#000'];
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+            const radius = 180;
+            const sliceAngle = (Math.PI * 2) / 37;
+            ctx.save();
+            ctx.translate(centerX, centerY);
+            ctx.rotate(angle);
+            for (let i = 0; i < 37; i++) {
+                ctx.beginPath();
+                ctx.moveTo(0, 0);
+                ctx.arc(0, 0, radius, i * sliceAngle, (i + 1) * sliceAngle);
+                ctx.closePath();
+                ctx.fillStyle = colors[i];
+                ctx.fill();
+                ctx.strokeStyle = '#fff';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+                ctx.save();
+                ctx.rotate((i + 0.5) * sliceAngle);
+                ctx.fillStyle = '#fff';
+                ctx.font = 'bold 16px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText(i === 36 ? '0' : i.toString(), radius * 0.7, 5);
+                ctx.restore();
+            }
+            ctx.restore();
+            ctx.fillStyle = '#fff';
+            ctx.beginPath();
+            ctx.moveTo(canvas.width / 2, 20);
+            ctx.lineTo(canvas.width / 2 - 10, 40);
+            ctx.lineTo(canvas.width / 2 + 10, 40);
+            ctx.closePath();
+            ctx.fill();
+        }
+        function spin() {
+            if (spinning) return;
+            spinning = true;
+            spinSpeed = 0.3;
+            document.getElementById('result').textContent = '';
+            const spin = () => {
+                angle += spinSpeed;
+                spinSpeed *= 0.995;
+                draw();
+                if (spinSpeed > 0.01) {
+                    requestAnimationFrame(spin);
+                } else {
+                    spinning = false;
+                    const finalAngle = (angle % (Math.PI * 2));
+                    const slice = Math.floor((Math.PI * 2 - finalAngle) / (Math.PI * 2 / 37)) % 37;
+                    document.getElementById('result').textContent = `結果: ${slice === 36 ? '0' : slice}`;
+                }
+            };
+            spin();
+        }
+        canvas.addEventListener('click', spin);
+        draw();
+    </script>
+</body>
+</html>
+
