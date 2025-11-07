@@ -1,0 +1,564 @@
+/* 全局樣式 */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Arial', 'Helvetica Neue', 'Noto Sans', sans-serif;
+    background-color: #F8F8F8;
+    color: #333333;
+    line-height: 1.6;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* 頁頭 */
+.header {
+    background: white;
+    border-bottom: 1px solid #E0E0E0;
+    padding: 10px 20px;
+    text-align: center;
+    height: 10vh;
+    min-height: 60px;
+    max-height: 80px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.header h1 {
+    font-size: 22px;
+    font-weight: 600;
+    color: #333333;
+    margin-bottom: 2px;
+}
+
+.subtitle {
+    font-size: 12px;
+    color: #666666;
+}
+
+/* 主容器 */
+.container {
+    display: flex;
+    flex: 1;
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 20px;
+    gap: 20px;
+    width: 100%;
+}
+
+/* 左側面板 */
+.left-panel {
+    flex: 0 0 50%;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+}
+
+/* 右側面板 */
+.right-panel {
+    flex: 0 0 50%;
+    display: flex;
+    flex-direction: column;
+}
+
+/* 設定區和提示詞區 */
+.settings-section,
+.prompt-section {
+    background: white;
+    border: 1px solid #E0E0E0;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.settings-section {
+    height: fit-content;
+    padding: 18px;
+}
+
+.prompt-section {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.settings-section h2,
+.prompt-section h2 {
+    font-size: 18px;
+    font-weight: 600;
+    color: #333333;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #E0E0E0;
+}
+
+.prompt-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #E0E0E0;
+}
+
+.prompt-header h2 {
+    margin-bottom: 0;
+    padding-bottom: 0;
+    border-bottom: none;
+    flex: 1;
+}
+
+/* 框架網格 */
+.framework-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    margin-top: 8px;
+}
+
+.framework-card {
+    border: 2px solid #E0E0E0;
+    border-radius: 6px;
+    padding: 12px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    background: white;
+    text-align: center;
+}
+
+.framework-card:hover {
+    border-color: #007BFF;
+    background: #F0F7FF;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 123, 255, 0.1);
+}
+
+.framework-card.selected {
+    border-color: #007BFF;
+    background: #E7F3FF;
+    box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.2);
+}
+
+.framework-card h3 {
+    font-size: 14px;
+    font-weight: 600;
+    color: #333333;
+    margin: 8px 0 4px;
+}
+
+.framework-card p {
+    font-size: 12px;
+    color: #666666;
+    line-height: 1.3;
+}
+
+/* 框架預覽視覺化 */
+.framework-preview {
+    height: 80px;
+    display: flex;
+    gap: 4px;
+    margin-bottom: 8px;
+    border: 1px solid #E0E0E0;
+    border-radius: 4px;
+    padding: 6px;
+    background: #FAFAFA;
+}
+
+.preview-sidebar-left,
+.preview-sidebar-right {
+    background: #D0D0D0;
+    border-radius: 3px;
+    flex: 0 0 20%;
+}
+
+.preview-main-left,
+.preview-main-right,
+.preview-main-center {
+    background: #007BFF;
+    border-radius: 3px;
+    flex: 1;
+    opacity: 0.7;
+}
+
+.preview-full {
+    background: #007BFF;
+    border-radius: 3px;
+    width: 100%;
+    height: 100%;
+    opacity: 0.7;
+}
+
+/* 提示詞顯示區 */
+.prompt-display {
+    background: #F8F8F8;
+    border: 1px solid #E0E0E0;
+    border-radius: 6px;
+    padding: 20px;
+    min-height: 400px;
+    flex: 1;
+    font-family: 'Courier New', monospace;
+    font-size: 14px;
+    line-height: 1.8;
+    color: #333333;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    margin-bottom: 15px;
+    resize: vertical;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.prompt-display:focus {
+    outline: none;
+    border-color: #007BFF;
+    background: #FFFFFF;
+    box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+}
+
+.prompt-display::placeholder {
+    color: #999999;
+    font-style: italic;
+}
+
+.prompt-placeholder {
+    color: #999999;
+    font-style: italic;
+    text-align: center;
+    padding: 40px 0;
+}
+
+/* 表單樣式 */
+.form-group {
+    margin-bottom: 18px;
+}
+
+.settings-section .form-group {
+    margin-bottom: 16px;
+}
+
+.form-group label {
+    display: block;
+    font-size: 13px;
+    font-weight: 500;
+    color: #333333;
+    margin-bottom: 6px;
+}
+
+.form-group input[type="text"],
+.form-group input[type="number"],
+.form-group textarea {
+    width: 100%;
+    padding: 8px 10px;
+    border: 1px solid #E0E0E0;
+    border-radius: 5px;
+    font-size: 13px;
+    font-family: inherit;
+    color: #333333;
+    transition: border-color 0.3s;
+}
+
+.form-group input:focus,
+.form-group textarea:focus {
+    outline: none;
+    border-color: #007BFF;
+    box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+}
+
+.input-with-suffix {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.input-with-suffix input {
+    padding-right: 40px;
+}
+
+.suffix {
+    position: absolute;
+    right: 10px;
+    color: #666666;
+    font-size: 13px;
+    pointer-events: none;
+}
+
+.input-hint {
+    display: block;
+    font-size: 12px;
+    color: #999999;
+    margin-top: 6px;
+    line-height: 1.4;
+}
+
+/* 輸入框與下拉選單組合 */
+.input-with-dropdown,
+.textarea-with-dropdown {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+}
+
+.input-with-dropdown input,
+.textarea-with-dropdown textarea {
+    flex: 1;
+    padding: 8px 10px;
+}
+
+.dropdown-select {
+    flex: 0 0 150px;
+    padding: 8px 10px;
+    border: 1px solid #E0E0E0;
+    border-radius: 5px;
+    font-size: 13px;
+    font-family: inherit;
+    color: #333333;
+    background: white;
+    cursor: pointer;
+    transition: border-color 0.3s;
+}
+
+.dropdown-select:focus {
+    outline: none;
+    border-color: #007BFF;
+    box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+}
+
+.dropdown-select:hover {
+    border-color: #007BFF;
+}
+
+/* 單選按鈕組 */
+.radio-group {
+    display: flex;
+    flex-direction: row;
+    gap: 10px;
+}
+
+.radio-option {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    padding: 10px 15px;
+    border: 1px solid #E0E0E0;
+    border-radius: 6px;
+    transition: all 0.3s;
+    flex: 1;
+}
+
+.radio-option:hover {
+    background: #F8F8F8;
+    border-color: #007BFF;
+}
+
+.radio-option input[type="radio"] {
+    margin-right: 10px;
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+    accent-color: #007BFF;
+}
+
+.radio-option input[type="radio"]:checked + .radio-label {
+    color: #007BFF;
+    font-weight: 500;
+}
+
+.radio-option input[type="radio"]:checked ~ .radio-label {
+    color: #007BFF;
+    font-weight: 500;
+}
+
+.radio-label {
+    font-size: 14px;
+    color: #333333;
+    cursor: pointer;
+}
+
+.radio-option:has(input[type="radio"]:checked) {
+    background: #E7F3FF;
+    border-color: #007BFF;
+}
+
+/* 按鈕 */
+.btn-generate,
+.btn-copy {
+    width: 100%;
+    padding: 12px 20px;
+    border: none;
+    border-radius: 6px;
+    font-size: 15px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.btn-generate {
+    background: #007BFF;
+    color: white;
+    margin-top: 10px;
+}
+
+.btn-generate:hover {
+    background: #0056B3;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0, 123, 255, 0.3);
+}
+
+.btn-generate:active {
+    transform: translateY(0);
+}
+
+.btn-copy {
+    background: #F8F8F8;
+    color: #333333;
+    border: 1px solid #E0E0E0;
+}
+
+.btn-copy:hover:not(:disabled) {
+    background: #E0E0E0;
+    border-color: #007BFF;
+}
+
+.btn-copy:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.btn-copy-small {
+    padding: 6px 12px;
+    border: 1px solid #E0E0E0;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s;
+    background: #F8F8F8;
+    color: #333333;
+    white-space: nowrap;
+}
+
+.btn-copy-small:hover:not(:disabled) {
+    background: #E0E0E0;
+    border-color: #007BFF;
+    color: #007BFF;
+}
+
+.btn-copy-small:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* 頁尾 */
+.footer {
+    background: white;
+    border-top: 1px solid #E0E0E0;
+    padding: 20px;
+    text-align: center;
+    color: #666666;
+    font-size: 14px;
+    margin-top: auto;
+}
+
+/* Toast 提示 */
+.toast {
+    position: fixed;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%) translateY(100px);
+    background: #333333;
+    color: white;
+    padding: 14px 24px;
+    border-radius: 6px;
+    font-size: 14px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    opacity: 0;
+    transition: all 0.3s;
+    z-index: 1000;
+}
+
+.toast.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+}
+
+/* 響應式設計 */
+@media (max-width: 1024px) {
+    .container {
+        flex-direction: column;
+    }
+
+    .left-panel,
+    .right-panel {
+        flex: 1;
+    }
+
+    .framework-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 768px) {
+    .header h1 {
+        font-size: 24px;
+    }
+
+    .subtitle {
+        font-size: 14px;
+    }
+
+    .container {
+        padding: 20px 15px;
+        gap: 20px;
+    }
+
+    .preview-section,
+    .settings-section,
+    .prompt-section {
+        padding: 20px;
+    }
+
+    .framework-grid {
+        grid-template-columns: 1fr;
+        gap: 15px;
+    }
+
+    .framework-preview {
+        height: 100px;
+    }
+}
+
+@media (max-width: 480px) {
+    .header {
+        padding: 20px 15px;
+    }
+
+    .header h1 {
+        font-size: 20px;
+    }
+
+    .container {
+        padding: 15px 10px;
+    }
+
+    .preview-section,
+    .settings-section,
+    .prompt-section {
+        padding: 15px;
+    }
+
+    .form-group {
+        margin-bottom: 20px;
+    }
+}
+

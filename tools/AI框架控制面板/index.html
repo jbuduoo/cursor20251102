@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI 框架控制面板</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- 頁頭 -->
+    <header class="header">
+        <h1>AI 框架控制面板</h1>
+        <p class="subtitle">視覺化選擇框架，生成精確的設計提示詞</p>
+    </header>
+
+    <!-- 主容器 -->
+    <div class="container">
+        <!-- 左側：參數設定面板 -->
+        <div class="left-panel">
+            <section class="settings-section">
+                <h2>參數設定</h2>
+                
+                <div class="form-group">
+                    <label for="headerHeight">頁頭高度</label>
+                    <div class="input-with-suffix">
+                        <input 
+                            type="number" 
+                            id="headerHeight" 
+                            min="0" 
+                            max="100" 
+                            value="10"
+                            placeholder="10"
+                        >
+                        <span class="suffix">%</span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="headerFunction">頁頭功能</label>
+                    <div class="textarea-with-dropdown">
+                        <textarea 
+                            id="headerFunction" 
+                            rows="3"
+                            placeholder="例如：首頁、產品、定價、關於我們、聯繫我們、『註冊/登入』按鈕、搜尋"
+                        ></textarea>
+                        <select id="headerFunctionDropdown" class="dropdown-select">
+                            <option value="">選擇預設選項...</option>
+                            <option value="首頁">首頁</option>
+                            <option value="產品">產品</option>
+                            <option value="定價">定價</option>
+                            <option value="關於我們">關於我們</option>
+                            <option value="聯繫我們">聯繫我們</option>
+                            <option value="『註冊/登入』按鈕">『註冊/登入』按鈕</option>
+                            <option value="搜尋">搜尋</option>
+                            <option value="購物車">購物車</option>
+                            <option value="語言切換">語言切換</option>
+                            <option value="會員中心">會員中心</option>
+                            <option value="服務">服務</option>
+                            <option value="支援">支援</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- 框架預覽區 -->
+                <div class="form-group">
+                    <label>選擇框架</label>
+                    <div class="framework-grid">
+                        <div class="framework-card" data-framework="sidebar-left">
+                            <div class="framework-preview">
+                                <div class="preview-sidebar-left"></div>
+                                <div class="preview-main-left"></div>
+                            </div>
+                            <h3>左側邊欄</h3>
+                            <p>側邊欄在左側，主內容在右側</p>
+                        </div>
+                        
+                        <div class="framework-card" data-framework="sidebar-right">
+                            <div class="framework-preview">
+                                <div class="preview-main-right"></div>
+                                <div class="preview-sidebar-right"></div>
+                            </div>
+                            <h3>右側邊欄</h3>
+                            <p>主內容在左側，側邊欄在右側</p>
+                        </div>
+                        
+                        <div class="framework-card" data-framework="three-column">
+                            <div class="framework-preview">
+                                <div class="preview-sidebar-left"></div>
+                                <div class="preview-main-center"></div>
+                                <div class="preview-sidebar-right"></div>
+                            </div>
+                            <h3>三欄式</h3>
+                            <p>左側邊欄、主內容、右側邊欄</p>
+                        </div>
+                        
+                        <div class="framework-card" data-framework="full-width">
+                            <div class="framework-preview">
+                                <div class="preview-full"></div>
+                            </div>
+                            <h3>全寬式</h3>
+                            <p>單欄全寬佈局</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="sidebarRatio">側邊欄寬度比例</label>
+                    <input 
+                        type="text" 
+                        id="sidebarRatio" 
+                        placeholder="例如：1.5:7:1.5（選擇框架後會自動調整）"
+                        value=""
+                    >
+                    <small class="input-hint" id="sidebarRatioHint">格式：根據選擇的框架自動調整</small>
+                </div>
+
+                <!-- 左側邊欄功能 -->
+                <div class="form-group sidebar-function-group" id="leftSidebarGroup" style="display: none;">
+                    <label for="leftSidebarFunction">左側邊欄功能</label>
+                    <div class="textarea-with-dropdown">
+                        <textarea 
+                            id="leftSidebarFunction" 
+                            rows="3"
+                            placeholder="例如：導航選單、分類列表、標籤雲、最新文章、熱門文章"
+                        ></textarea>
+                        <select id="leftSidebarFunctionDropdown" class="dropdown-select">
+                            <option value="">選擇預設選項...</option>
+                            <option value="導航選單">導航選單</option>
+                            <option value="分類列表">分類列表</option>
+                            <option value="標籤雲">標籤雲</option>
+                            <option value="最新文章">最新文章</option>
+                            <option value="熱門文章">熱門文章</option>
+                            <option value="相關文章推薦">相關文章推薦</option>
+                            <option value="搜尋框">搜尋框</option>
+                            <option value="訂閱表單">訂閱表單</option>
+                            <option value="社交媒體連結">社交媒體連結</option>
+                            <option value="廣告區塊">廣告區塊</option>
+                            <option value="使用者資訊">使用者資訊</option>
+                            <option value="快速連結">快速連結</option>
+                            <option value="產品分類">產品分類</option>
+                            <option value="購物車摘要">購物車摘要</option>
+                            <option value="篩選器">篩選器</option>
+                            <option value="價格範圍">價格範圍</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- 右側邊欄功能 -->
+                <div class="form-group sidebar-function-group" id="rightSidebarGroup" style="display: none;">
+                    <label for="rightSidebarFunction">右側邊欄功能</label>
+                    <div class="textarea-with-dropdown">
+                        <textarea 
+                            id="rightSidebarFunction" 
+                            rows="3"
+                            placeholder="例如：導航選單、分類列表、標籤雲、最新文章、熱門文章"
+                        ></textarea>
+                        <select id="rightSidebarFunctionDropdown" class="dropdown-select">
+                            <option value="">選擇預設選項...</option>
+                            <option value="導航選單">導航選單</option>
+                            <option value="分類列表">分類列表</option>
+                            <option value="標籤雲">標籤雲</option>
+                            <option value="最新文章">最新文章</option>
+                            <option value="熱門文章">熱門文章</option>
+                            <option value="相關文章推薦">相關文章推薦</option>
+                            <option value="搜尋框">搜尋框</option>
+                            <option value="訂閱表單">訂閱表單</option>
+                            <option value="社交媒體連結">社交媒體連結</option>
+                            <option value="廣告區塊">廣告區塊</option>
+                            <option value="使用者資訊">使用者資訊</option>
+                            <option value="快速連結">快速連結</option>
+                            <option value="產品分類">產品分類</option>
+                            <option value="購物車摘要">購物車摘要</option>
+                            <option value="篩選器">篩選器</option>
+                            <option value="價格範圍">價格範圍</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="websitePurpose">網站用途/行業</label>
+                    <div class="input-with-dropdown">
+                        <input 
+                            type="text" 
+                            id="websitePurpose" 
+                            placeholder="例如：企業官網、電商平台、部落格"
+                            value=""
+                        >
+                        <select id="websitePurposeDropdown" class="dropdown-select">
+                            <option value="">選擇預設選項...</option>
+                            <option value="企業官網">企業官網</option>
+                            <option value="電商平台">電商平台</option>
+                            <option value="部落格">部落格</option>
+                            <option value="作品集網站">作品集網站</option>
+                            <option value="新聞媒體">新聞媒體</option>
+                            <option value="線上教育">線上教育</option>
+                            <option value="社交平台">社交平台</option>
+                            <option value="金融服務">金融服務</option>
+                            <option value="醫療健康">醫療健康</option>
+                            <option value="旅遊觀光">旅遊觀光</option>
+                            <option value="餐飲服務">餐飲服務</option>
+                            <option value="房地產">房地產</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="coreStyle">核心風格描述</label>
+                    <div class="textarea-with-dropdown">
+                        <textarea 
+                            id="coreStyle" 
+                            rows="4"
+                            placeholder="例如：現代極簡、專業商務、清新活潑"
+                        ></textarea>
+                        <select id="coreStyleDropdown" class="dropdown-select">
+                            <option value="">選擇預設選項...</option>
+                            <option value="現代極簡">現代極簡</option>
+                            <option value="專業商務">專業商務</option>
+                            <option value="清新活潑">清新活潑</option>
+                            <option value="科技未來">科技未來</option>
+                            <option value="復古懷舊">復古懷舊</option>
+                            <option value="藝術創意">藝術創意</option>
+                            <option value="優雅奢華">優雅奢華</option>
+                            <option value="自然環保">自然環保</option>
+                            <option value="簡約日系">簡約日系</option>
+                            <option value="工業風格">工業風格</option>
+                            <option value="溫馨親和">溫馨親和</option>
+                            <option value="動感活力">動感活力</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>間距控制</label>
+                    <div class="radio-group">
+                        <label class="radio-option">
+                            <input type="radio" name="spacing" value="compact" checked>
+                            <span class="radio-label">緊湊排版</span>
+                        </label>
+                        <label class="radio-option">
+                            <input type="radio" name="spacing" value="moderate">
+                            <span class="radio-label">適中留白</span>
+                        </label>
+                        <label class="radio-option">
+                            <input type="radio" name="spacing" value="high">
+                            <span class="radio-label">高留白</span>
+                        </label>
+                    </div>
+                </div>
+
+                <button class="btn-generate" id="generateBtn">
+                    <span>✨</span> 生成提示詞
+                </button>
+            </section>
+        </div>
+
+        <!-- 右側：生成的提示詞顯示區 -->
+        <div class="right-panel">
+            <section class="prompt-section">
+                <div class="prompt-header">
+                    <h2>生成的 AI 提示詞</h2>
+                    <button class="btn-copy-small" id="copyBtn" disabled>
+                        copy
+                    </button>
+                </div>
+                <textarea class="prompt-display" id="promptDisplay" rows="20" placeholder="請在左側設定參數並點擊「生成提示詞」"></textarea>
+            </section>
+        </div>
+    </div>
+
+    <!-- 頁尾 -->
+    <footer class="footer">
+        <p>&copy; 2025 AI 框架控制面板. All rights reserved.</p>
+    </footer>
+
+    <!-- 複製成功提示 -->
+    <div class="toast" id="toast">✅ 提示詞已複製到剪貼板！</div>
+
+    <script src="app.js"></script>
+</body>
+</html>
+
