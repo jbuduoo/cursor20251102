@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>統計工具</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: "Microsoft JhengHei", "微軟正黑體", Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        header h1 {
+            color: #333;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        header p {
+            color: #666;
+            font-size: 1.1em;
+        }
+
+        .stats-section {
+            margin-bottom: 30px;
+        }
+
+        .section-title {
+            font-size: 1.5em;
+            color: #667eea;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #667eea;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            border-radius: 10px;
+            padding: 20px;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            border-color: #667eea;
+            background: linear-gradient(135deg, #ffffff 0%, #e8edf5 100%);
+        }
+
+        .stat-icon {
+            font-size: 2em;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .stat-name {
+            font-size: 1.1em;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 8px;
+            text-align: center;
+        }
+
+        .stat-count {
+            font-size: 2em;
+            font-weight: bold;
+            color: #667eea;
+            text-align: center;
+            margin-top: 10px;
+        }
+
+        .stat-count-label {
+            font-size: 0.9em;
+            color: #666;
+            text-align: center;
+            margin-top: 5px;
+        }
+
+        .empty-message {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+            font-style: italic;
+        }
+
+        .actions {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 30px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: "Microsoft JhengHei", "微軟正黑體", Arial, sans-serif;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #764ba2;
+            transform: scale(1.05);
+        }
+
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #c82333;
+            transform: scale(1.05);
+        }
+
+        .total-stats {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .total-stats h2 {
+            font-size: 1.2em;
+            margin-bottom: 10px;
+        }
+
+        .total-count {
+            font-size: 3em;
+            font-weight: bold;
+        }
+
+        @media (max-width: 768px) {
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            header h1 {
+                font-size: 2em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📊 統計工具</h1>
+            <p>查看各個程式的點擊次數統計</p>
+        </header>
+
+        <div class="total-stats">
+            <h2>總點擊次數</h2>
+            <div class="total-count" id="totalCount">0</div>
+        </div>
+
+        <div class="stats-section">
+            <h2 class="section-title">🎮 遊戲專案</h2>
+            <div class="stats-grid" id="game-stats">
+                <!-- 統計卡片將由 JavaScript 動態生成 -->
+            </div>
+        </div>
+
+        <div class="stats-section">
+            <h2 class="section-title">🛠️ 工具專案</h2>
+            <div class="stats-grid" id="tools-stats">
+                <!-- 統計卡片將由 JavaScript 動態生成 -->
+            </div>
+        </div>
+
+        <div class="stats-section">
+            <h2 class="section-title">📖 故事專案</h2>
+            <div class="stats-grid" id="story-stats">
+                <!-- 統計卡片將由 JavaScript 動態生成 -->
+            </div>
+        </div>
+
+        <div class="actions">
+            <button class="btn btn-primary" onclick="refreshStats()">🔄 重新整理</button>
+            <button class="btn btn-danger" onclick="clearStats()">🗑️ 清除統計</button>
+        </div>
+    </div>
+
+    <script>
+        // 從 localStorage 讀取統計資料
+        function getStats() {
+            const stats = localStorage.getItem('programClickStats');
+            return stats ? JSON.parse(stats) : {};
+        }
+
+        // 獲取所有程式列表（需要與 index.html 中的程式列表一致）
+        function getAllPrograms() {
+            return {
+                game: [
+                    { name: "井字遊戲", file: "game/tictactoe/tictactoe.htm", icon: "⭕" },
+                    { name: "貪食蛇", file: "game/snake/snake.html", icon: "🐍" },
+                    { name: "憤怒鳥", file: "game/angrybirds/angrybirds.html", icon: "🐦" },
+                    { name: "打磚塊", file: "game/breakout/breakout.html", icon: "🧱" },
+                    { name: "Flappy Bird", file: "game/flappybird/flappybird.html", icon: "🐤" },
+                    { name: "俄羅斯方塊", file: "game/tetris/tetris.html", icon: "🧩" },
+                    { name: "踩地雷", file: "game/踩地雷/index.html", icon: "💣" }
+                ],
+                tools: [
+                    { name: "語音轉文字", file: "tools/speech-to-text/speech-to-text.html", icon: "🎤" },
+                    { name: "文字轉語音", file: "tools/text-to-speech/text-to-speech.html", icon: "🔊" },
+                    { name: "AI框架控制面板", file: "tools/AI框架控制面板/index.html", icon: "🎨" },
+                    { name: "統計", file: "tools/statistics/index.html", icon: "📊" }
+                ],
+                story: [
+                    { name: "樂樂", file: "story/樂樂.txt", icon: "📝" },
+                    { name: "樂樂大屁股", file: "story/樂樂大屁股.txt", icon: "📝" }
+                ]
+            };
+        }
+
+        // 生成統計卡片
+        function createStatCard(program, count) {
+            const card = document.createElement('div');
+            card.className = 'stat-card';
+            card.innerHTML = `
+                <div class="stat-icon">${program.icon}</div>
+                <div class="stat-name">${program.name}</div>
+                <div class="stat-count">${count}</div>
+                <div class="stat-count-label">次點擊</div>
+            `;
+            return card;
+        }
+
+        // 顯示統計資料
+        function displayStats() {
+            const stats = getStats();
+            const programs = getAllPrograms();
+            let totalCount = 0;
+
+            // 顯示遊戲統計
+            const gameContainer = document.getElementById('game-stats');
+            gameContainer.innerHTML = '';
+            programs.game.forEach(program => {
+                const count = stats[program.file] || 0;
+                totalCount += count;
+                gameContainer.appendChild(createStatCard(program, count));
+            });
+
+            // 顯示工具統計
+            const toolsContainer = document.getElementById('tools-stats');
+            toolsContainer.innerHTML = '';
+            programs.tools.forEach(program => {
+                const count = stats[program.file] || 0;
+                totalCount += count;
+                toolsContainer.appendChild(createStatCard(program, count));
+            });
+
+            // 顯示故事統計
+            const storyContainer = document.getElementById('story-stats');
+            storyContainer.innerHTML = '';
+            programs.story.forEach(program => {
+                const count = stats[program.file] || 0;
+                totalCount += count;
+                storyContainer.appendChild(createStatCard(program, count));
+            });
+
+            // 更新總計
+            document.getElementById('totalCount').textContent = totalCount;
+        }
+
+        // 重新整理統計
+        function refreshStats() {
+            displayStats();
+        }
+
+        // 清除統計
+        function clearStats() {
+            if (confirm('確定要清除所有統計資料嗎？此操作無法復原。')) {
+                localStorage.removeItem('programClickStats');
+                displayStats();
+                alert('統計資料已清除！');
+            }
+        }
+
+        // 初始化
+        document.addEventListener('DOMContentLoaded', () => {
+            displayStats();
+        });
+    </script>
+</body>
+</html>
+

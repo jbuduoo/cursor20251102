@@ -309,6 +309,13 @@
                     icon: "🎨",
                     description: "視覺化選擇網頁框架，生成精確的設計提示詞",
                     type: "Web Tool"
+                },
+                {
+                    name: "統計",
+                    file: "tools/statistics/index.html",
+                    icon: "📊",
+                    description: "查看各個程式的點擊次數統計",
+                    type: "Web Tool"
                 }
             ],
             story: [
@@ -329,6 +336,17 @@
             ]
         };
 
+        // 記錄點擊次數
+        function recordClick(filePath) {
+            try {
+                const stats = JSON.parse(localStorage.getItem('programClickStats') || '{}');
+                stats[filePath] = (stats[filePath] || 0) + 1;
+                localStorage.setItem('programClickStats', JSON.stringify(stats));
+            } catch (e) {
+                console.error('記錄點擊次數失敗:', e);
+            }
+        }
+
         // 生成程式卡片
         function createProgramCard(program) {
             const card = document.createElement('a');
@@ -338,6 +356,11 @@
             card.href = encodedPath;
             card.target = '_blank';
             card.className = 'program-card';
+            
+            // 添加點擊事件監聽器
+            card.addEventListener('click', function() {
+                recordClick(program.file);
+            });
             
             card.innerHTML = `
                 <div class="program-icon">${program.icon}</div>
@@ -352,6 +375,7 @@
             const button = card.querySelector('.program-type');
             button.addEventListener('click', function(e) {
                 e.stopPropagation();
+                e.preventDefault();
             });
             
             return card;
