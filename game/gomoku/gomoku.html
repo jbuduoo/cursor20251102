@@ -5,39 +5,97 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>五子棋</title>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        html, body {
+            height: 100%;
+            width: 100%;
+        }
         body {
-            display: flex; flex-direction: column; justify-content: center; align-items: center;
-            min-height: 100vh; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #4338ca 0%, #7c3aed 100%);
             font-family: 'Microsoft JhengHei', Arial, sans-serif;
+            color: #e0e7ff;
+            overflow: hidden;
+            gap: 0.75rem;
         }
-        .game-container {
-            text-align: center; background: rgba(255, 255, 255, 0.9); padding: 30px;
-            border-radius: 20px; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+        .hud {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 1rem;
+            flex-wrap: wrap;
+            text-align: center;
         }
-        h1 { color: #333; margin-bottom: 20px; font-size: 2.5em; }
-        .info { margin-bottom: 20px; font-size: 1.2em; font-weight: bold; color: #4CAF50; }
+        h1 {
+            font-size: 1.2em;
+            font-weight: 600;
+            letter-spacing: 0.08em;
+        }
+        .status {
+            font-size: 0.95em;
+            letter-spacing: 0.05em;
+        }
+        .status span {
+            color: #facc15;
+            font-weight: 600;
+        }
         canvas {
-            border: 4px solid #333; background: #DEB887; display: block; margin: 0 auto;
+            background: #DEB887;
+            border: 2px solid rgba(15, 23, 42, 0.6);
+            max-width: 90vw;
+            max-height: 85vh;
+            aspect-ratio: 1 / 1;
+            width: min(90vw, 85vh);
+            height: auto;
         }
         button {
-            margin-top: 15px; padding: 10px 20px; font-size: 1em;
-            background: #4CAF50; color: white; border: none; border-radius: 5px;
+            padding: 0.45rem 1.2rem;
+            font-size: 0.9em;
+            font-weight: 600;
+            letter-spacing: 0.05em;
+            color: #0f172a;
+            background: #facc15;
+            border: none;
+            border-radius: 4px;
             cursor: pointer;
+        }
+        button:hover,
+        button:focus-visible {
+            background: #eab308;
+        }
+        @media (max-width: 640px) {
+            body {
+                gap: 0.6rem;
+            }
+            .hud {
+                gap: 0.6rem;
+            }
+            button {
+                width: 100%;
+            }
         }
     </style>
 </head>
 <body>
-    <div class="game-container">
-        <h1>⚫ 五子棋</h1>
-        <div class="info">當前玩家: <span id="currentPlayer">黑</span></div>
-        <canvas id="gameCanvas" width="600" height="600"></canvas>
-        <button onclick="startGame()">重新開始</button>
-    </div>
+    <header class="hud">
+        <h1>五子棋</h1>
+        <div class="status" aria-live="polite">當前玩家：<span id="currentPlayer">黑</span></div>
+        <button type="button" onclick="startGame()">重新開始</button>
+    </header>
+    <canvas id="gameCanvas" width="600" height="600" aria-label="五子棋棋盤"></canvas>
     <script>
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
-        const gridSize = 15; const cellSize = 40;
+        const gridSize = 15;
+        const cellSize = 40;
+        const boardOffset = 20;
         let board = Array(gridSize).fill().map(() => Array(gridSize).fill(0));
         let currentPlayer = 1; let gameOver = false;
         function startGame() {
@@ -101,8 +159,12 @@
         canvas.addEventListener('click', (e) => {
             if (gameOver) return;
             const rect = canvas.getBoundingClientRect();
-            const x = Math.round((e.clientX - rect.left - 20) / cellSize);
-            const y = Math.round((e.clientY - rect.top - 20) / cellSize);
+            const scaleX = canvas.width / rect.width;
+            const scaleY = canvas.height / rect.height;
+            const canvasX = (e.clientX - rect.left) * scaleX;
+            const canvasY = (e.clientY - rect.top) * scaleY;
+            const x = Math.round((canvasX - boardOffset) / cellSize);
+            const y = Math.round((canvasY - boardOffset) / cellSize);
             if (x >= 0 && x < gridSize && y >= 0 && y < gridSize && board[y][x] === 0) {
                 board[y][x] = currentPlayer;
                 if (checkWin(x, y, currentPlayer)) {

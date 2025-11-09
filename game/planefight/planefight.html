@@ -5,268 +5,566 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>飛機大戰</title>
     <style>
+        :root {
+            color-scheme: dark;
+        }
+
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
 
-        html, body {
-            height: 100%;
-            width: 100%;
-        }
-
         body {
+            min-height: 100vh;
             display: flex;
-            flex-direction: column;
             align-items: center;
             justify-content: center;
-            background: linear-gradient(160deg, #111827 0%, #0f172a 45%, #2563eb 100%);
-            font-family: 'Microsoft JhengHei', 'Segoe UI', sans-serif;
+            background: radial-gradient(circle at top, #0f172a 0%, #020617 55%, #01040c 100%);
+            font-family: "Microsoft JhengHei", "Segoe UI", sans-serif;
             color: #e2e8f0;
-            overflow: hidden;
-            gap: 0.5rem;
-            padding: 0.5rem 0;
+            padding: 24px 16px;
+        }
+
+        .wrapper {
+            width: min(920px, 100%);
+            display: flex;
+            flex-direction: column;
+            gap: 0.9rem;
+            align-items: center;
         }
 
         .hud {
+            width: 100%;
             display: flex;
             align-items: center;
-            justify-content: center;
+            justify-content: space-between;
             gap: 1rem;
-            text-align: center;
             flex-wrap: wrap;
-            flex-shrink: 0;
+            background: linear-gradient(135deg, rgba(15, 23, 42, 0.85), rgba(30, 41, 59, 0.9));
+            border: 1px solid rgba(148, 163, 184, 0.25);
+            border-radius: 14px;
+            padding: 14px 20px;
+            box-shadow: 0 18px 36px -20px rgba(15, 118, 110, 0.55);
+            backdrop-filter: blur(6px);
         }
 
         .hud h1 {
-            font-size: 1.2em;
-            font-weight: 600;
-            letter-spacing: 0.08em;
+            font-size: 1.4rem;
+            letter-spacing: 0.12em;
         }
 
-        .scoreboard {
+        .stats {
             display: flex;
             align-items: center;
-            gap: 0.6rem;
-            font-size: 0.9em;
-            flex-shrink: 0;
+            gap: 0.75rem;
+            font-size: 0.92rem;
+            flex-wrap: wrap;
         }
 
-        .scoreboard span {
-            display: flex;
+        .stats span {
+            display: inline-flex;
             align-items: center;
-            gap: 0.25rem;
-            color: #94a3b8;
+            gap: 0.35rem;
+            color: #cbd5f5;
         }
 
-        .scoreboard strong {
+        .stats strong {
             color: #38bdf8;
             font-weight: 600;
         }
 
         .actions {
             display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            flex-shrink: 0;
+            gap: 0.6rem;
+            flex-wrap: wrap;
         }
 
         button {
-            padding: 0.4rem 1.1rem;
-            font-size: 0.85em;
+            padding: 0.5rem 1.3rem;
+            border-radius: 8px;
+            border: 1px solid rgba(56, 189, 248, 0.45);
+            background: linear-gradient(135deg, #38bdf8, #0ea5e9);
+            color: #0b1120;
             font-weight: 600;
-            letter-spacing: 0.05em;
-            color: #0f172a;
-            background: #38bdf8;
-            border: none;
-            border-radius: 4px;
+            letter-spacing: 0.08em;
             cursor: pointer;
-            flex-shrink: 0;
+            transition: transform 0.18s ease, box-shadow 0.18s ease;
         }
 
-        button:focus-visible,
-        button:hover {
-            background: #0ea5e9;
+        button:hover,
+        button:focus-visible {
+            transform: translateY(-1px);
+            box-shadow: 0 10px 24px -12px rgba(14, 165, 233, 0.6);
+            outline: none;
         }
 
         canvas {
-            background: #000;
-            border: 2px solid #1f2937;
-            max-width: 90vw;
-            max-height: 85vh;
-            aspect-ratio: 4 / 3;
-            image-rendering: pixelated;
-            flex: 1 1 auto;
+            width: min(800px, 100%);
+            height: auto;
+            background: radial-gradient(circle at 25% 15%, rgba(59, 130, 246, 0.24), transparent 45%),
+                        radial-gradient(circle at 75% 25%, rgba(99, 102, 241, 0.16), transparent 60%),
+                        #020617;
+            border: 2px solid rgba(30, 41, 59, 0.8);
+            border-radius: 16px;
+            box-shadow: 0 30px 55px -35px rgba(56, 189, 248, 0.8);
         }
 
         .controls {
-            font-size: 0.8em;
+            font-size: 0.85rem;
             letter-spacing: 0.05em;
             color: #94a3b8;
             text-align: center;
-            flex-shrink: 0;
+        }
+
+        .status {
+            min-height: 1.2rem;
+            font-size: 0.9rem;
+            letter-spacing: 0.08em;
+            color: #f8fafc;
+            text-align: center;
+        }
+
+        .status span {
+            background: linear-gradient(135deg, rgba(56, 189, 248, 0.22), rgba(14, 165, 233, 0.28));
+            padding: 0.25rem 0.9rem;
+            border-radius: 999px;
+            display: inline-block;
         }
 
         .overlay {
-            display: none;
             position: fixed;
             inset: 0;
-            background: rgba(15, 23, 42, 0.78);
-            color: #e2e8f0;
-            font-size: 1.1rem;
-            letter-spacing: 0.06em;
-            flex-direction: column;
+            background: rgba(2, 6, 23, 0.8);
+            display: flex;
             align-items: center;
             justify-content: center;
-            text-align: center;
-            gap: 0.5rem;
-            padding: 1.5rem;
+            transition: opacity 0.25s ease;
         }
 
-        .overlay button {
-            margin-top: 0.5rem;
+        .overlay[hidden] {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .overlay-panel {
+            background: linear-gradient(145deg, rgba(15, 23, 42, 0.96), rgba(30, 41, 59, 0.92));
+            border: 1px solid rgba(148, 163, 184, 0.35);
+            border-radius: 16px;
+            padding: 28px 32px;
+            width: min(360px, 90vw);
+            text-align: center;
+            box-shadow: 0 20px 60px -25px rgba(56, 189, 248, 0.75);
+        }
+
+        .overlay-panel h2 {
+            font-size: 1.4rem;
+            letter-spacing: 0.1em;
+            margin-bottom: 0.75rem;
+            color: #38bdf8;
+        }
+
+        .overlay-panel p {
+            color: #e2e8f0;
+            margin-bottom: 1.4rem;
+            line-height: 1.6;
         }
 
         @media (max-width: 640px) {
-            body {
-                gap: 0.4rem;
+            .hud {
+                flex-direction: column;
+                align-items: flex-start;
             }
 
-            .hud {
-                gap: 0.5rem;
+            .actions {
+                width: 100%;
+            }
+
+            button {
+                flex: 1 1 auto;
             }
         }
     </style>
 </head>
 <body>
-    <header class="hud">
-        <h1>飛機大戰</h1>
-        <div class="scoreboard" aria-live="polite">
-            <span>分數 <strong id="score">0</strong></span>
-            <span>生命 <strong id="lives">3</strong></span>
-        </div>
-        <div class="actions">
-            <button type="button" onclick="startGame()">開始遊戲</button>
-        </div>
-    </header>
-
-    <canvas id="gameCanvas" width="800" height="600" aria-label="飛機大戰遊戲畫布"></canvas>
-    <p class="controls">⬅️ ➡️ ⬆️ ⬇️ 移動飛機，空白鍵射擊敵人</p>
-
-    <div class="overlay" id="gameOver" role="dialog" aria-modal="true" aria-labelledby="gameOverTitle">
-        <div class="title" id="gameOverTitle">遊戲結束</div>
-        <p id="gameOverMessage"></p>
-        <button type="button" onclick="startGame()">重新開始</button>
+    <div class="wrapper">
+        <header class="hud" aria-live="polite">
+            <h1>飛機大戰</h1>
+            <div class="stats">
+                <span>分數 <strong id="scoreDisplay">0</strong></span>
+                <span>生命 <strong id="livesDisplay">3</strong></span>
+                <span>波次 <strong id="waveDisplay">1</strong></span>
+            </div>
+            <div class="actions">
+                <button type="button" id="startButton">開始遊戲</button>
+                <button type="button" id="pauseButton" aria-pressed="false">暫停</button>
+            </div>
+        </header>
+        <canvas id="gameCanvas" width="800" height="600" aria-label="飛機大戰遊戲畫布" role="img"></canvas>
+        <p class="controls">方向鍵 / WASD 移動，空白鍵射擊。按「暫停」可暫停遊戲。</p>
+        <p class="status" id="statusMessage" aria-live="assertive"></p>
     </div>
-    <script>
-        const canvas = document.getElementById('gameCanvas');
-        const ctx = canvas.getContext('2d');
-        const gameOverDiv = document.getElementById('gameOver');
-        const gameOverMessage = document.getElementById('gameOverMessage');
-        let gameRunning = false; let score = 0; let lives = 3;
-        const player = { x: 400, y: 500, width: 50, height: 50, speed: 5 };
-        let bullets = []; let enemies = [];
-        const keys = {};
-        document.addEventListener('keydown', (e) => {
-            keys[e.key] = true;
-            if (e.key === ' ') { e.preventDefault(); shoot(); }
-        });
-        document.addEventListener('keyup', (e) => { keys[e.key] = false; });
-        function resizeCanvas() {
-            const maxWidth = window.innerWidth * 0.9;
-            const maxHeight = window.innerHeight * 0.85;
-            const aspectRatio = canvas.width / canvas.height;
-            const widthBasedOnHeight = maxHeight * aspectRatio;
-            const width = Math.min(maxWidth, widthBasedOnHeight);
-            const height = width / aspectRatio;
-            canvas.style.width = `${width}px`;
-            canvas.style.height = `${height}px`;
-        }
 
-        function startGame() {
-            gameRunning = true; score = 0; lives = 3;
-            player.x = 400; player.y = 500; bullets = []; enemies = [];
-            updateDisplay();
-            gameOverDiv.style.display = 'none';
-            gameLoop();
-        }
-        function updateDisplay() {
-            document.getElementById('score').textContent = score;
-            document.getElementById('lives').textContent = lives;
-        }
-        function updatePlayer() {
-            if (keys['ArrowLeft'] && player.x > 0) player.x -= player.speed;
-            if (keys['ArrowRight'] && player.x < canvas.width - player.width) player.x += player.speed;
-            if (keys['ArrowUp'] && player.y > 0) player.y -= player.speed;
-            if (keys['ArrowDown'] && player.y < canvas.height - player.height) player.y += player.speed;
-        }
-        function shoot() {
-            if (bullets.length < 10) {
-                bullets.push({ x: player.x + player.width/2 - 2, y: player.y, width: 4, height: 10, speed: 7 });
+    <div class="overlay" id="messageOverlay" hidden role="dialog" aria-modal="true">
+        <div class="overlay-panel">
+            <h2 id="overlayTitle">遊戲結束</h2>
+            <p id="overlayText"></p>
+            <button type="button" id="overlayButton">重新挑戰</button>
+        </div>
+    </div>
+
+    <script>
+        (() => {
+            const canvas = document.getElementById('gameCanvas');
+            const ctx = canvas.getContext('2d');
+
+            const scoreDisplay = document.getElementById('scoreDisplay');
+            const livesDisplay = document.getElementById('livesDisplay');
+            const waveDisplay = document.getElementById('waveDisplay');
+            const statusMessage = document.getElementById('statusMessage');
+
+            const startButton = document.getElementById('startButton');
+            const pauseButton = document.getElementById('pauseButton');
+            const messageOverlay = document.getElementById('messageOverlay');
+            const overlayTitle = document.getElementById('overlayTitle');
+            const overlayText = document.getElementById('overlayText');
+            const overlayButton = document.getElementById('overlayButton');
+
+            const state = {
+                running: false,
+                paused: false,
+                lastTime: 0,
+                score: 0,
+                lives: 3,
+                wave: 1,
+                spawnTimer: 0,
+                spawnInterval: 1.4,
+                statusTimer: 0
+            };
+
+            const controls = {
+                left: false,
+                right: false,
+                up: false,
+                down: false,
+                shoot: false
+            };
+
+            const player = {
+                width: 44,
+                height: 52,
+                speed: 320,
+                cooldown: 0.18,
+                cooldownTimer: 0,
+                x: canvas.width / 2 - 22,
+                y: canvas.height - 90
+            };
+
+            const bullets = [];
+            const enemies = [];
+
+            const keyMap = {
+                ArrowLeft: 'left',
+                ArrowRight: 'right',
+                ArrowUp: 'up',
+                ArrowDown: 'down',
+                KeyA: 'left',
+                KeyD: 'right',
+                KeyW: 'up',
+                KeyS: 'down',
+                Space: 'shoot'
+            };
+
+            function resetGame() {
+                state.running = false;
+                state.paused = false;
+                state.score = 0;
+                state.lives = 3;
+                state.wave = 1;
+                state.spawnTimer = 0;
+                state.spawnInterval = 1.4;
+                state.lastTime = 0;
+                state.statusTimer = 0;
+                bullets.length = 0;
+                enemies.length = 0;
+                player.x = canvas.width / 2 - player.width / 2;
+                player.y = canvas.height - 90;
+                player.cooldownTimer = 0;
+                updateHUD();
+                statusMessage.textContent = '';
+                messageOverlay.hidden = true;
+                pauseButton.textContent = '暫停';
+                pauseButton.setAttribute('aria-pressed', 'false');
             }
-        }
-        function updateBullets() {
-            bullets = bullets.filter(bullet => {
-                bullet.y -= bullet.speed;
-                enemies.forEach((enemy, ei) => {
-                    if (bullet.x < enemy.x + enemy.width && bullet.x + bullet.width > enemy.x &&
-                        bullet.y < enemy.y + enemy.height && bullet.y + bullet.height > enemy.y) {
-                        score += 10; updateDisplay();
-                        enemies.splice(ei, 1); return false;
-                    }
-                });
-                return bullet.y > 0;
-            });
-        }
-        function updateEnemies() {
-            if (Math.random() < 0.02) {
-                enemies.push({
-                    x: Math.random() * (canvas.width - 40), y: -40,
-                    width: 40, height: 40, speed: 2 + Math.random() * 2
-                });
+
+            function startGame() {
+                resetGame();
+                state.running = true;
+                requestAnimationFrame(loop);
+                announce('祝你好運，飛行員！');
             }
-            enemies = enemies.filter(enemy => {
-                enemy.y += enemy.speed;
-                if (enemy.x < player.x + player.width && enemy.x + enemy.width > player.x &&
-                    enemy.y < player.y + player.height && enemy.y + enemy.height > player.y) {
-                    lives--; updateDisplay();
-                    if (lives <= 0) {
-                        gameRunning = false;
-                        showGameOver(`你的得分：${score}`);
-                    }
-                    return false;
+
+            function togglePause() {
+                if (!state.running) {
+                    return;
                 }
-                return enemy.y < canvas.height + 50;
+
+                state.paused = !state.paused;
+                pauseButton.textContent = state.paused ? '繼續' : '暫停';
+                pauseButton.setAttribute('aria-pressed', String(state.paused));
+                statusMessage.textContent = state.paused ? '暫停中' : '';
+                state.statusTimer = state.paused ? 0 : state.statusTimer;
+            }
+
+            function endGame(victory = false) {
+                state.running = false;
+                messageOverlay.hidden = false;
+                overlayTitle.textContent = victory ? '任務完成！' : '遊戲結束';
+                overlayText.textContent = `本次得分：${state.score}\n最高波次：${state.wave}`;
+            }
+
+            function updateHUD() {
+                scoreDisplay.textContent = state.score;
+                livesDisplay.textContent = state.lives;
+                waveDisplay.textContent = state.wave;
+            }
+
+            function announce(message, duration = 2.2) {
+                statusMessage.innerHTML = `<span>${message}</span>`;
+                state.statusTimer = duration;
+            }
+
+            function spawnEnemy() {
+                const size = 32 + Math.random() * 18;
+                const speed = 95 + state.wave * 18 + Math.random() * 35;
+                const drift = (Math.random() * 120 - 60) * 0.5;
+                enemies.push({
+                    x: Math.random() * (canvas.width - size),
+                    y: -size,
+                    width: size,
+                    height: size,
+                    speed,
+                    drift
+                });
+            }
+
+            function fireBullet() {
+                bullets.push({
+                    x: player.x + player.width / 2 - 3,
+                    y: player.y - 12,
+                    width: 6,
+                    height: 18,
+                    speed: 520
+                });
+            }
+
+            function handleInput(dt) {
+                const horizontal = (controls.left ? -1 : 0) + (controls.right ? 1 : 0);
+                const vertical = (controls.up ? -1 : 0) + (controls.down ? 1 : 0);
+
+                player.x += horizontal * player.speed * dt;
+                player.y += vertical * player.speed * dt;
+
+                player.x = Math.max(16, Math.min(canvas.width - player.width - 16, player.x));
+                player.y = Math.max(40, Math.min(canvas.height - player.height - 16, player.y));
+
+                player.cooldownTimer = Math.max(0, player.cooldownTimer - dt);
+                if (controls.shoot && player.cooldownTimer === 0) {
+                    fireBullet();
+                    player.cooldownTimer = player.cooldown;
+                }
+            }
+
+            function updateBullets(dt) {
+                for (let i = bullets.length - 1; i >= 0; i -= 1) {
+                    const bullet = bullets[i];
+                    bullet.y -= bullet.speed * dt;
+                    if (bullet.y + bullet.height < 0) {
+                        bullets.splice(i, 1);
+                    }
+                }
+            }
+
+            function updateEnemies(dt) {
+                for (let i = enemies.length - 1; i >= 0; i -= 1) {
+                    const enemy = enemies[i];
+                    enemy.y += enemy.speed * dt;
+                    enemy.x += enemy.drift * dt;
+
+                    if (enemy.x < 8 || enemy.x + enemy.width > canvas.width - 8) {
+                        enemy.drift *= -1;
+                    }
+
+                    if (enemy.y > canvas.height) {
+                        enemies.splice(i, 1);
+                        damagePlayer();
+                        continue;
+                    }
+
+                    if (rectsIntersect(enemy, player)) {
+                        enemies.splice(i, 1);
+                        damagePlayer();
+                        continue;
+                    }
+
+                    for (let j = bullets.length - 1; j >= 0; j -= 1) {
+                        const bullet = bullets[j];
+                        if (rectsIntersect(enemy, bullet)) {
+                            enemies.splice(i, 1);
+                            bullets.splice(j, 1);
+                            state.score += 120;
+                            updateWave();
+                            updateHUD();
+                            announce('擊墜敵機 +120 分', 1.2);
+                            break;
+                        }
+                    }
+                }
+            }
+
+            function damagePlayer() {
+                if (!state.running) {
+                    return;
+                }
+
+                state.lives -= 1;
+                updateHUD();
+                announce('受到傷害！剩餘生命：' + state.lives, 1.5);
+
+                if (state.lives <= 0) {
+                    endGame(false);
+                }
+            }
+
+            function updateWave() {
+                const nextWave = 1 + Math.floor(state.score / 1600);
+                if (nextWave > state.wave) {
+                    state.wave = nextWave;
+                    state.spawnInterval = Math.max(0.6, 1.4 - (state.wave - 1) * 0.12);
+                    announce(`第 ${state.wave} 波來襲！`, 2.4);
+                }
+            }
+
+            function rectsIntersect(a, b) {
+                return (
+                    a.x < b.x + b.width &&
+                    a.x + a.width > b.x &&
+                    a.y < b.y + b.height &&
+                    a.y + a.height > b.y
+                );
+            }
+
+            function update(dt) {
+                handleInput(dt);
+                updateBullets(dt);
+                updateEnemies(dt);
+
+                state.spawnTimer += dt;
+                if (state.spawnTimer >= state.spawnInterval) {
+                    state.spawnTimer = 0;
+                    spawnEnemy();
+                }
+
+                if (state.statusTimer > 0 && !state.paused) {
+                    state.statusTimer -= dt;
+                    if (state.statusTimer <= 0) {
+                        statusMessage.textContent = '';
+                    }
+                }
+            }
+
+            function draw() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+                const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+                gradient.addColorStop(0, '#0b1220');
+                gradient.addColorStop(0.5, '#0f172a');
+                gradient.addColorStop(1, '#020617');
+                ctx.fillStyle = gradient;
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                ctx.fillStyle = 'rgba(148, 163, 184, 0.15)';
+                for (let i = 0; i < 60; i += 1) {
+                    const x = (i * 137 + performance.now() * 0.02) % canvas.width;
+                    const y = (i * 53 + performance.now() * 0.04) % canvas.height;
+                    ctx.fillRect(x, y, 2, 2);
+                }
+
+                ctx.fillStyle = '#38bdf8';
+                ctx.beginPath();
+                ctx.moveTo(player.x + player.width / 2, player.y);
+                ctx.lineTo(player.x + player.width, player.y + player.height - 8);
+                ctx.lineTo(player.x + player.width / 2, player.y + player.height);
+                ctx.lineTo(player.x, player.y + player.height - 8);
+                ctx.closePath();
+                ctx.fill();
+                ctx.strokeStyle = '#0ea5e9';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+
+                ctx.fillStyle = '#f8fafc';
+                bullets.forEach(bullet => {
+                    ctx.fillRect(bullet.x, bullet.y, bullet.width, bullet.height);
+                });
+
+                enemies.forEach(enemy => {
+                    const enemyGradient = ctx.createLinearGradient(enemy.x, enemy.y, enemy.x, enemy.y + enemy.height);
+                    enemyGradient.addColorStop(0, '#f97316');
+                    enemyGradient.addColorStop(1, '#ef4444');
+                    ctx.fillStyle = enemyGradient;
+                    ctx.fillRect(enemy.x, enemy.y, enemy.width, enemy.height);
+                    ctx.strokeStyle = 'rgba(15, 23, 42, 0.8)';
+                    ctx.strokeRect(enemy.x, enemy.y, enemy.width, enemy.height);
+                });
+            }
+
+            function loop(timestamp) {
+                if (!state.running) {
+                    return;
+                }
+
+                if (!state.lastTime) {
+                    state.lastTime = timestamp;
+                }
+
+                const delta = Math.min((timestamp - state.lastTime) / 1000, 0.05);
+                state.lastTime = timestamp;
+
+                if (!state.paused) {
+                    update(delta);
+                    draw();
+                }
+
+                requestAnimationFrame(loop);
+            }
+
+            startButton.addEventListener('click', startGame);
+            pauseButton.addEventListener('click', togglePause);
+            overlayButton.addEventListener('click', startGame);
+
+            document.addEventListener('visibilitychange', () => {
+                if (document.hidden && state.running && !state.paused) {
+                    togglePause();
+                }
             });
-        }
-        function showGameOver(message) {
-            gameOverMessage.textContent = message;
-            gameOverDiv.style.display = 'flex';
-        }
-        function draw() {
-            ctx.fillStyle = '#000'; ctx.fillRect(0, 0, canvas.width, canvas.height);
-            for (let i = 0; i < 50; i++) {
-                const x = (i * 37) % canvas.width;
-                const y = (i * 23 + Date.now() / 10) % canvas.height;
-                ctx.fillStyle = '#fff'; ctx.fillRect(x, y, 2, 2);
-            }
-            ctx.fillStyle = '#00ff00';
-            ctx.fillRect(player.x, player.y, player.width, player.height);
-            ctx.fillStyle = '#ffff00';
-            bullets.forEach(bullet => ctx.fillRect(bullet.x, bullet.y, bullet.width, bullet.height));
-            ctx.fillStyle = '#ff0000';
-            enemies.forEach(enemy => ctx.fillRect(enemy.x, enemy.y, enemy.width, enemy.height));
-        }
-        function gameLoop() {
-            if (gameRunning) {
-                updatePlayer(); updateBullets(); updateEnemies(); draw();
-            }
-            requestAnimationFrame(gameLoop);
-        }
-        gameLoop();
-        window.addEventListener('resize', resizeCanvas);
-        resizeCanvas();
+
+            window.addEventListener('keydown', event => {
+                const control = keyMap[event.code];
+                if (control) {
+                    event.preventDefault();
+                    controls[control] = true;
+                }
+            });
+
+            window.addEventListener('keyup', event => {
+                const control = keyMap[event.code];
+                if (control) {
+                    controls[control] = false;
+                }
+            });
+
+            updateHUD();
+        })();
     </script>
 </body>
 </html>

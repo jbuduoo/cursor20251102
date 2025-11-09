@@ -60,6 +60,15 @@
             color: #94a3b8;
         }
 
+        .speed-indicator {
+            font-size: 0.75em;
+            color: #facc15;
+            letter-spacing: 0.05em;
+            padding: 0.1rem 0.35rem;
+            background: rgba(250, 204, 21, 0.1);
+            border-radius: 999px;
+        }
+
         .scoreboard strong {
             color: #38bdf8;
             font-weight: 600;
@@ -143,7 +152,7 @@
     <header class="hud">
         <h1>Pong</h1>
         <div class="scoreboard" aria-live="polite">
-            <span>玩家 <strong id="player-score">0</strong></span>
+            <span>玩家 <strong id="player-score">0</strong> <span class="speed-indicator" id="speed-display">速度 x1.00</span></span>
             <span>電腦 <strong id="computer-score">0</strong></span>
         </div>
         <div class="actions">
@@ -174,8 +183,22 @@
         let computerY = canvas.height / 2 - paddleHeight / 2;
         let ballX = canvas.width / 2;
         let ballY = canvas.height / 2;
-        let ballSpeedX = 5;
-        let ballSpeedY = 3;
+        const baseBallSpeedX = 5;
+        const baseBallSpeedY = 3;
+        const speedIncreaseInterval = 3000;
+        const speedIncreaseFactor = 1.05;
+        let ballSpeedX = baseBallSpeedX;
+        let ballSpeedY = baseBallSpeedY;
+        let ballSpeedMultiplier = 1;
+        let lastSpeedIncreaseTime = performance.now();
+        let audioCtx = null;
+
+        function updateSpeedDisplay() {
+            const speedEl = document.getElementById('speed-display');
+            if (speedEl) {
+                speedEl.textContent = `速度 x${ballSpeedMultiplier.toFixed(2)}`;
+            }
+        }
         
         let playerScore = 0;
         let computerScore = 0;
@@ -232,7 +255,60 @@
         }
         
         // 更新球的位置
+        function ensureAudioContext() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+        }
+
+        function playHitSound() {
+            ensureAudioContext();
+            const duration = 0.08;
+            const now = audioCtx.currentTime;
+            const oscillator = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            oscillator.type = 'sine';
+            oscillator.frequency.setValueAtTime(520, now);
+            gainNode.gain.setValueAtTime(0.25, now);
+            gainNode.gain.exponentialRampToValueAtTime(0.001, now + duration);
+            oscillator.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+            oscillator.start(now);
+            oscillator.stop(now + duration);
+        }
+
+        function setupAudioUnlock() {
+            const unlock = () => {
+                ensureAudioContext();
+                document.removeEventListener('keydown', unlock);
+                document.removeEventListener('mousedown', unlock);
+                document.removeEventListener('touchstart', unlock);
+            };
+            document.addEventListener('keydown', unlock);
+            document.addEventListener('mousedown', unlock);
+            document.addEventListener('touchstart', unlock, { passive: true });
+        }
+
+        function handleSpeedIncrease() {
+            const now = performance.now();
+            let increased = false;
+            while (now - lastSpeedIncreaseTime >= speedIncreaseInterval) {
+                lastSpeedIncreaseTime += speedIncreaseInterval;
+                ballSpeedMultiplier *= speedIncreaseFactor;
+                ballSpeedX *= speedIncreaseFactor;
+                ballSpeedY *= speedIncreaseFactor;
+                increased = true;
+            }
+            if (increased) {
+                updateSpeedDisplay();
+            }
+        }
+
         function updateBall() {
+            handleSpeedIncrease();
             ballX += ballSpeedX;
             ballY += ballSpeedY;
             
@@ -247,9 +323,10 @@
                 ballY <= playerY + paddleHeight) {
                 ballSpeedX = -ballSpeedX;
                 ballX = paddleWidth;
+                playHitSound();
                 // 根據擊球位置調整角度
                 const hitPos = (ballY - playerY) / paddleHeight;
-                ballSpeedY = (hitPos - 0.5) * 8;
+                ballSpeedY = (hitPos - 0.5) * 8 * ballSpeedMultiplier;
             }
             
             // 電腦球拍碰撞
@@ -258,8 +335,9 @@
                 ballY <= computerY + paddleHeight) {
                 ballSpeedX = -ballSpeedX;
                 ballX = canvas.width - paddleWidth - ballSize;
+                playHitSound();
                 const hitPos = (ballY - computerY) / paddleHeight;
-                ballSpeedY = (hitPos - 0.5) * 8;
+                ballSpeedY = (hitPos - 0.5) * 8 * ballSpeedMultiplier;
             }
             
             // 得分
@@ -281,8 +359,11 @@
         function resetBall() {
             ballX = canvas.width / 2;
             ballY = canvas.height / 2;
-            ballSpeedX = (Math.random() > 0.5 ? 1 : -1) * 5;
-            ballSpeedY = (Math.random() * 2 - 1) * 3;
+            ballSpeedMultiplier = 1;
+            lastSpeedIncreaseTime = performance.now();
+            ballSpeedX = (Math.random() > 0.5 ? 1 : -1) * baseBallSpeedX;
+            ballSpeedY = (Math.random() * 2 - 1) * baseBallSpeedY;
+            updateSpeedDisplay();
         }
         
         // 繪製
@@ -338,7 +419,9 @@
         }
         
         // 開始遊戲
+        updateSpeedDisplay();
         gameLoop();
+        setupAudioUnlock();
         window.addEventListener('resize', resizeCanvas);
         resizeCanvas();
     </script>

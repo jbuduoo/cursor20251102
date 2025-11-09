@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+  <defs>
+    <radialGradient id="fur" cx="50%" cy="40%" r="60%">
+      <stop offset="0%" stop-color="#d8a36a"/>
+      <stop offset="70%" stop-color="#9a6841"/>
+      <stop offset="100%" stop-color="#6b472b"/>
+    </radialGradient>
+    <radialGradient id="belly" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#f1d2a5"/>
+      <stop offset="100%" stop-color="#d2a676"/>
+    </radialGradient>
+  </defs>
+  <ellipse cx="100" cy="135" rx="90" ry="50" fill="#2d1f12" opacity="0.55"/>
+  <ellipse cx="100" cy="110" rx="65" ry="80" fill="url(#fur)"/>
+  <ellipse cx="100" cy="120" rx="40" ry="55" fill="url(#belly)"/>
+  <ellipse cx="70" cy="85" rx="18" ry="22" fill="#f6e7d0"/>
+  <ellipse cx="130" cy="85" rx="18" ry="22" fill="#f6e7d0"/>
+  <circle cx="70" cy="85" r="10" fill="#1f1b18"/>
+  <circle cx="130" cy="85" r="10" fill="#1f1b18"/>
+  <path d="M85 120 Q100 130 115 120" fill="none" stroke="#1f1b18" stroke-width="6" stroke-linecap="round"/>
+  <path d="M100 95 Q110 98 110 110 Q110 125 100 125 Q90 125 90 110 Q90 98 100 95 Z" fill="#f1d2a5"/>
+  <ellipse cx="100" cy="118" rx="6" ry="10" fill="#f28c8c"/>
+  <ellipse cx="50" cy="120" rx="10" ry="6" fill="#f1d2a5" transform="rotate(-25 50 120)"/>
+  <ellipse cx="150" cy="120" rx="10" ry="6" fill="#f1d2a5" transform="rotate(25 150 120)"/>
+</svg>
+

@@ -1,0 +1,673 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>坦克大戰</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html, body {
+            width: 100%;
+            height: 100%;
+        }
+
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-family: "Microsoft JhengHei", "Segoe UI", sans-serif;
+            background: radial-gradient(circle at center, #1f2937 0%, #0f172a 60%, #020617 100%);
+            color: #e2e8f0;
+            gap: 0.6rem;
+            padding: 0.6rem 0.8rem 1rem;
+            overflow: hidden;
+        }
+
+        header {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem;
+            text-align: center;
+        }
+
+        header h1 {
+            font-size: 1.4rem;
+            letter-spacing: 0.08em;
+        }
+
+        .scoreboard {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            font-size: 0.9rem;
+            color: #94a3b8;
+        }
+
+        .scoreboard span {
+            display: flex;
+            align-items: center;
+            gap: 0.35rem;
+        }
+
+        .scoreboard strong {
+            color: #38bdf8;
+        }
+
+        .actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        button {
+            padding: 0.45rem 1.1rem;
+            font-size: 0.9rem;
+            font-weight: 600;
+            letter-spacing: 0.05em;
+            color: #0f172a;
+            background: linear-gradient(120deg, #38bdf8, #22d3ee);
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+        }
+
+        button:hover,
+        button:focus-visible {
+            transform: translateY(-1px);
+            box-shadow: 0 8px 16px rgba(34, 211, 238, 0.25);
+            background: linear-gradient(120deg, #22d3ee, #38bdf8);
+        }
+
+        canvas {
+            background: repeating-linear-gradient(
+                45deg,
+                rgba(15, 23, 42, 0.8) 0px,
+                rgba(15, 23, 42, 0.8) 14px,
+                rgba(2, 6, 23, 0.9) 14px,
+                rgba(2, 6, 23, 0.9) 28px
+            );
+            border: 2px solid rgba(56, 189, 248, 0.35);
+            border-radius: 10px;
+            box-shadow: 0 20px 40px rgba(15, 23, 42, 0.6);
+            max-width: min(92vw, 900px);
+            max-height: 80vh;
+        }
+
+        .overlay {
+            position: fixed;
+            inset: 0;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            gap: 1rem;
+            background: rgba(2, 6, 23, 0.82);
+            color: #e2e8f0;
+            text-align: center;
+            padding: 1.5rem;
+            z-index: 20;
+        }
+
+        .overlay button {
+            margin-top: 0.5rem;
+        }
+
+        @media (max-width: 640px) {
+            header {
+                gap: 0.5rem;
+            }
+
+            header h1 {
+                font-size: 1.2rem;
+            }
+
+            .scoreboard {
+                gap: 0.6rem;
+                font-size: 0.85rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>坦克大戰</h1>
+        <div class="scoreboard" aria-live="polite">
+            <span>時間 <strong id="time">0.0s</strong></span>
+            <span>擊毀 <strong id="kills">0</strong></span>
+            <span>射速 <strong id="fireRate">1.0/s</strong></span>
+            <span>爆炸 <strong id="explosions">0</strong></span>
+        </div>
+        <div class="actions">
+            <button type="button" id="startBtn">開始戰鬥</button>
+        </div>
+    </header>
+    <canvas id="gameCanvas" width="800" height="600" aria-label="坦克大戰戰場"></canvas>
+    <div class="overlay" id="gameOver" role="dialog" aria-modal="true" aria-labelledby="gameOverTitle">
+        <div id="gameOverTitle">任務失敗</div>
+        <p id="gameOverMessage"></p>
+        <button type="button" id="restartBtn">再戰一次</button>
+    </div>
+
+    <script>
+        const canvas = document.getElementById("gameCanvas");
+        const ctx = canvas.getContext("2d");
+        const startBtn = document.getElementById("startBtn");
+        const restartBtn = document.getElementById("restartBtn");
+        const gameOverOverlay = document.getElementById("gameOver");
+        const gameOverMessage = document.getElementById("gameOverMessage");
+        const timeDisplay = document.getElementById("time");
+        const killsDisplay = document.getElementById("kills");
+        const fireRateDisplay = document.getElementById("fireRate");
+        const explosionsDisplay = document.getElementById("explosions");
+
+        const player = {
+            x: canvas.width / 2,
+            y: canvas.height / 2,
+            radius: 38,
+            bodyColor: "#38bdf8",
+            turretColor: "#0ea5e9"
+        };
+
+        const TANK_SPEED = 0.75;
+        const ENEMY_SPAWN_INTERVAL = 1800;
+        const BULLET_SPEED = 5.5;
+        const EXPLOSION_DURATION = 1000;
+        const EXPLOSION_BASE_RADIUS = 110;
+        const EXPLOSION_BONUS_SCALE = 1.6;
+        const BASE_FIRE_INTERVAL = 1000;
+        const FIRE_INTERVAL_STEP = 120;
+        const MIN_FIRE_INTERVAL = 200;
+        const MAX_CHARGE_TIME = 1500;
+
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+
+        let lastShot = 0;
+        let lastSpawn = 0;
+        let startTime = 0;
+        let elapsedTime = 0;
+        let animationId = null;
+        let kills = 0;
+        let totalExplosions = 0;
+        let bullets = [];
+        let enemies = [];
+        let explosions = [];
+        let gameRunning = false;
+        let spacePressed = false;
+        let spacePressStartTime = 0;
+        let mousePosition = { x: player.x, y: player.y - player.radius * 2 };
+        player.turretAngle = -Math.PI / 2;
+
+        function resetGame() {
+            bullets = [];
+            enemies = [];
+            explosions = [];
+            kills = 0;
+            totalExplosions = 0;
+            spacePressed = false;
+            spacePressStartTime = 0;
+            lastSpawn = 0;
+            startTime = performance.now();
+            lastShot = startTime;
+            elapsedTime = 0;
+            mousePosition = { x: player.x, y: player.y - player.radius * 2 };
+            player.turretAngle = -Math.PI / 2;
+            updateHUD();
+            gameOverOverlay.style.display = "none";
+        }
+
+        function startGame() {
+            resetGame();
+            gameRunning = true;
+            animationId = requestAnimationFrame(gameLoop);
+        }
+
+        function endGame() {
+            gameRunning = false;
+            if (animationId) {
+                cancelAnimationFrame(animationId);
+                animationId = null;
+            }
+            spacePressed = false;
+            gameOverMessage.textContent = `你撐了 ${timeDisplay.textContent}，擊毀 ${kills} 輛敵軍坦克。`;
+            gameOverOverlay.style.display = "flex";
+        }
+
+        function updateHUD() {
+            const seconds = elapsedTime / 1000;
+            timeDisplay.textContent = `${seconds.toFixed(1)}s`;
+            killsDisplay.textContent = kills;
+            explosionsDisplay.textContent = totalExplosions;
+            const interval = getCurrentFireInterval();
+            const rate = 1000 / interval;
+            fireRateDisplay.textContent = `${rate.toFixed(1)}/s`;
+        }
+
+        function getCurrentFireInterval() {
+            const elapsedSteps = Math.floor(elapsedTime / 10000);
+            const interval = BASE_FIRE_INTERVAL - elapsedSteps * FIRE_INTERVAL_STEP;
+            return Math.max(MIN_FIRE_INTERVAL, interval);
+        }
+
+        function getSpawnConfig() {
+            const baseInterval = ENEMY_SPAWN_INTERVAL;
+            const killFactor = Math.max(0, kills * 12);
+            const timeFactor = Math.max(0, (elapsedTime / 1000) * 6);
+            const difficulty = Math.min(450, killFactor + timeFactor);
+
+            const nextInterval = Math.max(380, baseInterval - difficulty);
+
+            const elapsedSeconds = Math.max(0, elapsedTime / 1000);
+            const spawnCount = 1 + Math.floor(elapsedSeconds / 20) + Math.floor(kills / 10);
+            return {
+                interval: nextInterval,
+                count: Math.min(6, spawnCount)
+            };
+        }
+
+        function spawnEnemy(timestamp) {
+            const { count, interval } = getSpawnConfig();
+            lastSpawn = timestamp;
+
+            for (let i = 0; i < count; i++) {
+                const edge = Math.floor(Math.random() * 4);
+                let x, y;
+                if (edge === 0) { // top
+                    x = Math.random() * canvas.width;
+                    y = -60 - i * 32;
+                } else if (edge === 1) { // right
+                    x = canvas.width + 60 + i * 32;
+                    y = Math.random() * canvas.height;
+                } else if (edge === 2) { // bottom
+                    x = Math.random() * canvas.width;
+                    y = canvas.height + 60 + i * 32;
+                } else { // left
+                    x = -60 - i * 32;
+                    y = Math.random() * canvas.height;
+                }
+                enemies.push({
+                    x,
+                    y,
+                    width: 52,
+                    height: 64,
+                    rotation: 0
+                });
+            }
+            return interval;
+        }
+
+        function shoot(timestamp) {
+            lastShot = timestamp;
+            const reference = mousePosition || findNearestEnemy() || { x: player.x, y: player.y - 100 };
+            const angle = Math.atan2(reference.y - player.y, reference.x - player.x);
+            const vx = Math.cos(angle) * BULLET_SPEED;
+            const vy = Math.sin(angle) * BULLET_SPEED;
+            const pressDuration = spacePressed && spacePressStartTime
+                ? Math.min(MAX_CHARGE_TIME, timestamp - spacePressStartTime)
+                : 0;
+            const charge = Math.max(0, Math.min(1, pressDuration / MAX_CHARGE_TIME));
+            playShootSound(charge);
+            bullets.push({
+                x: player.x,
+                y: player.y,
+                vx,
+                vy,
+                angle,
+                charge
+            });
+        }
+
+        function findNearestEnemy() {
+            if (enemies.length === 0) return null;
+            let nearest = null;
+            let minDist = Infinity;
+            for (const enemy of enemies) {
+                const dx = enemy.x - player.x;
+                const dy = enemy.y - player.y;
+                const dist = Math.hypot(dx, dy);
+                if (dist < minDist) {
+                    minDist = dist;
+                    nearest = enemy;
+                }
+            }
+            return nearest
+                ? { x: nearest.x, y: nearest.y }
+                : null;
+        }
+
+        function createExplosion(x, y, charge = 0) {
+            const clampedCharge = Math.max(0, Math.min(1, charge));
+            playExplosionSound(clampedCharge);
+            explosions.push({
+                x,
+                y,
+                start: performance.now(),
+                radius: EXPLOSION_BASE_RADIUS * (1 + clampedCharge * EXPLOSION_BONUS_SCALE),
+                charge: clampedCharge
+            });
+            totalExplosions += 1;
+        }
+
+        function updateEnemies(delta) {
+            for (const enemy of enemies) {
+                const dx = player.x - enemy.x;
+                const dy = player.y - enemy.y;
+                const dist = Math.hypot(dx, dy) || 1;
+                const speed = TANK_SPEED * (1 + Math.min(0.005 * (elapsedTime / 1000), 1));
+                enemy.x += (dx / dist) * speed * delta * 0.06;
+                enemy.y += (dy / dist) * speed * delta * 0.06;
+                enemy.rotation = Math.atan2(dy, dx);
+                enemy.turretAngle = enemy.rotation;
+
+                if (dist < player.radius + Math.max(enemy.width, enemy.height) * 0.35) {
+                    endGame();
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        function updateBullets(delta) {
+            for (let i = bullets.length - 1; i >= 0; i--) {
+                const bullet = bullets[i];
+                bullet.x += bullet.vx * delta * 0.06;
+                bullet.y += bullet.vy * delta * 0.06;
+
+                if (bullet.x < -40 || bullet.x > canvas.width + 40 || bullet.y < -40 || bullet.y > canvas.height + 40) {
+                    bullets.splice(i, 1);
+                    continue;
+                }
+
+                for (let j = enemies.length - 1; j >= 0; j--) {
+                    const enemy = enemies[j];
+                    const dx = bullet.x - enemy.x;
+                    const dy = bullet.y - enemy.y;
+                    const dist = Math.hypot(dx, dy);
+                    if (dist < 34) {
+                        bullets.splice(i, 1);
+                        enemies.splice(j, 1);
+                        kills += 1;
+                        createExplosion(enemy.x, enemy.y, bullet.charge || 0);
+                        break;
+                    }
+                }
+            }
+        }
+
+        function updateExplosions(timestamp) {
+            for (let i = explosions.length - 1; i >= 0; i--) {
+                const explosion = explosions[i];
+                const progress = (timestamp - explosion.start) / EXPLOSION_DURATION;
+                if (progress >= 1) {
+                    explosions.splice(i, 1);
+                    continue;
+                }
+
+                for (let j = enemies.length - 1; j >= 0; j--) {
+                    const enemy = enemies[j];
+                    const dx = enemy.x - explosion.x;
+                    const dy = enemy.y - explosion.y;
+                    if (Math.hypot(dx, dy) < explosion.radius) {
+                        enemies.splice(j, 1);
+                        kills += 1;
+                        createExplosion(enemy.x, enemy.y, explosion.charge || 0);
+                    }
+                }
+            }
+        }
+
+        function drawTank(x, y, rotation, bodyColor, turretColor, turretRotation = rotation) {
+            ctx.save();
+            ctx.translate(x, y);
+            ctx.rotate(rotation);
+            ctx.fillStyle = bodyColor;
+            ctx.strokeStyle = "rgba(15, 23, 42, 0.55)";
+            ctx.lineWidth = 4;
+
+            ctx.beginPath();
+            ctx.roundRect(-26, -30, 52, 60, 10);
+            ctx.fill();
+            ctx.stroke();
+
+            ctx.fillStyle = "rgba(15, 23, 42, 0.25)";
+            ctx.beginPath();
+            ctx.roundRect(-32, -34, 64, 12, 8);
+            ctx.fill();
+
+            ctx.beginPath();
+            ctx.roundRect(-32, 22, 64, 12, 8);
+            ctx.fill();
+
+            ctx.restore();
+
+            ctx.save();
+            ctx.translate(x, y);
+            ctx.rotate(turretRotation);
+            ctx.fillStyle = turretColor;
+            ctx.beginPath();
+            ctx.roundRect(-18, -18, 36, 36, 12);
+            ctx.fill();
+            ctx.stroke();
+
+            ctx.fillStyle = turretColor;
+            ctx.beginPath();
+            ctx.roundRect(10, -6, 40, 12, 6);
+            ctx.fill();
+            ctx.stroke();
+
+            ctx.restore();
+        }
+
+        function drawBullet(bullet) {
+            ctx.save();
+            ctx.translate(bullet.x, bullet.y);
+            ctx.rotate(bullet.angle);
+            ctx.fillStyle = "#facc15";
+            ctx.strokeStyle = "#f97316";
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.roundRect(-8, -4, 16, 8, 4);
+            ctx.fill();
+            ctx.stroke();
+            ctx.restore();
+        }
+
+        function drawExplosion(explosion, timestamp) {
+            const elapsed = timestamp - explosion.start;
+            const progress = Math.min(1, elapsed / EXPLOSION_DURATION);
+            const alpha = 0.55 * (1 - progress);
+            const radius = explosion.radius * (0.85 + 0.15 * Math.sin(progress * Math.PI * 4));
+
+            const gradient = ctx.createRadialGradient(
+                explosion.x,
+                explosion.y,
+                radius * 0.1,
+                explosion.x,
+                explosion.y,
+                radius
+            );
+            gradient.addColorStop(0, `rgba(250, 204, 21, ${alpha})`);
+            gradient.addColorStop(0.4, `rgba(249, 115, 22, ${alpha * 0.85})`);
+            gradient.addColorStop(1, `rgba(15, 23, 42, 0)`);
+
+            ctx.fillStyle = gradient;
+            ctx.beginPath();
+            ctx.arc(explosion.x, explosion.y, radius, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        function drawPlayer(timestamp) {
+            drawTank(player.x, player.y, 0, player.bodyColor, player.turretColor, player.turretAngle);
+
+            const interval = getCurrentFireInterval();
+            const shotProgress = Math.min(1, (timestamp - lastShot) / interval);
+            const pulse = 0.6 + 0.4 * Math.sin(shotProgress * Math.PI);
+
+            ctx.save();
+            ctx.translate(player.x, player.y);
+            ctx.fillStyle = `rgba(56, 189, 248, ${0.12 * pulse})`;
+            ctx.beginPath();
+            ctx.arc(0, 0, player.radius * (1.4 + 0.1 * pulse), 0, Math.PI * 2);
+            ctx.fill();
+            ctx.restore();
+        }
+
+        function clearCanvas() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        }
+
+        function gameLoop(timestamp) {
+            if (!gameRunning) return;
+            if (!startTime) {
+                startTime = timestamp;
+            }
+            const delta = timestamp - (lastFrame || timestamp);
+            lastFrame = timestamp;
+            elapsedTime = timestamp - startTime;
+
+            player.turretAngle = Math.atan2(mousePosition.y - player.y, mousePosition.x - player.x);
+
+            const fireInterval = getCurrentFireInterval();
+            if (spacePressed && timestamp - lastShot >= fireInterval) {
+                shoot(timestamp);
+            }
+
+            const nextSpawnInterval = spawnEnemyInterval ?? ENEMY_SPAWN_INTERVAL;
+            if (timestamp - lastSpawn >= nextSpawnInterval) {
+                spawnEnemyInterval = spawnEnemy(timestamp);
+            }
+
+            if (updateEnemies(delta)) {
+                updateHUD();
+                return;
+            }
+
+            updateBullets(delta);
+            updateExplosions(timestamp);
+
+            clearCanvas();
+
+            for (const explosion of explosions) {
+                drawExplosion(explosion, timestamp);
+            }
+
+            for (const enemy of enemies) {
+                drawTank(enemy.x, enemy.y, enemy.rotation, "#475569", "#1e293b", enemy.turretAngle);
+            }
+
+            for (const bullet of bullets) {
+                drawBullet(bullet);
+            }
+
+            drawPlayer(timestamp);
+            updateHUD();
+            animationId = requestAnimationFrame(gameLoop);
+        }
+
+        let lastFrame = 0;
+        let spawnEnemyInterval = ENEMY_SPAWN_INTERVAL;
+
+        startBtn.addEventListener("click", () => {
+            if (!gameRunning) {
+                startGame();
+            }
+        });
+
+        restartBtn.addEventListener("click", () => {
+            startGame();
+        });
+
+        document.addEventListener("visibilitychange", () => {
+            if (document.hidden && gameRunning) {
+                endGame();
+            }
+        });
+
+        canvas.addEventListener("mousemove", (event) => {
+            const rect = canvas.getBoundingClientRect();
+            const scaleX = canvas.width / rect.width;
+            const scaleY = canvas.height / rect.height;
+            mousePosition = {
+                x: (event.clientX - rect.left) * scaleX,
+                y: (event.clientY - rect.top) * scaleY
+            };
+        });
+
+        canvas.addEventListener("mouseleave", () => {
+            mousePosition = { x: player.x, y: player.y - player.radius * 2 };
+        });
+
+        function playShootSound(charge = 0) {
+            const now = audioContext.currentTime;
+            const duration = 0.12 + 0.05 * charge;
+            const oscillator = audioContext.createOscillator();
+            const gain = audioContext.createGain();
+            oscillator.type = "square";
+            const baseFreq = 480;
+            oscillator.frequency.setValueAtTime(baseFreq + charge * 80, now);
+            oscillator.frequency.exponentialRampToValueAtTime(baseFreq * 0.5, now + duration);
+            gain.gain.setValueAtTime(0.32 + charge * 0.12, now);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + duration);
+            oscillator.connect(gain);
+            gain.connect(audioContext.destination);
+            oscillator.start(now);
+            oscillator.stop(now + duration);
+        }
+
+        function playExplosionSound(charge = 0) {
+            const now = audioContext.currentTime;
+            const duration = 0.6 + 0.4 * charge;
+
+            const noiseBuffer = audioContext.createBuffer(1, audioContext.sampleRate * duration, audioContext.sampleRate);
+            const data = noiseBuffer.getChannelData(0);
+            for (let i = 0; i < data.length; i++) {
+                data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / data.length, 2);
+            }
+
+            const noise = audioContext.createBufferSource();
+            noise.buffer = noiseBuffer;
+
+            const bandpass = audioContext.createBiquadFilter();
+            bandpass.type = "bandpass";
+            bandpass.frequency.setValueAtTime(160 + charge * 60, now);
+            bandpass.Q.setValueAtTime(0.8 + charge * 0.6, now);
+
+            const gain = audioContext.createGain();
+            gain.gain.setValueAtTime(0.45 + charge * 0.25, now);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + duration);
+
+            noise.connect(bandpass);
+            bandpass.connect(gain);
+            gain.connect(audioContext.destination);
+            noise.start(now);
+            noise.stop(now + duration);
+        }
+
+        document.addEventListener("keydown", (event) => {
+            if (event.code === "Space") {
+                event.preventDefault();
+                if (!spacePressed) {
+                    spacePressed = true;
+                    spacePressStartTime = performance.now();
+                }
+            }
+        });
+
+        document.addEventListener("keyup", (event) => {
+            if (event.code === "Space") {
+                event.preventDefault();
+                spacePressed = false;
+                spacePressStartTime = 0;
+            }
+        });
+    </script>
+</body>
+</html>
+

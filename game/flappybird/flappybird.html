@@ -58,11 +58,18 @@
             align-items: center;
             gap: 0.25rem;
             color: #94a3b8;
+            white-space: nowrap;
         }
 
         .scoreboard strong {
             color: #38bdf8;
             font-weight: 600;
+        }
+
+        .scoreboard small {
+            color: #64748b;
+            font-size: 0.75em;
+            margin-left: 0.15rem;
         }
 
         .actions {
@@ -123,8 +130,8 @@
     <header class="hud">
         <h1>Flappy Bird 遊戲</h1>
         <div class="scoreboard" aria-live="polite">
-            <span>得分 <strong id="score">0</strong></span>
-            <span>最高分 <strong id="bestScore">0</strong></span>
+            <span>距離 <strong id="distance">0</strong><small> m</small></span>
+            <span>最遠距離 <strong id="bestDistance">0</strong><small> m</small></span>
         </div>
         <div class="actions">
             <button type="button" onclick="startGame()">開始遊戲</button>
@@ -137,8 +144,8 @@
     <script>
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
-        const scoreElement = document.getElementById('score');
-        const bestScoreElement = document.getElementById('bestScore');
+        const distanceElement = document.getElementById('distance');
+        const bestDistanceElement = document.getElementById('bestDistance');
 
         function resizeCanvas() {
             const maxWidth = window.innerWidth * 0.9;
@@ -154,9 +161,12 @@
         // Game state
         let gameRunning = false;
         let gameStarted = false;
-        let score = 0;
-        let bestScore = localStorage.getItem('flappyBestScore') || 0;
-        bestScoreElement.textContent = bestScore;
+        let pendingGameOver = false;
+        let distance = 0;
+        let displayedDistance = 0;
+        let finalDistance = 0;
+        let bestDistance = Number(localStorage.getItem('flappyBestDistance')) || 0;
+        bestDistanceElement.textContent = bestDistance;
 
         // Bird
         const bird = {
@@ -165,14 +175,16 @@
             width: 34,
             height: 24,
             velocity: 0,
-            gravity: 0.5,
-            jump: -8,
+            gravity: 0.1125,
+            jump: -4,
             rotation: 0
         };
 
         // Pipes
         const pipeWidth = 60;
-        const pipeGap = 150;
+        const pipeGap = 190;
+        const pipeSpeed = 2;
+        const pipeSpawnInterval = 120;
         let pipes = [];
         let frameCount = 0;
 
@@ -301,7 +313,9 @@
 
             // Ground collision
             if (bird.y + bird.height >= canvas.height - groundHeight) {
-                gameOver();
+                bird.y = canvas.height - groundHeight - bird.height;
+                bird.velocity = 0;
+                pendingGameOver = true;
             }
 
             // Ceiling collision
@@ -312,36 +326,22 @@
         }
 
         function updatePipes() {
-            if (frameCount % 90 === 0) {
+            if (frameCount % pipeSpawnInterval === 0) {
                 const minTop = 50;
                 const maxTop = canvas.height - groundHeight - pipeGap - 50;
                 const top = Math.random() * (maxTop - minTop) + minTop;
                 pipes.push({
                     x: canvas.width,
-                    top: top,
-                    scored: false
+                    top: top
                 });
             }
 
             pipes.forEach((pipe, index) => {
-                pipe.x -= 2;
+                pipe.x -= pipeSpeed;
 
                 // Remove off-screen pipes
                 if (pipe.x + pipeWidth < 0) {
                     pipes.splice(index, 1);
-                }
-
-                // Score
-                if (!pipe.scored && pipe.x + pipeWidth < bird.x) {
-                    pipe.scored = true;
-                    score++;
-                    scoreElement.textContent = score;
-
-                    if (score > bestScore) {
-                        bestScore = score;
-                        bestScoreElement.textContent = bestScore;
-                        localStorage.setItem('flappyBestScore', bestScore);
-                    }
                 }
 
                 // Collision detection
@@ -350,7 +350,7 @@
                     bird.x < pipe.x + pipeWidth &&
                     (bird.y < pipe.top || bird.y + bird.height > pipe.top + pipeGap)
                 ) {
-                    gameOver();
+                    pendingGameOver = true;
                 }
             });
         }
@@ -363,24 +363,39 @@
         function gameOver() {
             gameRunning = false;
             gameStarted = false;
+            pendingGameOver = false;
+            finalDistance = displayedDistance;
 
-            // Show game over message
-            ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
-            ctx.fillRect(0, canvas.height / 2 - 80, canvas.width, 160);
-            ctx.fillStyle = '#FFF';
-            ctx.font = 'bold 36px Microsoft JhengHei';
+            if (finalDistance > bestDistance) {
+                bestDistance = finalDistance;
+                bestDistanceElement.textContent = bestDistance;
+                localStorage.setItem('flappyBestDistance', bestDistance);
+            }
+        }
+
+        function renderGameOverOverlay() {
+            ctx.fillStyle = 'rgba(15, 23, 42, 0.8)';
+            ctx.fillRect(40, canvas.height / 2 - 110, canvas.width - 80, 220);
+
+            ctx.fillStyle = '#F8FAFC';
             ctx.textAlign = 'center';
-            ctx.fillText('遊戲結束!', canvas.width / 2, canvas.height / 2 - 20);
+            ctx.font = 'bold 36px Microsoft JhengHei';
+            ctx.fillText('遊戲結束', canvas.width / 2, canvas.height / 2 - 40);
+
             ctx.font = '24px Microsoft JhengHei';
-            ctx.fillText('得分: ' + score, canvas.width / 2, canvas.height / 2 + 20);
-            ctx.fillText('點擊「開始遊戲」重新開始', canvas.width / 2, canvas.height / 2 + 60);
+            ctx.fillText(`距離：${finalDistance} m`, canvas.width / 2, canvas.height / 2 + 10);
+            ctx.font = '20px Microsoft JhengHei';
+            ctx.fillText('點擊「開始遊戲」再次挑戰', canvas.width / 2, canvas.height / 2 + 60);
         }
 
         function startGame() {
             gameRunning = true;
             gameStarted = true;
-            score = 0;
-            scoreElement.textContent = score;
+            pendingGameOver = false;
+            distance = 0;
+            displayedDistance = 0;
+            finalDistance = 0;
+            distanceElement.textContent = '0';
             bird.y = canvas.height / 2;
             bird.velocity = 0;
             bird.rotation = 0;
@@ -391,10 +406,10 @@
         }
 
         function gameLoop() {
-            if (!gameRunning) return;
+            if (!gameRunning && !pendingGameOver) return;
 
             frameCount++;
-            groundX -= 2;
+            groundX -= pipeSpeed;
             if (groundX <= -20) groundX = 0;
 
             drawBackground();
@@ -404,7 +419,23 @@
             drawGround();
             drawBird();
 
-            requestAnimationFrame(gameLoop);
+            if (pendingGameOver) {
+                gameOver();
+                renderGameOverOverlay();
+                return;
+            }
+
+            if (gameRunning) {
+                distance += pipeSpeed;
+                const newDisplayDistance = Math.floor(distance / 10);
+                if (newDisplayDistance !== displayedDistance) {
+                    displayedDistance = newDisplayDistance;
+                    distanceElement.textContent = displayedDistance;
+                }
+                requestAnimationFrame(gameLoop);
+            } else {
+                renderGameOverOverlay();
+            }
         }
 
         // Controls
@@ -430,7 +461,7 @@
         ctx.textAlign = 'center';
         ctx.fillText('點擊「開始遊戲」開始', canvas.width / 2, canvas.height / 2 - 10);
         ctx.font = '20px Microsoft JhengHei';
-        ctx.fillText('點擊畫面或按空白鍵飛翔', canvas.width / 2, canvas.height / 2 + 30);
+        ctx.fillText('保持飛行累積距離', canvas.width / 2, canvas.height / 2 + 30);
 
         window.addEventListener('resize', resizeCanvas);
         resizeCanvas();

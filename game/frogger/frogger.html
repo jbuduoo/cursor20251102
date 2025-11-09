@@ -152,7 +152,7 @@
     </header>
 
     <canvas id="gameCanvas" width="600" height="600" aria-label="青蛙過河遊戲畫布"></canvas>
-    <p class="controls">使用方向鍵移動青蛙穿越道路抵達安全區</p>
+    <p class="controls">使用方向鍵移動青蛙，避開在水面游動的四條魚</p>
 
     <div class="overlay" id="gameOver" role="dialog" aria-modal="true" aria-labelledby="gameOverTitle">
         <div class="title" id="gameOverTitle">遊戲結束</div>
@@ -164,12 +164,22 @@
         const ctx = canvas.getContext('2d');
         const gameOverDiv = document.getElementById('gameOver');
         const gameOverMessage = document.getElementById('gameOverMessage');
-        let gameRunning = false; let score = 0; let lives = 3;
-        const frog = { x: 275, y: 550, size: 20 };
-        let cars = []; let logs = [];
-        const keys = {};
-        document.addEventListener('keydown', (e) => { keys[e.key] = true; });
-        document.addEventListener('keyup', (e) => { keys[e.key] = false; });
+        let gameRunning = false;
+        let score = 0;
+        let lives = 3;
+        const gridColumns = 6;
+        const cellSize = canvas.width / gridColumns;
+        const startColumn = Math.floor(gridColumns / 2);
+        const startRow = 5;
+        const frog = { col: startColumn, row: startRow, size: cellSize * 0.6 };
+        const fish = [];
+        const fishRows = [1, 2, 3, 4];
+        const fishWidth = cellSize * 0.9;
+        const fishHeight = cellSize * 0.45;
+        const laneMargin = cellSize * 0.2;
+        let scorePopupTimer = 0;
+        const SCORE_POPUP_DURATION = 60;
+        document.addEventListener('keydown', handleKeyDown);
         function resizeCanvas() {
             const maxWidth = window.innerWidth * 0.9;
             const maxHeight = window.innerHeight * 0.85;
@@ -182,60 +192,234 @@
         }
 
         function startGame() {
-            gameRunning = true; score = 0; lives = 3;
-            frog.x = 275; frog.y = 550; cars = []; logs = [];
+            gameRunning = true;
+            score = 0;
+            lives = 3;
+            resetFrog();
+            setupFish();
             updateDisplay();
             gameOverDiv.style.display = 'none';
-            gameLoop();
+            scorePopupTimer = 0;
         }
         function updateDisplay() {
             document.getElementById('score').textContent = score;
             document.getElementById('lives').textContent = lives;
         }
-        function updateFrog() {
-            if (keys['ArrowUp'] && frog.y > 0) { frog.y -= 20; }
-            if (keys['ArrowDown'] && frog.y < canvas.height - frog.size) { frog.y += 20; }
-            if (keys['ArrowLeft'] && frog.x > 0) { frog.x -= 20; }
-            if (keys['ArrowRight'] && frog.x < canvas.width - frog.size) { frog.x += 20; }
-            if (frog.y < 50) { score += 10; frog.y = 550; updateDisplay(); }
+        function resetFrog() {
+            frog.col = startColumn;
+            frog.row = startRow;
         }
-        function updateCars() {
-            if (Math.random() < 0.02) {
-                cars.push({ x: Math.random() > 0.5 ? -50 : canvas.width + 50, y: 200 + Math.floor(Math.random() * 4) * 80, width: 60, height: 30, speed: (Math.random() > 0.5 ? 1 : -1) * (2 + Math.random() * 2) });
+
+        function setupFish() {
+            fish.length = 0;
+            fishRows.forEach((row, index) => {
+                const direction = index % 2 === 0 ? 1 : -1;
+                const y = row * cellSize + (cellSize - fishHeight) / 2;
+                const startingX = direction === 1 ? laneMargin : canvas.width - laneMargin - fishWidth;
+                fish.push({
+                    x: startingX,
+                    y,
+                    width: fishWidth,
+                    height: fishHeight,
+                    speed: direction * (1.5 + index * 0.25)
+                });
+            });
+        }
+
+        function getFrogRect() {
+            const size = frog.size;
+            const x = frog.col * cellSize + (cellSize - size) / 2;
+            const y = frog.row * cellSize + (cellSize - size) / 2;
+            return { x, y, size };
+        }
+
+        function handleKeyDown(e) {
+            if (!['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
+                return;
             }
-            cars = cars.filter(car => {
-                car.x += car.speed;
-                if (car.x < frog.x + frog.size && car.x + car.width > frog.x && car.y < frog.y + frog.size && car.y + car.height > frog.y) {
-                    lives--; frog.y = 550; updateDisplay();
+            e.preventDefault();
+            if (!gameRunning || e.repeat) {
+                return;
+            }
+
+            let moved = false;
+            if (e.key === 'ArrowUp' && frog.row >= 0) {
+                if (frog.row > -1) {
+                    frog.row--;
+                    moved = true;
+                }
+            } else if (e.key === 'ArrowDown' && frog.row < startRow) {
+                frog.row++;
+                moved = true;
+            } else if (e.key === 'ArrowLeft' && frog.col > 0) {
+                frog.col--;
+                moved = true;
+            } else if (e.key === 'ArrowRight' && frog.col < gridColumns - 1) {
+                frog.col++;
+                moved = true;
+            }
+
+            if (moved && frog.row < 0) {
+                score += 1;
+                updateDisplay();
+                scorePopupTimer = SCORE_POPUP_DURATION;
+                resetFrog();
+            }
+        }
+        function updateFish() {
+            const frogRect = getFrogRect();
+            for (const f of fish) {
+                f.x += f.speed;
+
+                if (f.x <= laneMargin || f.x + f.width >= canvas.width - laneMargin) {
+                    f.speed *= -1;
+                    f.x = Math.min(Math.max(f.x, laneMargin), canvas.width - laneMargin - f.width);
+                }
+
+                if (
+                    frogRect.x < f.x + f.width &&
+                    frogRect.x + frogRect.size > f.x &&
+                    frogRect.y < f.y + f.height &&
+                    frogRect.y + frogRect.size > f.y
+                ) {
+                    lives--;
+                    updateDisplay();
                     if (lives <= 0) {
                         gameRunning = false;
                         showGameOver(`你的得分：${score}`);
+                    } else {
+                        resetFrog();
                     }
-                    return false;
+                    break;
                 }
-                return car.x > -100 && car.x < canvas.width + 100;
-            });
+            }
         }
         function showGameOver(message) {
             gameOverMessage.textContent = message;
             gameOverDiv.style.display = 'flex';
         }
-        function draw() {
-            ctx.fillStyle = '#87CEEB'; ctx.fillRect(0, 0, canvas.width, canvas.height);
-            ctx.fillStyle = '#8B4513'; ctx.fillRect(0, 0, canvas.width, 50);
-            ctx.fillStyle = '#8B4513'; ctx.fillRect(0, 150, canvas.width, 50);
-            ctx.fillStyle = '#228B22'; ctx.fillRect(0, 550, canvas.width, 50);
-            cars.forEach(car => {
-                ctx.fillStyle = '#FF0000';
-                ctx.fillRect(car.x, car.y, car.width, car.height);
+        function drawFrog() {
+            const { x, y, size } = getFrogRect();
+            const centerX = x + size / 2;
+            const centerY = y + size / 2;
+            const bodyRadius = size * 0.5;
+            const headRadius = size * 0.35;
+            const eyeRadius = size * 0.08;
+            const pupilRadius = size * 0.04;
+
+            // Body
+            ctx.fillStyle = '#3BAA3A';
+            ctx.beginPath();
+            ctx.ellipse(centerX, centerY + size * 0.1, bodyRadius, bodyRadius * 0.85, 0, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Head
+            ctx.beginPath();
+            ctx.ellipse(centerX, y + size * 0.35, headRadius, headRadius * 0.85, 0, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Eyes
+            const eyeOffsetX = size * 0.18;
+            const eyeOffsetY = size * -0.1;
+            ['left', 'right'].forEach((side, index) => {
+                const direction = index === 0 ? -1 : 1;
+                const eyeCenterX = centerX + eyeOffsetX * direction;
+                const eyeCenterY = y + size * 0.2 + eyeOffsetY;
+
+                ctx.fillStyle = '#F2F2F2';
+                ctx.beginPath();
+                ctx.arc(eyeCenterX, eyeCenterY, eyeRadius, 0, Math.PI * 2);
+                ctx.fill();
+
+                ctx.fillStyle = '#1F2937';
+                ctx.beginPath();
+                ctx.arc(eyeCenterX, eyeCenterY, pupilRadius, 0, Math.PI * 2);
+                ctx.fill();
             });
-            ctx.fillStyle = '#4CAF50';
-            ctx.fillRect(frog.x, frog.y, frog.size, frog.size);
+
+            // Mouth
+            ctx.strokeStyle = '#1F2937';
+            ctx.lineWidth = size * 0.05;
+            ctx.beginPath();
+            ctx.arc(centerX, y + size * 0.45, size * 0.24, 0.1 * Math.PI, 0.9 * Math.PI);
+            ctx.stroke();
+
+            // Feet
+            ctx.fillStyle = '#3BAA3A';
+            const footWidth = size * 0.25;
+            const footHeight = size * 0.15;
+            ctx.fillRect(centerX - footWidth - size * 0.15, y + size * 0.65, footWidth, footHeight);
+            ctx.fillRect(centerX + size * 0.15, y + size * 0.65, footWidth, footHeight);
+        }
+
+        function draw() {
+            ctx.fillStyle = '#4cc9f0';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            ctx.fillStyle = '#14532d';
+            ctx.fillRect(0, 0, canvas.width, cellSize);
+            ctx.fillRect(0, startRow * cellSize, canvas.width, cellSize);
+
+            ctx.fillStyle = '#0ea5e9';
+            ctx.fillRect(0, cellSize, canvas.width, fishRows.length * cellSize);
+
+            ctx.fillStyle = '#22d3ee';
+            fishRows.forEach(row => {
+                const y = row * cellSize;
+                ctx.fillRect(0, y, canvas.width, 2);
+            });
+
+            fish.forEach(drawFish);
+            drawFrog();
+
+            if (scorePopupTimer > 0) {
+                ctx.fillStyle = 'rgba(250, 204, 21, 0.9)';
+                ctx.font = `${cellSize * 0.8}px "Microsoft JhengHei", sans-serif`;
+                ctx.textAlign = 'center';
+                ctx.fillText('加 1 分！', canvas.width / 2, cellSize * 0.75);
+            }
+        }
+
+        function drawFish(f) {
+            const centerY = f.y + f.height / 2;
+            const direction = Math.sign(f.speed) || 1;
+
+            ctx.save();
+            ctx.translate(f.x + f.width / 2, centerY);
+            ctx.scale(direction, 1);
+
+            ctx.fillStyle = '#fb7185';
+            ctx.beginPath();
+            ctx.ellipse(0, 0, f.width / 2.6, f.height / 2.2, 0, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.beginPath();
+            ctx.moveTo(f.width / 2.8, 0);
+            ctx.lineTo(f.width / 2, -f.height / 2.5);
+            ctx.lineTo(f.width / 2, f.height / 2.5);
+            ctx.closePath();
+            ctx.fill();
+
+            ctx.fillStyle = '#f1f5f9';
+            ctx.beginPath();
+            ctx.arc(-f.width / 3.4, -f.height / 5, f.height / 6, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.fillStyle = '#0f172a';
+            ctx.beginPath();
+            ctx.arc(-f.width / 3.4, -f.height / 5, f.height / 12, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.restore();
         }
         function gameLoop() {
             if (gameRunning) {
-                updateFrog(); updateCars(); draw();
+                updateFish();
             }
+            if (scorePopupTimer > 0) {
+                scorePopupTimer--;
+            }
+            draw();
             requestAnimationFrame(gameLoop);
         }
         gameLoop();
