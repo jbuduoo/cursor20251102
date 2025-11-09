@@ -1,0 +1,165 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+:root {
+    color-scheme: dark;
+    --hud-font-size: 1rem;
+    --hud-gap: 0.75rem;
+    --canvas-aspect-ratio: 1;
+    --bg-gradient: radial-gradient(circle at top, #2b2f77 0%, #1c1f3f 35%, #090b1a 100%);
+    --canvas-surface: #020205;
+    --canvas-radius: 10px;
+    --hud-color: #eef1ff;
+    --hud-subtle: #aeb8ff;
+    --hud-highlight: #5af59d;
+    --btn-start: #5af59d;
+    --btn-end: #3dd174;
+}
+
+body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 2vh 3vw;
+    gap: 1.5vh;
+    background: var(--bg-gradient);
+    font-family: 'Microsoft JhengHei', Arial, sans-serif;
+    color: var(--hud-color);
+}
+
+.hud {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--hud-gap);
+    text-align: center;
+}
+
+.hud h1 {
+    font-size: var(--hud-font-size);
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    opacity: 0.9;
+}
+
+.scoreboard {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1.5rem;
+    font-size: 0.9rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.scoreboard div {
+    color: var(--hud-subtle);
+}
+
+.scoreboard strong {
+    color: var(--hud-highlight);
+    font-weight: 600;
+    margin-left: 0.35rem;
+}
+
+.stage {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.25rem;
+    width: 100%;
+}
+
+canvas {
+    display: block;
+    background: var(--canvas-surface);
+    border-radius: var(--canvas-radius);
+    width: min(90vw, calc(80vh * var(--canvas-aspect-ratio)));
+    height: min(80vh, calc(90vw / var(--canvas-aspect-ratio)));
+    box-shadow: 0 0 80px rgba(10, 12, 35, 0.45);
+}
+
+.controls {
+    font-size: 0.8rem;
+    letter-spacing: 0.04em;
+    color: rgba(174, 184, 255, 0.9);
+    text-align: center;
+    opacity: 0.85;
+}
+
+.actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    justify-content: center;
+}
+
+.btn {
+    padding: 0.65rem 2.2rem;
+    font-size: 0.95rem;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: #090b1a;
+    background: linear-gradient(135deg, var(--btn-start) 0%, var(--btn-end) 100%);
+    border: none;
+    border-radius: 999px;
+    cursor: pointer;
+    transition: transform 0.2s ease, filter 0.2s ease;
+}
+
+.btn:hover,
+.btn:focus-visible {
+    transform: translateY(-2px);
+    filter: brightness(1.05);
+    outline: none;
+}
+
+.overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(4, 6, 18, 0.85);
+    backdrop-filter: blur(6px);
+    color: #f5f7ff;
+    font-size: 1.4rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    text-align: center;
+    padding: 2rem;
+}
+
+.overlay span {
+    font-size: 0.85rem;
+    opacity: 0.75;
+    text-transform: none;
+    letter-spacing: 0.04em;
+}
+
+@media (max-width: 600px) {
+    :root {
+        --hud-font-size: 0.95rem;
+        --hud-gap: 0.5rem;
+    }
+
+    .scoreboard {
+        gap: 1rem;
+        font-size: 0.8rem;
+    }
+
+    .controls {
+        font-size: 0.75rem;
+    }
+}
+

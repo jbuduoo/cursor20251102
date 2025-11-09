@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>English Quiz</title>
+  <style>
+    body {
+      font-family: "Segoe UI", Arial, sans-serif;
+      background: #eef3ff;
+      color: #1a2740;
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 2rem 1rem 3rem;
+    }
+    h1 {
+      margin-bottom: 0.75rem;
+      text-align: center;
+    }
+    .quiz-card {
+      background: #fff;
+      border-radius: 18px;
+      box-shadow: 0 22px 40px rgba(18, 52, 117, 0.12);
+      padding: 2rem;
+      width: min(640px, 95vw);
+    }
+    .question {
+      font-size: 1.2rem;
+      margin-bottom: 1.5rem;
+      line-height: 1.6;
+    }
+    .options {
+      display: grid;
+      gap: 0.75rem;
+    }
+    button.option {
+      border: 2px solid transparent;
+      border-radius: 16px;
+      padding: 0.95rem 1.25rem;
+      font-size: 1rem;
+      background: #f3f6ff;
+      text-align: left;
+      cursor: pointer;
+      transition: transform 0.2s ease, border 0.2s ease, background 0.2s ease;
+    }
+    button.option:hover {
+      transform: translateY(-2px);
+      background: #e5ecff;
+    }
+    button.option.correct {
+      background: #34b37f;
+      color: #fff;
+    }
+    button.option.incorrect {
+      background: #e86972;
+      color: #fff;
+    }
+    .meta {
+      margin-top: 1.5rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      color: #44536f;
+    }
+    .meta button {
+      border: none;
+      border-radius: 999px;
+      background: #1a2740;
+      color: #fff;
+      padding: 0.7rem 1.6rem;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: opacity 0.2s ease, transform 0.2s ease;
+    }
+    .meta button:hover {
+      opacity: 0.9;
+      transform: translateY(-2px);
+    }
+  </style>
+</head>
+<body>
+  <h1>Quick English Quiz</h1>
+  <div class="quiz-card">
+    <div class="question" id="question"></div>
+    <div class="options" id="options"></div>
+    <div class="meta">
+      <span id="progress"></span>
+      <span id="score"></span>
+      <button id="nextBtn" disabled>Next</button>
+    </div>
+  </div>
+
+  <script>
+    const questions = [
+      {
+        prompt: "Choose the sentence with the correct verb tense.",
+        options: [
+          "I am visit my grandparents every weekend.",
+          "I visit my grandparents every weekend.",
+          "I visiting my grandparents every weekend.",
+          "I visits my grandparents every weekend."
+        ],
+        answer: 1
+      },
+      {
+        prompt: "Which word is a synonym for “rapid”?",
+        options: ["Slow", "Uncertain", "Quick", "Careful"],
+        answer: 2
+      },
+      {
+        prompt: "Select the best definition of “persuade”.",
+        options: [
+          "To change something into another form.",
+          "To cause someone to do something through reasoning.",
+          "To make a plan for achieving something.",
+          "To compare two things without using like or as."
+        ],
+        answer: 1
+      },
+      {
+        prompt: "Identify the correct order of adjectives: 'a ___ coat'.",
+        options: [
+          "old blue cotton",
+          "blue cotton old",
+          "cotton blue old",
+          "cotton old blue"
+        ],
+        answer: 0
+      },
+      {
+        prompt: "Which sentence uses the modal verb correctly?",
+        options: [
+          "She can to play the violin.",
+          "She can play the violin.",
+          "She cans play the violin.",
+          "She could plays the violin."
+        ],
+        answer: 1
+      }
+    ];
+
+    const questionEl = document.getElementById("question");
+    const optionsEl = document.getElementById("options");
+    const progressEl = document.getElementById("progress");
+    const scoreEl = document.getElementById("score");
+    const nextBtn = document.getElementById("nextBtn");
+
+    let index = 0;
+    let score = 0;
+    let answered = false;
+    let quizFinished = false;
+
+    function renderQuestion() {
+      const current = questions[index];
+      questionEl.textContent = current.prompt;
+      optionsEl.innerHTML = "";
+      current.options.forEach((text, idx) => {
+        const btn = document.createElement("button");
+        btn.className = "option";
+        btn.textContent = text;
+        btn.addEventListener("click", () => selectOption(btn, idx));
+        optionsEl.appendChild(btn);
+      });
+      progressEl.textContent = `Question ${index + 1} of ${questions.length}`;
+      scoreEl.textContent = `Score: ${score}`;
+      answered = false;
+      nextBtn.disabled = true;
+      nextBtn.textContent = index === questions.length - 1 ? "Finish" : "Next";
+    }
+
+    function selectOption(button, chosenIndex) {
+      if (answered) return;
+      answered = true;
+      const correctIndex = questions[index].answer;
+      const buttons = Array.from(optionsEl.children);
+      buttons.forEach((btn, idx) => {
+        btn.disabled = true;
+        if (idx === correctIndex) {
+          btn.classList.add("correct");
+        } else if (idx === chosenIndex) {
+          btn.classList.add("incorrect");
+        }
+      });
+      if (chosenIndex === correctIndex) {
+        score += 1;
+      }
+      scoreEl.textContent = `Score: ${score}`;
+      nextBtn.disabled = false;
+      nextBtn.textContent = index === questions.length - 1 ? "Finish" : "Next";
+    }
+
+    function nextQuestion() {
+      if (!answered) return;
+      if (index === questions.length - 1) {
+        finishQuiz();
+        return;
+      }
+      index += 1;
+      renderQuestion();
+    }
+
+    function restartQuiz() {
+      index = 0;
+      score = 0;
+      quizFinished = false;
+      renderQuestion();
+    }
+
+    function finishQuiz() {
+      quizFinished = true;
+      questionEl.textContent = "Quiz complete!";
+      optionsEl.innerHTML = "";
+      progressEl.textContent = `Final Score: ${score} / ${questions.length}`;
+      nextBtn.textContent = "Restart";
+      nextBtn.disabled = false;
+    }
+
+    function handleNextClick() {
+      if (quizFinished) {
+        restartQuiz();
+        return;
+      }
+      nextQuestion();
+    }
+
+    nextBtn.addEventListener("click", handleNextClick);
+    renderQuestion();
+  </script>
+</body>
+</html>
+

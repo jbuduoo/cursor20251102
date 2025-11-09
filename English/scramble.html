@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Word Scramble</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: "Segoe UI", Arial, sans-serif;
+      background: linear-gradient(160deg, #fff4e3, #f4f6ff);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem 1rem;
+      color: #212c45;
+    }
+    .container {
+      width: min(520px, 95vw);
+      background: #fff;
+      padding: 2.5rem 2rem;
+      border-radius: 20px;
+      box-shadow: 0 24px 52px rgba(33, 44, 92, 0.15);
+      text-align: center;
+    }
+    h1 {
+      margin-top: 0;
+      margin-bottom: 1rem;
+    }
+    .scrambled {
+      font-size: clamp(1.9rem, 6vw, 2.6rem);
+      letter-spacing: 0.4rem;
+      font-weight: 600;
+      margin: 1.5rem 0;
+    }
+    input[type="text"] {
+      width: 100%;
+      padding: 0.9rem 1.2rem;
+      border-radius: 12px;
+      border: 2px solid #d7deff;
+      font-size: 1.1rem;
+      margin-bottom: 1.2rem;
+      outline: none;
+      transition: border 0.2s ease, box-shadow 0.2s ease;
+    }
+    input[type="text"]:focus {
+      border-color: #3a57c4;
+      box-shadow: 0 0 0 4px rgba(58, 87, 196, 0.18);
+    }
+    .hint {
+      margin-bottom: 1.5rem;
+      color: #556184;
+    }
+    .buttons {
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    button {
+      border: none;
+      border-radius: 999px;
+      padding: 0.75rem 1.8rem;
+      font-size: 1rem;
+      background: #212c45;
+      color: #fff;
+      cursor: pointer;
+      transition: opacity 0.2s ease, transform 0.2s ease;
+    }
+    button.secondary {
+      background: #e7ecff;
+      color: #212c45;
+    }
+    button:hover {
+      opacity: 0.9;
+      transform: translateY(-2px);
+    }
+    .status {
+      margin-top: 1.5rem;
+      font-size: 1.05rem;
+      color: #3a57c4;
+      min-height: 1.4rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Word Scramble</h1>
+    <p>Unscramble the word before the timer runs out!</p>
+    <div class="scrambled" id="scrambled"></div>
+    <div class="hint" id="hint"></div>
+    <input type="text" id="answer" placeholder="Type the word…" autocomplete="off">
+    <div class="buttons">
+      <button id="checkBtn">Check</button>
+      <button id="newBtn" class="secondary">New Word</button>
+    </div>
+    <div class="status" id="status"></div>
+    <div class="status" id="timer"></div>
+  </div>
+
+  <script>
+    const words = [
+      { word: "creative", hint: "Having the ability to make new things or think of new ideas." },
+      { word: "distant", hint: "Existing or happening far away." },
+      { word: "language", hint: "A system of words used to communicate." },
+      { word: "mindful", hint: "Careful and aware of something." },
+      { word: "progress", hint: "Movement toward improving or developing something." },
+      { word: "support", hint: "To give help or encouragement." },
+      { word: "teacher", hint: "Someone whose job is to instruct students." },
+      { word: "balance", hint: "A state in which different things occur in equal amounts." },
+      { word: "curtain", hint: "A piece of cloth that covers a window." },
+      { word: "journey", hint: "Traveling from one place to another." }
+    ];
+
+    const scrambledEl = document.getElementById("scrambled");
+    const hintEl = document.getElementById("hint");
+    const answerInput = document.getElementById("answer");
+    const statusEl = document.getElementById("status");
+    const timerEl = document.getElementById("timer");
+    const checkBtn = document.getElementById("checkBtn");
+    const newBtn = document.getElementById("newBtn");
+
+    let activeWord = null;
+    let countdownId = null;
+    const secondsPerRound = 45;
+    let secondsLeft = secondsPerRound;
+
+    function scramble(word) {
+      const letters = word.split("");
+      for (let i = letters.length - 1; i > 0; i -= 1) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [letters[i], letters[j]] = [letters[j], letters[i]];
+      }
+      return letters.join("").toUpperCase();
+    }
+
+    function pickWord() {
+      const randomIndex = Math.floor(Math.random() * words.length);
+      activeWord = words[randomIndex];
+      scrambledEl.textContent = scramble(activeWord.word);
+      hintEl.textContent = `Hint: ${activeWord.hint}`;
+      statusEl.textContent = "";
+      answerInput.value = "";
+      answerInput.focus();
+      resetTimer();
+    }
+
+    function checkAnswer() {
+      const guess = answerInput.value.trim().toLowerCase();
+      if (!guess) {
+        statusEl.textContent = "Type your guess before checking!";
+        return;
+      }
+      if (guess === activeWord.word) {
+        statusEl.textContent = "✅ Correct! Great job.";
+        stopTimer();
+      } else {
+        statusEl.textContent = "❌ Not quite. Try again!";
+      }
+    }
+
+    function updateTimerDisplay() {
+      timerEl.textContent = `Time left: ${secondsLeft}s`;
+    }
+
+    function tick() {
+      secondsLeft -= 1;
+      updateTimerDisplay();
+      if (secondsLeft <= 0) {
+        statusEl.textContent = `⏰ Time's up! The word was "${activeWord.word.toUpperCase()}".`;
+        stopTimer();
+      }
+    }
+
+    function resetTimer() {
+      stopTimer();
+      secondsLeft = secondsPerRound;
+      updateTimerDisplay();
+      countdownId = setInterval(tick, 1000);
+    }
+
+    function stopTimer() {
+      if (countdownId) {
+        clearInterval(countdownId);
+        countdownId = null;
+      }
+    }
+
+    checkBtn.addEventListener("click", checkAnswer);
+    newBtn.addEventListener("click", pickWord);
+    answerInput.addEventListener("keyup", (event) => {
+      if (event.key === "Enter") {
+        checkAnswer();
+      }
+    });
+
+    pickWord();
+  </script>
+</body>
+</html>
+

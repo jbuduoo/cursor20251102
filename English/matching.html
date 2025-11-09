@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Word Matching Game</title>
+  <style>
+    body {
+      font-family: "Segoe UI", Arial, sans-serif;
+      margin: 0;
+      background: radial-gradient(circle at top, #fef8ef, #f2f3fb);
+      color: #1f2a3d;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 2rem 1rem;
+    }
+    h1 {
+      margin-bottom: 0.5rem;
+    }
+    .status {
+      margin-bottom: 1.5rem;
+      color: #42506c;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 1rem;
+      width: min(640px, 95vw);
+    }
+    button.card {
+      padding: 1.25rem;
+      background: #ffffff;
+      border: none;
+      border-radius: 14px;
+      box-shadow: 0 12px 22px rgba(34, 56, 110, 0.12);
+      cursor: pointer;
+      font-size: 0.95rem;
+      line-height: 1.4;
+      min-height: 110px;
+      transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+    }
+    button.card:focus-visible {
+      outline: 3px solid #4562d9;
+      outline-offset: 4px;
+    }
+    button.card.revealed, button.card.matched {
+      background: #4562d9;
+      color: #fff;
+      box-shadow: 0 18px 32px rgba(69, 98, 217, 0.25);
+      transform: translateY(-4px);
+    }
+    button.card.matched {
+      background: #39b36b;
+    }
+    .controls {
+      margin-top: 2rem;
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    .controls button {
+      border: none;
+      border-radius: 999px;
+      padding: 0.7rem 1.8rem;
+      font-size: 1rem;
+      background: #1f2a3d;
+      color: #fff;
+      cursor: pointer;
+      transition: transform 0.2s ease, opacity 0.2s ease;
+    }
+    .controls button:hover {
+      opacity: 0.9;
+      transform: translateY(-2px);
+    }
+  </style>
+</head>
+<body>
+  <h1>Word Matching</h1>
+  <div class="status" id="status">Find each word's definition.</div>
+  <div class="grid" id="grid"></div>
+  <div class="controls">
+    <button id="restartBtn">Restart</button>
+    <button id="shuffleBtn">Shuffle</button>
+  </div>
+
+  <script>
+    const pairs = [
+      { word: "adapt", definition: "To adjust to new conditions." },
+      { word: "curious", definition: "Eager to know or learn something." },
+      { word: "confident", definition: "Feeling sure of oneself and one's abilities." },
+      { word: "debate", definition: "To discuss a topic in a formal manner." },
+      { word: "precise", definition: "Marked by exactness and accuracy of expression." },
+      { word: "translate", definition: "To express words or text in another language." }
+    ];
+
+    const gridEl = document.getElementById("grid");
+    const statusEl = document.getElementById("status");
+    const restartBtn = document.getElementById("restartBtn");
+    const shuffleBtn = document.getElementById("shuffleBtn");
+
+    let deck = [];
+    let revealed = [];
+    let matched = new Set();
+    let turns = 0;
+
+    function buildDeck() {
+      deck = pairs.flatMap((item, index) => ([
+        { id: `${index}-word`, pairId: index, content: item.word, type: "word" },
+        { id: `${index}-definition`, pairId: index, content: item.definition, type: "definition" }
+      ]));
+    }
+
+    function shuffleDeck() {
+      for (let i = deck.length - 1; i > 0; i -= 1) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [deck[i], deck[j]] = [deck[j], deck[i]];
+      }
+    }
+
+    function updateStatus() {
+      if (matched.size === pairs.length) {
+        statusEl.textContent = `Great job! You matched all pairs in ${turns} turns.`;
+      } else {
+        statusEl.textContent = `Turn ${turns + 1}: find the matching pairs. Matches: ${matched.size}/${pairs.length}`;
+      }
+    }
+
+    function renderGrid() {
+      gridEl.innerHTML = "";
+      deck.forEach((card) => {
+        const button = document.createElement("button");
+        button.className = "card";
+        button.id = card.id;
+        button.dataset.pairId = card.pairId;
+        button.textContent = revealed.includes(card.id) || matched.has(card.pairId) ? card.content : "?";
+        if (revealed.includes(card.id)) {
+          button.classList.add("revealed");
+        }
+        if (matched.has(card.pairId)) {
+          button.classList.add("matched");
+        }
+        button.addEventListener("click", () => handleClick(card));
+        gridEl.appendChild(button);
+      });
+      updateStatus();
+    }
+
+    function handleClick(card) {
+      if (matched.has(card.pairId) || revealed.includes(card.id)) {
+        return;
+      }
+      if (revealed.length === 2) {
+        return;
+      }
+      revealed.push(card.id);
+      renderGrid();
+      if (revealed.length === 2) {
+        turns += 1;
+        const [firstId, secondId] = revealed;
+        const firstCard = deck.find((item) => item.id === firstId);
+        const secondCard = deck.find((item) => item.id === secondId);
+        if (firstCard.pairId === secondCard.pairId && firstId !== secondId) {
+          matched.add(firstCard.pairId);
+          revealed = [];
+          renderGrid();
+        } else {
+          setTimeout(() => {
+            revealed = [];
+            renderGrid();
+          }, 900);
+        }
+      }
+    }
+
+    function startGame(shuffle = true) {
+      matched = new Set();
+      revealed = [];
+      turns = 0;
+      buildDeck();
+      if (shuffle) shuffleDeck();
+      renderGrid();
+    }
+
+    restartBtn.addEventListener("click", () => startGame(false));
+    shuffleBtn.addEventListener("click", () => startGame(true));
+
+    startGame(true);
+  </script>
+</body>
+</html>
+

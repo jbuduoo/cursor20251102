@@ -6,26 +6,89 @@
     <title>2048 遊戲</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --board-size: 320px;
+            --gap: 10px;
+        }
         body {
-            display: flex; flex-direction: column; justify-content: center; align-items: center;
-            min-height: 100vh; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            margin: 0;
             font-family: 'Microsoft JhengHei', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
         .game-container {
-            text-align: center; background: rgba(255, 255, 255, 0.9); padding: 30px;
-            border-radius: 20px; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            background: rgba(255, 255, 255, 0.94);
+            padding: 14px 18px 18px;
+            border-radius: 16px;
+            box-shadow: 0 12px 36px rgba(0, 0, 0, 0.2);
+            width: min(94vw, 520px);
+            max-height: 92vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
         }
-        h1 { color: #333; margin-bottom: 20px; font-size: 2.5em; }
-        .info { display: flex; justify-content: space-around; margin-bottom: 20px; font-size: 1.2em; font-weight: bold; }
-        .score { color: #4CAF50; }
+        .top-bar {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 8px;
+            color: #333;
+            margin-bottom: 6px;
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+        .logo {
+            font-size: 1.2rem;
+            letter-spacing: 0.06em;
+        }
+        .control-btn {
+            padding: 4px 10px;
+            border-radius: 10px;
+            border: none;
+            background: #4CAF50;
+            color: #fff;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: background 0.2s ease, transform 0.2s ease;
+        }
+        .control-btn:hover {
+            background: #3c9642;
+            transform: translateY(-1px);
+        }
+        .score {
+            color: #2e3a59;
+            font-size: 0.85rem;
+        }
+        .grid-wrapper {
+            display: flex;
+            justify-content: center;
+            width: 100%;
+        }
         .grid-container {
-            display: grid; grid-template-columns: repeat(4, 100px); gap: 10px;
-            background: #bbada0; padding: 10px; border-radius: 10px; margin: 20px auto;
+            width: var(--board-size);
+            aspect-ratio: 1 / 1;
+            background: #bbada0;
+            padding: var(--gap);
+            border-radius: 16px;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            grid-auto-rows: 1fr;
+            gap: var(--gap);
         }
         .cell {
-            width: 100px; height: 100px; background: #cdc1b4; border-radius: 5px;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 2em; font-weight: bold; color: #776e65;
+            background: #cdc1b4;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: clamp(1.3rem, 5vw, 2.05rem);
+            font-weight: bold;
+            color: #776e65;
         }
         .cell[data-value="2"] { background: #eee4da; }
         .cell[data-value="4"] { background: #ede0c8; }
@@ -33,36 +96,45 @@
         .cell[data-value="16"] { background: #f59563; color: #f9f6f2; }
         .cell[data-value="32"] { background: #f67c5f; color: #f9f6f2; }
         .cell[data-value="64"] { background: #f65e3b; color: #f9f6f2; }
-        .cell[data-value="128"] { background: #edcf72; color: #f9f6f2; font-size: 1.5em; }
-        .cell[data-value="256"] { background: #edcc61; color: #f9f6f2; font-size: 1.5em; }
-        .cell[data-value="512"] { background: #edc850; color: #f9f6f2; font-size: 1.5em; }
-        .cell[data-value="1024"] { background: #edc53f; color: #f9f6f2; font-size: 1.2em; }
-        .cell[data-value="2048"] { background: #edc22e; color: #f9f6f2; font-size: 1.2em; }
-        button {
-            margin-top: 15px; padding: 10px 20px; font-size: 1em;
-            background: #4CAF50; color: white; border: none; border-radius: 5px;
-            cursor: pointer; transition: background 0.3s;
-        }
-        button:hover { background: #45a049; }
+        .cell[data-value="128"],
+        .cell[data-value="256"],
+        .cell[data-value="512"] { background: #edcf72; color: #f9f6f2; font-size: clamp(1.2rem, 4vw, 1.6rem); }
+        .cell[data-value="1024"],
+        .cell[data-value="2048"],
+        .cell[data-value="4096"] { background: #edc53f; color: #f9f6f2; font-size: clamp(1.05rem, 3.5vw, 1.4rem); }
         .game-over { display: none; position: absolute; top: 50%; left: 50%;
             transform: translate(-50%, -50%); background: rgba(0, 0, 0, 0.9);
             color: white; padding: 30px; border-radius: 10px; text-align: center;
         }
         .game-over.show { display: block; }
+        .instructions {
+            text-align: center;
+            color: #324266;
+            font-size: 0.8rem;
+            margin: 0 0 4px;
+        }
+        @media (max-width: 480px) {
+            .game-container {
+                padding: 12px 14px 16px;
+            }
+            .top-bar {
+                justify-content: flex-start;
+            }
+        }
     </style>
 </head>
 <body>
     <div class="game-container">
-        <h1>🔢 2048</h1>
-        <div class="info">
+        <div class="top-bar">
+            <span class="logo">2048</span>
+            <button class="control-btn" onclick="startGame()">重新開始</button>
             <div class="score">分數: <span id="score">0</span></div>
             <div class="score">最高分: <span id="highScore">0</span></div>
         </div>
-        <div class="grid-container" id="grid"></div>
-        <div style="margin-top: 20px;">
-            <p>使用 ⬆️ ⬇️ ⬅️ ➡️ 移動方塊</p>
-            <button onclick="startGame()">重新開始</button>
+        <div class="grid-wrapper">
+            <div class="grid-container" id="grid"></div>
         </div>
+        <p class="instructions">使用 ⬆️ ⬇️ ⬅️ ➡️ 鍵移動方塊</p>
         <div class="game-over" id="gameOver">
             <h2>遊戲結束！</h2>
             <button onclick="startGame()">再玩一次</button>
@@ -194,7 +266,22 @@
                 }
             }
         }
+        function resizeBoard() {
+            const container = document.querySelector('.game-container');
+            const topBar = document.querySelector('.top-bar');
+            const instructions = document.querySelector('.instructions');
+            const containerStyles = getComputedStyle(container);
+            const verticalPadding = parseFloat(containerStyles.paddingTop) + parseFloat(containerStyles.paddingBottom);
+            const availableHeight = window.innerHeight - verticalPadding - (topBar?.offsetHeight || 0) - (instructions?.offsetHeight || 0) - 20;
+            const availableWidth = container.clientWidth - parseFloat(containerStyles.paddingLeft || 0) - parseFloat(containerStyles.paddingRight || 0);
+            const size = Math.min(availableWidth, availableHeight, window.innerWidth * 0.9);
+            document.documentElement.style.setProperty('--board-size', `${Math.max(size, 240)}px`);
+        }
+        window.addEventListener('resize', () => {
+            resizeBoard();
+        });
         startGame();
+        resizeBoard();
     </script>
 </body>
 </html>

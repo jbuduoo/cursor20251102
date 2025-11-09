@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>English Learning Games</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Segoe UI", Arial, sans-serif;
+      background: linear-gradient(135deg, #f5f7fa, #e4ecf5);
+      color: #1a2a42;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    header {
+      padding: 2.5rem 1.5rem;
+      text-align: center;
+    }
+    h1 {
+      margin: 0 0 0.5rem;
+      font-size: 2.5rem;
+    }
+    p {
+      margin: 0 auto;
+      max-width: 640px;
+      line-height: 1.6;
+    }
+    main {
+      flex: 1;
+      padding: 1rem 1.5rem 3rem;
+      display: grid;
+      gap: 1.25rem;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      max-width: 1100px;
+      width: 100%;
+      margin: 0 auto;
+    }
+    a.card {
+      display: block;
+      background: #fff;
+      border-radius: 16px;
+      padding: 1.75rem 1.5rem;
+      text-decoration: none;
+      color: inherit;
+      box-shadow: 0 16px 40px rgba(18, 46, 90, 0.12);
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    a.card:hover, a.card:focus-visible {
+      transform: translateY(-4px);
+      box-shadow: 0 20px 48px rgba(18, 46, 90, 0.18);
+      outline: none;
+    }
+    a.card h2 {
+      margin: 0 0 0.75rem;
+      font-size: 1.35rem;
+    }
+    a.card span {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.25rem;
+      font-size: 0.95rem;
+      color: #4a5d78;
+    }
+    footer {
+      text-align: center;
+      padding: 1rem 0 2rem;
+      font-size: 0.9rem;
+      color: #4a5d78;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>English Learning Games</h1>
+    <p>Select a mini-game to practice vocabulary, spelling, and speaking skills. Each game runs entirely in your browser—no backend required.</p>
+  </header>
+  <main>
+    <a class="card" href="./flashcards.html">
+      <h2>Flashcards</h2>
+      <span>Flip cards to review vocabulary and meanings.</span>
+    </a>
+    <a class="card" href="./matching.html">
+      <h2>Matching</h2>
+      <span>Match words with their definitions before time runs out.</span>
+    </a>
+    <a class="card" href="./hangman.html">
+      <h2>Hangman</h2>
+      <span>Guess the hidden word letter by letter.</span>
+    </a>
+    <a class="card" href="./quiz.html">
+      <h2>Quiz</h2>
+      <span>Answer multiple-choice questions and track your score.</span>
+    </a>
+    <a class="card" href="./scramble.html">
+      <h2>Word Scramble</h2>
+      <span>Unscramble letters to find the correct word.</span>
+    </a>
+    <a class="card" href="./spelling-bee.html">
+      <h2>Spelling Bee</h2>
+      <span>Listen and type the word you hear.</span>
+    </a>
+  </main>
+  <footer>
+    Created for English practice · Works offline after loading once
+  </footer>
+</body>
+</html>
+

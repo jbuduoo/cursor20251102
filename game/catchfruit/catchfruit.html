@@ -5,55 +5,186 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>接水果遊戲</title>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html, body {
+            height: 100%;
+            width: 100%;
+        }
+
         body {
-            display: flex; flex-direction: column; justify-content: center; align-items: center;
-            min-height: 100vh; background: linear-gradient(135deg, #87CEEB 0%, #98D8C8 100%);
-            font-family: 'Microsoft JhengHei', Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(160deg, #0f172a 0%, #0ea5e9 45%, #22d3ee 100%);
+            font-family: 'Microsoft JhengHei', 'Segoe UI', sans-serif;
+            color: #e2e8f0;
+            overflow: hidden;
+            gap: 0.5rem;
+            padding: 0.5rem 0;
         }
-        .game-container {
-            text-align: center; background: rgba(255, 255, 255, 0.9); padding: 30px;
-            border-radius: 20px; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+
+        .hud {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 1rem;
+            text-align: center;
+            flex-wrap: wrap;
+            flex-shrink: 0;
         }
-        h1 { color: #333; margin-bottom: 20px; font-size: 2.5em; }
-        .info { display: flex; justify-content: space-around; margin-bottom: 20px; font-size: 1.2em; font-weight: bold; }
-        .score { color: #4CAF50; }
-        canvas {
-            border: 4px solid #333; background: #E0F7FA; display: block; margin: 0 auto;
+
+        .hud h1 {
+            font-size: 1.2em;
+            font-weight: 600;
+            letter-spacing: 0.08em;
         }
+
+        .scoreboard {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            font-size: 0.9em;
+            flex-shrink: 0;
+        }
+
+        .scoreboard span {
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+            color: #94a3b8;
+        }
+
+        .scoreboard strong {
+            color: #38bdf8;
+            font-weight: 600;
+        }
+
+        .actions {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            flex-shrink: 0;
+        }
+
         button {
-            margin-top: 15px; padding: 10px 20px; font-size: 1em;
-            background: #4CAF50; color: white; border: none; border-radius: 5px;
-            cursor: pointer; transition: background 0.3s;
+            padding: 0.4rem 1.1rem;
+            font-size: 0.85em;
+            font-weight: 600;
+            letter-spacing: 0.05em;
+            color: #0f172a;
+            background: #facc15;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            flex-shrink: 0;
         }
-        button:hover { background: #45a049; }
+
+        button:focus-visible,
+        button:hover {
+            background: #eab308;
+        }
+
+        canvas {
+            background: #E0F7FA;
+            border: 2px solid #1f2937;
+            max-width: 90vw;
+            max-height: 85vh;
+            aspect-ratio: 1 / 1;
+            image-rendering: pixelated;
+            flex: 1 1 auto;
+        }
+
+        .controls {
+            font-size: 0.8em;
+            letter-spacing: 0.05em;
+            color: #94a3b8;
+            text-align: center;
+            flex-shrink: 0;
+        }
+
+        .overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.75);
+            color: #e2e8f0;
+            font-size: 1.1rem;
+            letter-spacing: 0.06em;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            gap: 0.5rem;
+            padding: 1.5rem;
+        }
+
+        .overlay button {
+            margin-top: 0.5rem;
+        }
+
+        @media (max-width: 640px) {
+            body {
+                gap: 0.4rem;
+            }
+
+            .hud {
+                gap: 0.5rem;
+            }
+        }
     </style>
 </head>
 <body>
-    <div class="game-container">
-        <h1>🍎 接水果</h1>
-        <div class="info">
-            <div class="score">分數: <span id="score">0</span></div>
-            <div class="score">生命: <span id="lives">3</span></div>
+    <header class="hud">
+        <h1>接水果</h1>
+        <div class="scoreboard" aria-live="polite">
+            <span>分數 <strong id="score">0</strong></span>
+            <span>生命 <strong id="lives">3</strong></span>
         </div>
-        <canvas id="gameCanvas" width="600" height="600"></canvas>
-        <div style="margin-top: 20px;">
-            <p>使用 ⬅️ ➡️ 移動籃子接水果</p>
-            <button onclick="startGame()">開始遊戲</button>
+        <div class="actions">
+            <button type="button" onclick="startGame()">開始遊戲</button>
         </div>
+    </header>
+
+    <canvas id="gameCanvas" width="600" height="600" aria-label="接水果遊戲畫布"></canvas>
+    <p class="controls">使用 ⬅️ ➡️ 移動籃子接住落下的水果</p>
+
+    <div class="overlay" id="gameOver" role="dialog" aria-modal="true" aria-labelledby="gameOverTitle">
+        <div class="title" id="gameOverTitle">遊戲結束</div>
+        <p id="gameOverMessage"></p>
+        <button type="button" onclick="startGame()">重新開始</button>
     </div>
     <script>
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
+        const gameOverDiv = document.getElementById('gameOver');
+        const gameOverMessage = document.getElementById('gameOverMessage');
         let gameRunning = false; let score = 0; let lives = 3;
         const basket = { x: 250, y: 550, width: 100, height: 20 };
         let fruits = [];
         const keys = {};
         document.addEventListener('keydown', (e) => { keys[e.key] = true; });
         document.addEventListener('keyup', (e) => { keys[e.key] = false; });
+        function resizeCanvas() {
+            const maxWidth = window.innerWidth * 0.9;
+            const maxHeight = window.innerHeight * 0.85;
+            const aspectRatio = canvas.width / canvas.height;
+            const widthBasedOnHeight = maxHeight * aspectRatio;
+            const width = Math.min(maxWidth, widthBasedOnHeight);
+            const height = width / aspectRatio;
+            canvas.style.width = `${width}px`;
+            canvas.style.height = `${height}px`;
+        }
+
         function startGame() {
             gameRunning = true; score = 0; lives = 3; fruits = [];
             basket.x = 250; updateDisplay();
+            gameOverDiv.style.display = 'none';
             gameLoop();
         }
         function updateDisplay() {
@@ -76,7 +207,11 @@
                 if (fruit.y > canvas.height) { lives--; return false; }
                 return true;
             });
-            if (lives <= 0) { gameRunning = false; alert(`遊戲結束！得分: ${score}`); }
+            if (lives <= 0) {
+                gameRunning = false;
+                gameOverMessage.textContent = `你的得分：${score}`;
+                gameOverDiv.style.display = 'flex';
+            }
         }
         function draw() {
             ctx.fillStyle = '#E0F7FA'; ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -95,6 +230,8 @@
             requestAnimationFrame(gameLoop);
         }
         gameLoop();
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
     </script>
 </body>
 </html>

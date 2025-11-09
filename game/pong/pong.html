@@ -10,99 +10,159 @@
             padding: 0;
             box-sizing: border-box;
         }
+
+        html, body {
+            height: 100%;
+            width: 100%;
+        }
+
         body {
             display: flex;
             flex-direction: column;
-            justify-content: center;
             align-items: center;
-            min-height: 100vh;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            font-family: 'Microsoft JhengHei', Arial, sans-serif;
+            justify-content: center;
+            background: radial-gradient(circle at top, #1d233a 0%, #121527 45%, #06070f 100%);
+            font-family: 'Microsoft JhengHei', 'Segoe UI', sans-serif;
+            color: #e2e8f0;
+            overflow: hidden;
+            gap: 0.5rem;
+            padding: 0.5rem 0;
         }
-        .game-container {
-            text-align: center;
-            background: rgba(255, 255, 255, 0.9);
-            padding: 30px;
-            border-radius: 20px;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
-        }
-        h1 {
-            color: #333;
-            margin-bottom: 20px;
-            font-size: 2.5em;
-        }
-        .info {
+
+        .hud {
             display: flex;
-            justify-content: space-around;
-            margin-bottom: 20px;
-            font-size: 1.2em;
-            font-weight: bold;
-        }
-        .score {
-            color: #4CAF50;
-        }
-        canvas {
-            border: 4px solid #333;
-            background: #000;
-            display: block;
-            margin: 0 auto;
-        }
-        .controls {
-            margin-top: 20px;
-            font-size: 1em;
-            color: #666;
-        }
-        .game-over {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: rgba(0, 0, 0, 0.9);
-            color: white;
-            padding: 30px;
-            border-radius: 10px;
+            align-items: center;
+            justify-content: center;
+            gap: 1rem;
             text-align: center;
-            display: none;
+            flex-wrap: wrap;
+            flex-shrink: 0;
         }
-        .game-over.show {
-            display: block;
+
+        .hud h1 {
+            font-size: 1.2em;
+            font-weight: 600;
+            letter-spacing: 0.08em;
         }
+
+        .scoreboard {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            font-size: 0.9em;
+            flex-shrink: 0;
+        }
+
+        .scoreboard span {
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+            color: #94a3b8;
+        }
+
+        .scoreboard strong {
+            color: #38bdf8;
+            font-weight: 600;
+        }
+
+        .actions {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            flex-shrink: 0;
+        }
+
         button {
-            margin-top: 15px;
-            padding: 10px 20px;
-            font-size: 1em;
-            background: #667eea;
-            color: white;
+            padding: 0.4rem 1.1rem;
+            font-size: 0.85em;
+            font-weight: 600;
+            letter-spacing: 0.05em;
+            color: #0f172a;
+            background: #60a5fa;
             border: none;
-            border-radius: 5px;
+            border-radius: 4px;
             cursor: pointer;
-            transition: background 0.3s;
+            flex-shrink: 0;
         }
+
+        button:focus-visible,
         button:hover {
-            background: #764ba2;
+            background: #3b82f6;
+        }
+
+        canvas {
+            background: #000;
+            border: 2px solid #111827;
+            max-width: 90vw;
+            max-height: 85vh;
+            aspect-ratio: 2 / 1;
+            image-rendering: pixelated;
+            flex: 1 1 auto;
+        }
+
+        .controls {
+            font-size: 0.8em;
+            letter-spacing: 0.05em;
+            color: #94a3b8;
+            text-align: center;
+            flex-shrink: 0;
+        }
+
+        .overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(6, 7, 15, 0.75);
+            color: #e2e8f0;
+            font-size: 1.1rem;
+            letter-spacing: 0.06em;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            gap: 0.5rem;
+            padding: 1.5rem;
+        }
+
+        .overlay button {
+            margin-top: 0.5rem;
+        }
+
+        @media (max-width: 640px) {
+            body {
+                gap: 0.4rem;
+            }
+
+            .hud {
+                gap: 0.5rem;
+            }
         }
     </style>
 </head>
 <body>
-    <div class="game-container">
-        <h1>🏓 Pong</h1>
-        <div class="info">
-            <div class="score">玩家: <span id="player-score">0</span></div>
-            <div class="score">電腦: <span id="computer-score">0</span></div>
+    <header class="hud">
+        <h1>Pong</h1>
+        <div class="scoreboard" aria-live="polite">
+            <span>玩家 <strong id="player-score">0</strong></span>
+            <span>電腦 <strong id="computer-score">0</strong></span>
         </div>
-        <canvas id="gameCanvas" width="800" height="400"></canvas>
-        <div class="controls">
-            <p>使用 ⬆️ ⬇️ 鍵控制球拍</p>
+        <div class="actions">
+            <button type="button" onclick="resetGame()">重新開始</button>
         </div>
-        <div class="game-over" id="gameOver">
-            <h2 id="gameOverText">遊戲結束</h2>
-            <button onclick="resetGame()">重新開始</button>
-        </div>
+    </header>
+
+    <canvas id="gameCanvas" width="800" height="400" aria-label="Pong 遊戲畫布"></canvas>
+    <p class="controls">使用 ⬆️ ⬇️ 鍵控制球拍</p>
+
+    <div class="overlay" id="gameOver" role="dialog" aria-modal="true" aria-labelledby="gameOverText">
+        <div class="title" id="gameOverText">遊戲結束</div>
+        <button type="button" onclick="resetGame()">重新開始</button>
     </div>
 
     <script>
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
+        const gameOverDiv = document.getElementById('gameOver');
         
         // 遊戲變數
         const paddleHeight = 80;
@@ -121,6 +181,17 @@
         let computerScore = 0;
         let gameRunning = true;
         
+        function resizeCanvas() {
+            const maxWidth = window.innerWidth * 0.9;
+            const maxHeight = window.innerHeight * 0.85;
+            const aspectRatio = canvas.width / canvas.height;
+            const widthBasedOnHeight = maxHeight * aspectRatio;
+            const width = Math.min(maxWidth, widthBasedOnHeight);
+            const height = width / aspectRatio;
+            canvas.style.width = `${width}px`;
+            canvas.style.height = `${height}px`;
+        }
+
         // 鍵盤控制
         const keys = {};
         
@@ -261,13 +332,15 @@
             computerY = canvas.height / 2 - paddleHeight / 2;
             resetBall();
             gameRunning = true;
-            document.getElementById('gameOver').classList.remove('show');
+            gameOverDiv.style.display = 'none';
             document.getElementById('player-score').textContent = playerScore;
             document.getElementById('computer-score').textContent = computerScore;
         }
         
         // 開始遊戲
         gameLoop();
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
     </script>
 </body>
 </html>

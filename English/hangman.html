@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hangman</title>
+  <style>
+    body {
+      font-family: "Segoe UI", Arial, sans-serif;
+      background: linear-gradient(180deg, #edf7ff, #f9f0ff);
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 2rem 1rem 3rem;
+      color: #1f2547;
+    }
+    h1 {
+      margin-bottom: 0.5rem;
+      text-align: center;
+    }
+    .word {
+      display: flex;
+      gap: 0.75rem;
+      font-size: 2.5rem;
+      letter-spacing: 0.3rem;
+      margin: 1.5rem 0 2rem;
+    }
+    .word span {
+      border-bottom: 3px solid #1f2547;
+      min-width: 1.8rem;
+      text-align: center;
+      padding-bottom: 0.3rem;
+    }
+    .keyboard {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(48px, 1fr));
+      gap: 0.6rem;
+      width: min(520px, 95vw);
+    }
+    button.key {
+      border: none;
+      border-radius: 12px;
+      padding: 0.8rem 0;
+      font-size: 1rem;
+      background: #243a73;
+      color: #fff;
+      cursor: pointer;
+      transition: transform 0.2s ease, opacity 0.2s ease;
+    }
+    button.key:hover {
+      transform: translateY(-2px);
+      opacity: 0.9;
+    }
+    button.key:disabled {
+      background: #cbd3ec;
+      color: #5b6c9b;
+      cursor: default;
+      transform: none;
+    }
+    .status {
+      margin: 1.5rem 0 0.75rem;
+      font-size: 1.1rem;
+      text-align: center;
+    }
+    .hint {
+      color: #5e6c8a;
+      font-size: 0.95rem;
+    }
+    .controls {
+      margin-top: 1.5rem;
+    }
+    .controls button {
+      border: none;
+      border-radius: 999px;
+      background: #1f2547;
+      color: #fff;
+      padding: 0.7rem 1.6rem;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: opacity 0.2s ease, transform 0.2s ease;
+    }
+    .controls button:hover {
+      opacity: 0.9;
+      transform: translateY(-2px);
+    }
+  </style>
+</head>
+<body>
+  <h1>Hangman</h1>
+  <div class="hint" id="hint"></div>
+  <div class="word" id="word"></div>
+  <div class="status" id="status"></div>
+  <div class="keyboard" id="keyboard"></div>
+  <div class="controls">
+    <button id="restartBtn">New Word</button>
+  </div>
+
+  <script>
+    const words = [
+      { word: "achieve", hint: "To successfully reach a goal." },
+      { word: "biology", hint: "The science of life and living organisms." },
+      { word: "courage", hint: "The ability to do something that frightens you." },
+      { word: "diploma", hint: "A certificate awarded for completing a course." },
+      { word: "empathy", hint: "The ability to understand and share feelings." },
+      { word: "grammar", hint: "Rules that explain how words are used in a language." },
+      { word: "journey", hint: "An act of travelling from one place to another." },
+      { word: "library", hint: "A building housing collections of books." },
+      { word: "optimism", hint: "Hopefulness and confidence about the future." },
+      { word: "rhythm", hint: "A strong, regular, repeated pattern of sound or movement." }
+    ];
+
+    const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
+    const wordEl = document.getElementById("word");
+    const statusEl = document.getElementById("status");
+    const keyboardEl = document.getElementById("keyboard");
+    const hintEl = document.getElementById("hint");
+    const restartBtn = document.getElementById("restartBtn");
+
+    let activeWord;
+    let guessedLetters = new Set();
+    let remainingMisses = 6;
+
+    function setupKeyboard() {
+      keyboardEl.innerHTML = "";
+      alphabet.forEach((letter) => {
+        const btn = document.createElement("button");
+        btn.className = "key";
+        btn.textContent = letter;
+        btn.addEventListener("click", () => handleGuess(letter));
+        keyboardEl.appendChild(btn);
+      });
+    }
+
+    function updateWordDisplay() {
+      wordEl.innerHTML = "";
+      activeWord.word.split("").forEach((letter) => {
+        const span = document.createElement("span");
+        span.textContent = guessedLetters.has(letter) ? letter.toUpperCase() : "";
+        wordEl.appendChild(span);
+      });
+    }
+
+    function updateStatus(message) {
+      statusEl.textContent = message || `You have ${remainingMisses} guesses left.`;
+    }
+
+    function handleGuess(letter) {
+      if (guessedLetters.has(letter.toLowerCase())) return;
+      guessedLetters.add(letter.toLowerCase());
+      const button = Array.from(keyboardEl.children).find((btn) => btn.textContent === letter);
+      if (button) button.disabled = true;
+
+      if (!activeWord.word.includes(letter.toLowerCase())) {
+        remainingMisses -= 1;
+        updateStatus();
+      } else {
+        updateStatus();
+      }
+
+      checkGameState();
+      updateWordDisplay();
+    }
+
+    function checkGameState() {
+      const wordSolved = activeWord.word.split("").every((letter) => guessedLetters.has(letter));
+      if (wordSolved) {
+        statusEl.textContent = "🎉 You solved it!";
+        disableKeyboard();
+      } else if (remainingMisses <= 0) {
+        statusEl.textContent = `😵 Out of guesses. The word was "${activeWord.word.toUpperCase()}".`;
+        disableKeyboard();
+        revealWord();
+      }
+    }
+
+    function disableKeyboard() {
+      Array.from(keyboardEl.children).forEach((btn) => {
+        btn.disabled = true;
+      });
+    }
+
+    function revealWord() {
+      guessedLetters = new Set(activeWord.word.split(""));
+      updateWordDisplay();
+    }
+
+    function startGame() {
+      activeWord = words[Math.floor(Math.random() * words.length)];
+      guessedLetters = new Set();
+      remainingMisses = 6;
+      hintEl.textContent = `Hint: ${activeWord.hint}`;
+      setupKeyboard();
+      updateWordDisplay();
+      updateStatus();
+    }
+
+    restartBtn.addEventListener("click", startGame);
+
+    startGame();
+  </script>
+</body>
+</html>
+

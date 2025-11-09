@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Spelling Bee Practice</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: "Segoe UI", Arial, sans-serif;
+      background: linear-gradient(200deg, #f6fcff, #fff0f6);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem 1rem;
+      color: #1a2340;
+    }
+    .card {
+      width: min(540px, 95vw);
+      background: #ffffff;
+      padding: 2.5rem;
+      border-radius: 22px;
+      box-shadow: 0 24px 58px rgba(26, 35, 64, 0.15);
+      text-align: center;
+    }
+    h1 {
+      margin-top: 0;
+      margin-bottom: 0.75rem;
+    }
+    p.lead {
+      margin-top: 0;
+      color: #4c5a7c;
+    }
+    .buttons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      justify-content: center;
+      margin: 1.5rem 0 1rem;
+    }
+    button {
+      border: none;
+      border-radius: 999px;
+      padding: 0.8rem 1.8rem;
+      font-size: 1rem;
+      background: #24336b;
+      color: #fff;
+      cursor: pointer;
+      transition: opacity 0.2s ease, transform 0.2s ease;
+    }
+    button.secondary {
+      background: #e8edff;
+      color: #24336b;
+    }
+    button:hover {
+      opacity: 0.92;
+      transform: translateY(-2px);
+    }
+    input[type="text"] {
+      width: 100%;
+      padding: 1rem 1.2rem;
+      border-radius: 14px;
+      border: 2px solid #d8deff;
+      font-size: 1.1rem;
+      margin-top: 0.5rem;
+      outline: none;
+      transition: border 0.2s ease, box-shadow 0.2s ease;
+    }
+    input[type="text"]:focus {
+      border-color: #24336b;
+      box-shadow: 0 0 0 4px rgba(36, 51, 107, 0.18);
+    }
+    .status {
+      margin-top: 1.5rem;
+      font-size: 1.05rem;
+      color: #1a2340;
+      min-height: 1.4rem;
+    }
+    .details {
+      margin-top: 1rem;
+      color: #5b678a;
+      font-size: 0.95rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>Spelling Bee Practice</h1>
+    <p class="lead">Tap “Play Word” to hear the word, then spell it out. Ask for a hint or definition if you need help.</p>
+    <div class="buttons">
+      <button id="playBtn">Play Word</button>
+      <button id="repeatBtn" class="secondary">Repeat</button>
+      <button id="hintBtn" class="secondary">Hint</button>
+      <button id="definitionBtn" class="secondary">Definition</button>
+    </div>
+    <label for="guessInput">Your spelling</label>
+    <input id="guessInput" type="text" placeholder="Type the word here…" autocomplete="off">
+    <div class="buttons" style="margin-top: 1.5rem;">
+      <button id="checkBtn">Check Answer</button>
+      <button id="skipBtn" class="secondary">Skip</button>
+    </div>
+    <div class="status" id="status"></div>
+    <div class="details" id="details"></div>
+  </div>
+
+  <script>
+    const wordList = [
+      { word: "accomplish", hint: "To successfully complete something.", definition: "To finish something that you set out to do." },
+      { word: "bilingual", hint: "Able to speak two languages.", definition: "Speaking two languages fluently." },
+      { word: "cautious", hint: "Careful to avoid problems or danger.", definition: "Characterized by caution; careful." },
+      { word: "determined", hint: "Having a strong desire to do something.", definition: "Having made a firm decision and being resolved not to change it." },
+      { word: "eloquent", hint: "Good at expressing things in words.", definition: "Fluent or persuasive speaking or writing." },
+      { word: "fascinate", hint: "To attract and hold the attention of someone.", definition: "To draw irresistibly the attention or interest of." },
+      { word: "grateful", hint: "Feeling thanks.", definition: "Feeling or showing an appreciation of kindness." },
+      { word: "initiative", hint: "The ability to start things independently.", definition: "The power or opportunity to act or take charge before others do." },
+      { word: "meticulous", hint: "Showing great attention to detail.", definition: "Very careful and precise." },
+      { word: "resourceful", hint: "Good at finding ways to solve problems.", definition: "Having the ability to find quick and clever ways to overcome difficulties." }
+    ];
+
+    const playBtn = document.getElementById("playBtn");
+    const repeatBtn = document.getElementById("repeatBtn");
+    const hintBtn = document.getElementById("hintBtn");
+    const definitionBtn = document.getElementById("definitionBtn");
+    const checkBtn = document.getElementById("checkBtn");
+    const skipBtn = document.getElementById("skipBtn");
+    const statusEl = document.getElementById("status");
+    const detailsEl = document.getElementById("details");
+    const guessInput = document.getElementById("guessInput");
+
+    let currentWord = null;
+    let synth = window.speechSynthesis || null;
+
+    function speak(text) {
+      if (!synth) {
+        statusEl.textContent = "Speech not supported in this browser.";
+        return;
+      }
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = "en-US";
+      synth.cancel();
+      synth.speak(utterance);
+    }
+
+    function pickWord() {
+      const randomIndex = Math.floor(Math.random() * wordList.length);
+      currentWord = wordList[randomIndex];
+      statusEl.textContent = "New word ready. Listen carefully!";
+      detailsEl.textContent = "";
+      guessInput.value = "";
+      guessInput.focus();
+      playWord();
+    }
+
+    function playWord() {
+      if (!currentWord) pickWord();
+      speak(currentWord.word);
+    }
+
+    function repeatWord() {
+      if (!currentWord) return;
+      playWord();
+    }
+
+    function showHint() {
+      if (!currentWord) return;
+      detailsEl.textContent = `Hint: ${currentWord.hint}`;
+    }
+
+    function showDefinition() {
+      if (!currentWord) return;
+      detailsEl.textContent = `Definition: ${currentWord.definition}`;
+    }
+
+    function checkAnswer() {
+      if (!currentWord) {
+        statusEl.textContent = "Press Play Word to start.";
+        return;
+      }
+      const guess = guessInput.value.trim().toLowerCase();
+      if (!guess) {
+        statusEl.textContent = "Type your spelling before checking.";
+        return;
+      }
+      if (guess === currentWord.word) {
+        statusEl.textContent = "✅ Correct! Ready for another word?";
+      } else {
+        statusEl.textContent = `❌ Not quite. Keep trying!`;
+        detailsEl.textContent = `The correct spelling is "${currentWord.word}".`;
+      }
+    }
+
+    function skipWord() {
+      if (!currentWord) return;
+      statusEl.textContent = `Skipped. The word was "${currentWord.word}".`;
+      detailsEl.textContent = "";
+      pickWord();
+    }
+
+    playBtn.addEventListener("click", pickWord);
+    repeatBtn.addEventListener("click", repeatWord);
+    hintBtn.addEventListener("click", showHint);
+    definitionBtn.addEventListener("click", showDefinition);
+    checkBtn.addEventListener("click", checkAnswer);
+    skipBtn.addEventListener("click", skipWord);
+    guessInput.addEventListener("keyup", (event) => {
+      if (event.key === "Enter") {
+        checkAnswer();
+      }
+    });
+
+    // Preload a word so that repeat/hint work immediately after first play
+    pickWord();
+  </script>
+</body>
+</html>
+

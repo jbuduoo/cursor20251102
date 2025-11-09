@@ -3,106 +3,171 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>貪食蛇遊戲</title>
+    <title>貪食蛇</title>
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
+
+        html, body {
+            height: 100%;
+            width: 100%;
+        }
+
         body {
             display: flex;
             flex-direction: column;
-            justify-content: center;
             align-items: center;
-            min-height: 100vh;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            font-family: 'Microsoft JhengHei', Arial, sans-serif;
+            justify-content: center;
+            background: linear-gradient(180deg, #0f172a 0%, #1e293b 100%);
+            font-family: 'Microsoft JhengHei', 'Segoe UI', sans-serif;
+            color: #e2e8f0;
+            overflow: hidden;
+            gap: 0.5rem;
+            padding: 0.5rem 0;
         }
-        .game-container {
-            text-align: center;
-            background: rgba(255, 255, 255, 0.9);
-            padding: 30px;
-            border-radius: 20px;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
-        }
-        h1 {
-            color: #333;
-            margin-bottom: 20px;
-            font-size: 2.5em;
-        }
-        .info {
+
+        .hud {
             display: flex;
-            justify-content: space-around;
-            margin-bottom: 20px;
-            font-size: 1.2em;
-            font-weight: bold;
-        }
-        .score {
-            color: #4CAF50;
-        }
-        .high-score {
-            color: #FF9800;
-        }
-        canvas {
-            border: 4px solid #333;
-            background: #000;
-            display: block;
-            margin: 0 auto;
-            border-radius: 10px;
-        }
-        .controls {
-            margin-top: 20px;
-            color: #666;
-            font-size: 0.9em;
-        }
-        .btn {
-            margin-top: 15px;
-            padding: 12px 30px;
-            font-size: 1.1em;
-            background: #4CAF50;
-            color: white;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: bold;
-            transition: all 0.3s;
-        }
-        .btn:hover {
-            background: #45a049;
-            transform: scale(1.05);
-        }
-        .game-over {
-            display: none;
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: rgba(0, 0, 0, 0.9);
-            color: white;
-            padding: 40px;
-            border-radius: 15px;
+            align-items: center;
+            justify-content: center;
+            gap: 1rem;
             text-align: center;
-            font-size: 1.5em;
+            flex-wrap: wrap;
+            flex-shrink: 0;
+        }
+
+        .hud h1 {
+            font-size: 1.2em;
+            font-weight: 600;
+            letter-spacing: 0.08em;
+        }
+
+        .scoreboard {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            font-size: 0.9em;
+            flex-shrink: 0;
+        }
+
+        .scoreboard span {
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+            color: #94a3b8;
+        }
+
+        .scoreboard strong {
+            color: #38bdf8;
+            font-weight: 600;
+        }
+
+        .hud button {
+            padding: 0.4rem 1.1rem;
+            font-size: 0.85em;
+            font-weight: 600;
+            letter-spacing: 0.05em;
+            color: #0f172a;
+            background: #38b000;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+
+        .hud button:focus-visible,
+        .hud button:hover {
+            background: #2d9100;
+        }
+
+        canvas {
+            background: #000;
+            border: 2px solid #1f2937;
+            width: min(90vw, 85vh);
+            height: min(85vh, 90vw);
+            max-width: 90vw;
+            max-height: 85vh;
+            aspect-ratio: 1 / 1;
+            image-rendering: pixelated;
+            flex: 1 1 auto;
+        }
+
+        .controls {
+            font-size: 0.8em;
+            letter-spacing: 0.05em;
+            color: #94a3b8;
+            text-align: center;
+            flex-shrink: 0;
+        }
+
+        .overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.75);
+            color: #e2e8f0;
+            font-size: 1.2rem;
+            letter-spacing: 0.08em;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            gap: 0.5rem;
+        }
+
+        .overlay .title {
+            font-size: 1.2rem;
+        }
+
+        .overlay button {
+            margin-top: 0.5rem;
+            padding: 0.5rem 1.4rem;
+            font-size: 0.85em;
+            font-weight: 600;
+            letter-spacing: 0.05em;
+            color: #0f172a;
+            background: #38b000;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .overlay button:focus-visible,
+        .overlay button:hover {
+            background: #2d9100;
+        }
+
+        @media (max-width: 640px) {
+            body {
+                gap: 0.4rem;
+            }
+
+            .hud {
+                gap: 0.5rem;
+                flex-direction: column;
+            }
         }
     </style>
 </head>
 <body>
-    <div class="game-container">
-        <h1>🐍 貪食蛇遊戲</h1>
-        <div class="info">
-            <div class="score">得分: <span id="score">0</span></div>
-            <div class="high-score">最高分: <span id="highScore">0</span></div>
+    <header class="hud">
+        <h1>貪食蛇</h1>
+        <div class="scoreboard" aria-live="polite">
+            <span>得分 <strong id="score">0</strong></span>
+            <span>最高分 <strong id="highScore">0</strong></span>
         </div>
-        <canvas id="gameCanvas" width="400" height="400"></canvas>
-        <div class="controls">
-            使用方向鍵 ⬆️ ⬇️ ⬅️ ➡️ 控制蛇的移動
-        </div>
-        <button class="btn" onclick="resetGame()">重新開始</button>
-        <div class="game-over" id="gameOver">
-            <div>遊戲結束!</div>
-            <div style="font-size: 0.8em; margin-top: 20px;">按重新開始繼續遊玩</div>
-        </div>
+        <button type="button" id="restartButton">重新開始</button>
+    </header>
+
+    <canvas id="gameCanvas" width="400" height="400" aria-label="貪食蛇遊戲畫布"></canvas>
+    <p class="controls">使用方向鍵 ⬆️ ⬇️ ⬅️ ➡️ 控制蛇的移動</p>
+
+    <div class="overlay" id="gameOver" role="dialog" aria-modal="true" aria-labelledby="gameOverTitle">
+        <div class="title" id="gameOverTitle">遊戲結束</div>
+        <button type="button" id="restartOverlayButton">重新開始</button>
     </div>
 
     <script>
@@ -111,6 +176,8 @@
         const gameOverDiv = document.getElementById('gameOver');
         const scoreElement = document.getElementById('score');
         const highScoreElement = document.getElementById('highScore');
+        const restartButton = document.getElementById('restartButton');
+        const restartOverlayButton = document.getElementById('restartOverlayButton');
 
         const gridSize = 20;
         const tileCount = canvas.width / gridSize;
@@ -121,11 +188,19 @@
         let foodX = 15;
         let foodY = 15;
         let score = 0;
-        let highScore = localStorage.getItem('snakeHighScore') || 0;
+        let highScore = Number(localStorage.getItem('snakeHighScore')) || 0;
         let gameRunning = false;
         let gameSpeed = 100;
 
         highScoreElement.textContent = highScore;
+
+        function resizeCanvas() {
+            const maxWidth = window.innerWidth * 0.9;
+            const maxHeight = window.innerHeight * 0.85;
+            const size = Math.min(maxWidth, maxHeight);
+            canvas.style.width = `${size}px`;
+            canvas.style.height = `${size}px`;
+        }
 
         function drawGame() {
             if (!gameRunning) return;
@@ -152,24 +227,21 @@
         function drawSnake() {
             snake.forEach((segment, index) => {
                 if (index === 0) {
-                    // Head
                     ctx.fillStyle = '#4CAF50';
                     ctx.fillRect(segment.x * gridSize, segment.y * gridSize, gridSize - 2, gridSize - 2);
 
-                    // Eyes
                     ctx.fillStyle = '#FFF';
                     const eyeSize = 4;
-                    const eyeOffset = 5;
-                    if (dx === 1) { // Right
+                    if (dx === 1) {
                         ctx.fillRect(segment.x * gridSize + 12, segment.y * gridSize + 4, eyeSize, eyeSize);
                         ctx.fillRect(segment.x * gridSize + 12, segment.y * gridSize + 12, eyeSize, eyeSize);
-                    } else if (dx === -1) { // Left
+                    } else if (dx === -1) {
                         ctx.fillRect(segment.x * gridSize + 4, segment.y * gridSize + 4, eyeSize, eyeSize);
                         ctx.fillRect(segment.x * gridSize + 4, segment.y * gridSize + 12, eyeSize, eyeSize);
-                    } else if (dy === 1) { // Down
+                    } else if (dy === 1) {
                         ctx.fillRect(segment.x * gridSize + 4, segment.y * gridSize + 12, eyeSize, eyeSize);
                         ctx.fillRect(segment.x * gridSize + 12, segment.y * gridSize + 12, eyeSize, eyeSize);
-                    } else if (dy === -1) { // Up
+                    } else if (dy === -1) {
                         ctx.fillRect(segment.x * gridSize + 4, segment.y * gridSize + 4, eyeSize, eyeSize);
                         ctx.fillRect(segment.x * gridSize + 12, segment.y * gridSize + 4, eyeSize, eyeSize);
                     }
@@ -202,7 +274,6 @@
                     localStorage.setItem('snakeHighScore', highScore);
                 }
 
-                // Speed up slightly
                 if (gameSpeed > 50) {
                     gameSpeed -= 1;
                 }
@@ -215,7 +286,6 @@
             foodX = Math.floor(Math.random() * tileCount);
             foodY = Math.floor(Math.random() * tileCount);
 
-            // Make sure food doesn't spawn on snake
             for (let segment of snake) {
                 if (segment.x === foodX && segment.y === foodY) {
                     generateFood();
@@ -227,12 +297,10 @@
         function checkCollision() {
             const head = snake[0];
 
-            // Wall collision
             if (head.x < 0 || head.x >= tileCount || head.y < 0 || head.y >= tileCount) {
                 return true;
             }
 
-            // Self collision
             for (let i = 1; i < snake.length; i++) {
                 if (head.x === snake[i].x && head.y === snake[i].y) {
                     return true;
@@ -244,7 +312,7 @@
 
         function gameOver() {
             gameRunning = false;
-            gameOverDiv.style.display = 'block';
+            gameOverDiv.style.display = 'flex';
         }
 
         function resetGame() {
@@ -262,13 +330,24 @@
             drawSnake();
         }
 
-        document.addEventListener('keydown', (e) => {
-            if (!gameRunning && (e.key.startsWith('Arrow') || e.key === 'ArrowUp')) {
+        function startGame() {
+            if (!gameRunning) {
                 gameRunning = true;
                 drawGame();
             }
+        }
 
-            switch(e.key) {
+        function handleRestart() {
+            resetGame();
+            startGame();
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if (!gameRunning && e.key.startsWith('Arrow')) {
+                startGame();
+            }
+
+            switch (e.key) {
                 case 'ArrowUp':
                     if (dy === 0) {
                         dx = 0;
@@ -300,7 +379,11 @@
             }
         });
 
-        // Initial draw
+        restartButton.addEventListener('click', handleRestart);
+        restartOverlayButton.addEventListener('click', handleRestart);
+        window.addEventListener('resize', resizeCanvas);
+
+        resizeCanvas();
         resetGame();
     </script>
 </body>

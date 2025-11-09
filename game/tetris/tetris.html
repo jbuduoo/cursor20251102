@@ -10,98 +10,164 @@
             padding: 0;
             box-sizing: border-box;
         }
+
+        html, body {
+            height: 100%;
+            width: 100%;
+        }
+
         body {
             display: flex;
-            justify-content: center;
+            flex-direction: column;
             align-items: center;
-            min-height: 100vh;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            font-family: 'Microsoft JhengHei', Arial, sans-serif;
+            justify-content: center;
+            background: linear-gradient(160deg, #1e293b 0%, #0f172a 45%, #1e40af 100%);
+            font-family: 'Microsoft JhengHei', 'Segoe UI', sans-serif;
+            color: #e2e8f0;
+            overflow: hidden;
+            gap: 0.5rem;
+            padding: 0.5rem 0;
         }
-        .game-container {
-            background: rgba(255, 255, 255, 0.9);
-            padding: 30px;
-            border-radius: 20px;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
-            text-align: center;
-        }
-        h1 {
-            color: #333;
-            margin-bottom: 20px;
-            font-size: 2.5em;
-        }
-        .game-info {
+
+        .hud {
             display: flex;
-            justify-content: space-around;
-            margin-bottom: 20px;
-            font-size: 1.2em;
-            font-weight: bold;
-        }
-        .score { color: #4CAF50; }
-        .level { color: #FF9800; }
-        .lines { color: #2196F3; }
-        canvas {
-            border: 4px solid #333;
-            background: #000;
-            display: block;
-            margin: 0 auto;
-            border-radius: 10px;
-        }
-        .controls {
-            margin-top: 20px;
-            color: #666;
-            font-size: 0.9em;
-            line-height: 1.6;
-        }
-        .btn {
-            margin-top: 15px;
-            padding: 12px 30px;
-            font-size: 1.1em;
-            background: #4CAF50;
-            color: white;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: bold;
-            transition: all 0.3s;
-        }
-        .btn:hover {
-            background: #45a049;
-            transform: scale(1.05);
-        }
-        .game-over {
-            display: none;
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: rgba(0, 0, 0, 0.9);
-            color: white;
-            padding: 40px;
-            border-radius: 15px;
+            align-items: center;
+            justify-content: center;
+            gap: 1rem;
             text-align: center;
-            font-size: 1.5em;
+            flex-wrap: wrap;
+            flex-shrink: 0;
+        }
+
+        .hud h1 {
+            font-size: 1.2em;
+            font-weight: 600;
+            letter-spacing: 0.08em;
+        }
+
+        .scoreboard {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            font-size: 0.9em;
+            flex-shrink: 0;
+        }
+
+        .scoreboard span {
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+            color: #94a3b8;
+        }
+
+        .scoreboard strong {
+            color: #38bdf8;
+            font-weight: 600;
+        }
+
+        .actions {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            flex-shrink: 0;
+        }
+
+        button {
+            padding: 0.4rem 1.1rem;
+            font-size: 0.85em;
+            font-weight: 600;
+            letter-spacing: 0.05em;
+            color: #0f172a;
+            background: #38b000;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+
+        button:focus-visible,
+        button:hover {
+            background: #2d9100;
+        }
+
+        canvas {
+            background: #000;
+            border: 2px solid #1f2937;
+            max-width: 90vw;
+            max-height: 85vh;
+            aspect-ratio: 1 / 2;
+            image-rendering: pixelated;
+            flex: 1 1 auto;
+        }
+
+        .controls {
+            font-size: 0.8em;
+            letter-spacing: 0.05em;
+            color: #94a3b8;
+            text-align: center;
+            flex-shrink: 0;
+        }
+
+        .overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.75);
+            color: #e2e8f0;
+            font-size: 1.2rem;
+            letter-spacing: 0.08em;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            gap: 0.5rem;
+        }
+
+        .overlay .title {
+            font-size: 1.2rem;
+        }
+
+        .overlay button {
+            margin-top: 0.5rem;
+        }
+
+        @media (max-width: 640px) {
+            body {
+                gap: 0.4rem;
+            }
+
+            .hud {
+                gap: 0.5rem;
+            }
+
+            .scoreboard {
+                width: 100%;
+                justify-content: center;
+            }
         }
     </style>
 </head>
 <body>
-    <div class="game-container">
-        <h1>🎮 俄羅斯方塊</h1>
-        <div class="game-info">
-            <div class="score">得分: <span id="score">0</span></div>
-            <div class="level">等級: <span id="level">1</span></div>
-            <div class="lines">消除行數: <span id="lines">0</span></div>
+    <header class="hud">
+        <h1>俄羅斯方塊</h1>
+        <div class="scoreboard" aria-live="polite">
+            <span>得分 <strong id="score">0</strong></span>
+            <span>等級 <strong id="level">1</strong></span>
+            <span>行數 <strong id="lines">0</strong></span>
         </div>
-        <canvas id="gameCanvas" width="300" height="600"></canvas>
-        <div class="controls">
-            操作：⬅️ ➡️ 移動 | ⬆️ 旋轉 | ⬇️ 加速下降 | 空白鍵 立即落下
+        <div class="actions">
+            <button type="button" id="startButton">開始遊戲</button>
+            <button type="button" id="pauseButton">暫停</button>
         </div>
-        <button class="btn" onclick="startGame()">開始遊戲</button>
-        <button class="btn" onclick="pauseGame()">暫停</button>
-        <div class="game-over" id="gameOver">
-            <div>遊戲結束！</div>
-            <div style="font-size: 0.8em; margin-top: 20px;">按開始遊戲繼續遊玩</div>
-        </div>
+    </header>
+
+    <canvas id="gameCanvas" width="300" height="600" aria-label="俄羅斯方塊遊戲畫布"></canvas>
+    <p class="controls">操作：⬅️ ➡️ 移動 | ⬆️ 旋轉 | ⬇️ 加速下降 | 空白鍵 立即落下</p>
+
+    <div class="overlay" id="gameOver" role="dialog" aria-modal="true" aria-labelledby="gameOverTitle">
+        <div class="title" id="gameOverTitle">遊戲結束</div>
+        <p>按「開始遊戲」或下方按鈕繼續挑戰</p>
+        <button type="button" id="restartButton">重新開始</button>
     </div>
 
     <script>
@@ -111,6 +177,9 @@
         const levelElement = document.getElementById('level');
         const linesElement = document.getElementById('lines');
         const gameOverDiv = document.getElementById('gameOver');
+        const startButton = document.getElementById('startButton');
+        const pauseButton = document.getElementById('pauseButton');
+        const restartButton = document.getElementById('restartButton');
 
         const COLS = 10;
         const ROWS = 20;
@@ -127,18 +196,28 @@
         let gameRunning = false;
         let gamePaused = false;
 
-        // 方塊形狀定義
         const SHAPES = [
-            [[1,1,1,1]], // I
-            [[1,1],[1,1]], // O
-            [[0,1,0],[1,1,1]], // T
-            [[0,1,1],[1,1,0]], // S
-            [[1,1,0],[0,1,1]], // Z
-            [[1,0,0],[1,1,1]], // J
-            [[0,0,1],[1,1,1]]  // L
+            [[1,1,1,1]],
+            [[1,1],[1,1]],
+            [[0,1,0],[1,1,1]],
+            [[0,1,1],[1,1,0]],
+            [[1,1,0],[0,1,1]],
+            [[1,0,0],[1,1,1]],
+            [[0,0,1],[1,1,1]]
         ];
 
         const COLORS = ['#00F0F0', '#F0F000', '#A000F0', '#00F000', '#F00000', '#0000F0', '#F0A000'];
+
+        function resizeCanvas() {
+            const maxWidth = window.innerWidth * 0.9;
+            const maxHeight = window.innerHeight * 0.85;
+            const aspectRatio = canvas.width / canvas.height;
+            const widthBasedOnHeight = maxHeight * aspectRatio;
+            const width = Math.min(maxWidth, widthBasedOnHeight);
+            const height = width / aspectRatio;
+            canvas.style.width = `${width}px`;
+            canvas.style.height = `${height}px`;
+        }
 
         function createBoard() {
             board = Array(ROWS).fill().map(() => Array(COLS).fill(0));
@@ -147,7 +226,7 @@
         function createPiece() {
             const shapeIndex = Math.floor(Math.random() * SHAPES.length);
             return {
-                shape: SHAPES[shapeIndex],
+                shape: SHAPES[shapeIndex].map(row => [...row]),
                 color: COLORS[shapeIndex],
                 x: Math.floor(COLS / 2) - 1,
                 y: 0
@@ -173,22 +252,15 @@
         function drawPiece() {
             if (!currentPiece) return;
             ctx.fillStyle = currentPiece.color;
+            ctx.strokeStyle = '#fff';
+
             currentPiece.shape.forEach((row, y) => {
                 row.forEach((value, x) => {
                     if (value) {
-                        ctx.fillRect(
-                            (currentPiece.x + x) * BLOCK_SIZE,
-                            (currentPiece.y + y) * BLOCK_SIZE,
-                            BLOCK_SIZE - 2,
-                            BLOCK_SIZE - 2
-                        );
-                        ctx.strokeStyle = '#fff';
-                        ctx.strokeRect(
-                            (currentPiece.x + x) * BLOCK_SIZE,
-                            (currentPiece.y + y) * BLOCK_SIZE,
-                            BLOCK_SIZE - 2,
-                            BLOCK_SIZE - 2
-                        );
+                        const posX = (currentPiece.x + x) * BLOCK_SIZE;
+                        const posY = (currentPiece.y + y) * BLOCK_SIZE;
+                        ctx.fillRect(posX, posY, BLOCK_SIZE - 2, BLOCK_SIZE - 2);
+                        ctx.strokeRect(posX, posY, BLOCK_SIZE - 2, BLOCK_SIZE - 2);
                     }
                 });
             });
@@ -242,17 +314,21 @@
                     board.unshift(Array(COLS).fill(0));
                     linesCleared++;
                     y++;
+                }
             }
-        }
             if (linesCleared > 0) {
                 lines += linesCleared;
                 score += linesCleared * 100 * level;
                 level = Math.floor(lines / 10) + 1;
                 dropInterval = Math.max(100, 1000 - (level - 1) * 50);
-                scoreElement.textContent = score;
-                levelElement.textContent = level;
-                linesElement.textContent = lines;
+                updateHud();
             }
+        }
+
+        function updateHud() {
+            scoreElement.textContent = score;
+            levelElement.textContent = level;
+            linesElement.textContent = lines;
         }
 
         function dropPiece() {
@@ -272,7 +348,7 @@
 
         function gameOver() {
             gameRunning = false;
-            gameOverDiv.style.display = 'block';
+            gameOverDiv.style.display = 'flex';
         }
 
         function startGame() {
@@ -286,18 +362,21 @@
             gameRunning = true;
             gamePaused = false;
             gameOverDiv.style.display = 'none';
-            scoreElement.textContent = score;
-            levelElement.textContent = level;
-            linesElement.textContent = lines;
+            pauseButton.textContent = '暫停';
+            updateHud();
             lastTime = performance.now();
-            gameLoop();
+            drawBoard();
+            drawPiece();
+            requestAnimationFrame(gameLoop);
         }
 
-        function pauseGame() {
+        function togglePause() {
+            if (!gameRunning) return;
             gamePaused = !gamePaused;
+            pauseButton.textContent = gamePaused ? '繼續' : '暫停';
             if (!gamePaused) {
                 lastTime = performance.now();
-                gameLoop();
+                requestAnimationFrame(gameLoop);
             }
         }
 
@@ -321,7 +400,7 @@
         document.addEventListener('keydown', (e) => {
             if (!gameRunning || gamePaused) return;
 
-            switch(e.key) {
+            switch (e.key) {
                 case 'ArrowLeft':
                     if (isValidMove(currentPiece, -1, 0)) currentPiece.x--;
                     break;
@@ -341,7 +420,14 @@
             e.preventDefault();
         });
 
+        startButton.addEventListener('click', startGame);
+        pauseButton.addEventListener('click', togglePause);
+        restartButton.addEventListener('click', startGame);
+        window.addEventListener('resize', resizeCanvas);
+
+        resizeCanvas();
         createBoard();
+        drawBoard();
     </script>
 </body>
 </html>

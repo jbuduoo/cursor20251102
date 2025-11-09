@@ -5,79 +5,275 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>打地鼠遊戲</title>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html, body {
+            height: 100%;
+            width: 100%;
+        }
+
         body {
-            display: flex; flex-direction: column; justify-content: center; align-items: center;
-            min-height: 100vh; background: linear-gradient(135deg, #8B4513 0%, #A0522D 100%);
-            font-family: 'Microsoft JhengHei', Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(160deg, #422006 0%, #713f12 45%, #92400e 100%);
+            font-family: 'Microsoft JhengHei', 'Segoe UI', sans-serif;
+            color: #fef3c7;
+            overflow: hidden;
+            gap: 0.5rem;
+            padding: 0.5rem 0;
         }
-        .game-container {
-            text-align: center; background: rgba(255, 255, 255, 0.9); padding: 30px;
-            border-radius: 20px; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+
+        .hud {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 1rem;
+            text-align: center;
+            flex-wrap: wrap;
+            flex-shrink: 0;
         }
-        h1 { color: #333; margin-bottom: 20px; font-size: 2.5em; }
-        .info { display: flex; justify-content: space-around; margin-bottom: 20px; font-size: 1.2em; font-weight: bold; }
-        .score { color: #4CAF50; }
-        .time { color: #FF9800; }
+
+        .hud h1 {
+            font-size: 1.2em;
+            font-weight: 600;
+            letter-spacing: 0.08em;
+        }
+
+        .scoreboard {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            font-size: 0.9em;
+            flex-shrink: 0;
+        }
+
+        .scoreboard span {
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+            color: #fcd34d;
+        }
+
+        .scoreboard strong {
+            color: #facc15;
+            font-weight: 600;
+        }
+
+        .actions {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            flex-shrink: 0;
+        }
+
+        button {
+            padding: 0.4rem 1.1rem;
+            font-size: 0.85em;
+            font-weight: 600;
+            letter-spacing: 0.05em;
+            color: #0f172a;
+            background: #facc15;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+
+        button:focus-visible,
+        button:hover {
+            background: #eab308;
+        }
+
         .grid {
-            display: grid; grid-template-columns: repeat(3, 150px); gap: 20px;
-            justify-content: center; margin: 20px 0;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 3%;
+            width: min(90vw, 85vh);
+            max-width: 90vw;
+            max-height: 85vh;
+            aspect-ratio: 1 / 1;
+            flex: 1 1 auto;
+            padding: 3%;
         }
+
         .hole {
-            width: 150px; height: 150px; background: #654321; border-radius: 50%;
-            position: relative; cursor: pointer; overflow: hidden;
-            box-shadow: inset 0 0 20px rgba(0,0,0,0.5);
+            width: 100%;
+            aspect-ratio: 1 / 1;
+            background: #3b2f1c;
+            border-radius: 50%;
+            position: relative;
+            cursor: pointer;
+            overflow: hidden;
+            box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.6);
         }
+
         .mole {
-            width: 120px; height: 120px; background: #8B4513; border-radius: 50%;
-            position: absolute; bottom: -120px; left: 15px; transition: bottom 0.3s;
+            width: 70%;
+            aspect-ratio: 1 / 1;
+            background: #8b5e3b;
+            border-radius: 50%;
+            position: absolute;
+            bottom: -80%;
+            left: 50%;
+            transform: translateX(-50%);
+            transition: bottom 0.3s;
             cursor: pointer;
         }
-        .mole.up { bottom: 10px; }
-        .mole.hit { background: #ff0000; }
-        button {
-            margin-top: 15px; padding: 10px 20px; font-size: 1em;
-            background: #4CAF50; color: white; border: none; border-radius: 5px;
-            cursor: pointer; transition: background 0.3s;
+
+        .mole.up {
+            bottom: 10%;
         }
-        button:hover { background: #45a049; }
+
+        .mole.hit {
+            background: #ef4444;
+        }
+
+        .controls {
+            font-size: 0.8em;
+            letter-spacing: 0.05em;
+            color: #fef3c7;
+            text-align: center;
+            flex-shrink: 0;
+        }
+
+        .overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.75);
+            color: #fef3c7;
+            font-size: 1.1rem;
+            letter-spacing: 0.06em;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            gap: 0.5rem;
+            padding: 1.5rem;
+        }
+
+        .overlay button {
+            margin-top: 0.5rem;
+        }
+
+        @media (max-width: 640px) {
+            body {
+                gap: 0.4rem;
+            }
+
+            .hud {
+                gap: 0.5rem;
+            }
+        }
     </style>
 </head>
 <body>
-    <div class="game-container">
-        <h1>🐹 打地鼠</h1>
-        <div class="info">
-            <div class="score">分數: <span id="score">0</span></div>
-            <div class="time">時間: <span id="time">30</span>秒</div>
+    <header class="hud">
+        <h1>打地鼠</h1>
+        <div class="scoreboard" aria-live="polite">
+            <span>分數 <strong id="score">0</strong></span>
+            <span>時間 <strong id="time">30</strong> 秒</span>
         </div>
-        <div class="grid" id="grid"></div>
-        <button onclick="startGame()">開始遊戲</button>
+        <div class="actions">
+            <button type="button" onclick="startGame()">開始遊戲</button>
+        </div>
+    </header>
+
+    <div class="grid" id="grid" role="application" aria-label="打地鼠遊戲區"></div>
+    <p class="controls">點擊冒出地面的地鼠獲得分數！</p>
+
+    <div class="overlay" id="gameOver" role="dialog" aria-modal="true" aria-labelledby="gameOverTitle">
+        <div class="title" id="gameOverTitle">時間到</div>
+        <p id="gameOverMessage"></p>
+        <button type="button" onclick="startGame()">再玩一次</button>
     </div>
     <script>
-        let score = 0; let timeLeft = 30; let gameRunning = false; let moles = [];
+        let score = 0;
+        let timeLeft = 30;
+        let gameRunning = false;
+        let moles = [];
+        let timerId = null;
+        let loopId = null;
         const grid = document.getElementById('grid');
-        for (let i = 0; i < 9; i++) {
-            const hole = document.createElement('div'); hole.className = 'hole';
-            const mole = document.createElement('div'); mole.className = 'mole';
-            mole.onclick = () => { if (mole.classList.contains('up')) { mole.classList.remove('up'); mole.classList.add('hit'); score++; document.getElementById('score').textContent = score; setTimeout(() => mole.classList.remove('hit'), 200); } };
-            hole.appendChild(mole); grid.appendChild(hole); moles.push(mole);
+        const scoreElement = document.getElementById('score');
+        const timeElement = document.getElementById('time');
+        const gameOverDiv = document.getElementById('gameOver');
+        const gameOverMessage = document.getElementById('gameOverMessage');
+
+        function createHoles() {
+            grid.innerHTML = '';
+            moles = [];
+            for (let i = 0; i < 9; i++) {
+                const hole = document.createElement('div');
+                hole.className = 'hole';
+                const mole = document.createElement('div');
+                mole.className = 'mole';
+                mole.onclick = () => {
+                    if (mole.classList.contains('up')) {
+                        mole.classList.remove('up');
+                        mole.classList.add('hit');
+                        score++;
+                        scoreElement.textContent = score;
+                        setTimeout(() => mole.classList.remove('hit'), 200);
+                    }
+                };
+                hole.appendChild(mole);
+                grid.appendChild(hole);
+                moles.push(mole);
+            }
         }
+
+        function resetIntervals() {
+            if (timerId) {
+                clearInterval(timerId);
+                timerId = null;
+            }
+            if (loopId) {
+                clearInterval(loopId);
+                loopId = null;
+            }
+        }
+
         function startGame() {
-            gameRunning = true; score = 0; timeLeft = 30;
-            document.getElementById('score').textContent = score;
-            document.getElementById('time').textContent = timeLeft;
-            const timer = setInterval(() => {
-                timeLeft--; document.getElementById('time').textContent = timeLeft;
-                if (timeLeft <= 0) { clearInterval(timer); gameRunning = false; alert(`遊戲結束！得分: ${score}`); }
+            resetIntervals();
+            createHoles();
+            gameRunning = true;
+            score = 0;
+            timeLeft = 30;
+            scoreElement.textContent = score;
+            timeElement.textContent = timeLeft;
+            gameOverDiv.style.display = 'none';
+
+            timerId = setInterval(() => {
+                timeLeft--;
+                timeElement.textContent = Math.max(timeLeft, 0);
+                if (timeLeft <= 0) {
+                    resetIntervals();
+                    gameRunning = false;
+                    gameOverMessage.textContent = `你的得分：${score}`;
+                    gameOverDiv.style.display = 'flex';
+                }
             }, 1000);
-            const gameLoop = setInterval(() => {
-                if (!gameRunning) { clearInterval(gameLoop); return; }
+
+            loopId = setInterval(() => {
+                if (!gameRunning) {
+                    resetIntervals();
+                    return;
+                }
                 moles.forEach(m => m.classList.remove('up'));
                 const randomMole = moles[Math.floor(Math.random() * moles.length)];
                 randomMole.classList.add('up');
-                setTimeout(() => randomMole.classList.remove('up'), 1000);
-            }, 1500);
+                setTimeout(() => randomMole.classList.remove('up'), 800);
+            }, 900);
         }
+
+        createHoles();
     </script>
 </body>
 </html>
