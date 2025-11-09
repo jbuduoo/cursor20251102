@@ -1,0 +1,1211 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>毀滅星球</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            color-scheme: dark;
+            --hud-bg: rgba(7, 10, 22, 0.54);
+            --hud-accent: #93c5fd;
+            --hud-highlight: #facc15;
+            --hud-shadow: 0 18px 60px rgba(8, 11, 24, 0.55);
+            --weapon-active: rgba(59, 130, 246, 0.25);
+            --weapon-hover: rgba(59, 130, 246, 0.18);
+        }
+
+        html, body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background: radial-gradient(circle at 45% -18%, #1f3072 0%, #0d1330 42%, #05060f 100%);
+            font-family: 'Microsoft JhengHei', 'Segoe UI', sans-serif;
+            color: #e2e8f0;
+        }
+
+        body {
+            position: relative;
+        }
+
+        canvas {
+            display: block;
+            width: 100vw;
+            height: 100vh;
+            background: transparent;
+        }
+
+        .hud {
+            position: fixed;
+            top: 1.5vh;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem 1.5rem;
+            border-radius: 16px;
+            backdrop-filter: blur(9px);
+            background: var(--hud-bg);
+            box-shadow: var(--hud-shadow);
+            z-index: 10;
+            text-align: center;
+            min-width: min(84vw, 720px);
+        }
+
+        .hud h1 {
+            font-size: clamp(1.15rem, 2.3vw, 1.65rem);
+            letter-spacing: 0.16em;
+            text-transform: uppercase;
+            font-weight: 600;
+        }
+
+        .hud p {
+            font-size: clamp(0.75rem, 1.65vw, 0.95rem);
+            color: rgba(226, 232, 240, 0.82);
+            letter-spacing: 0.04em;
+        }
+
+        .stats {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 0.95rem 1.65rem;
+            font-size: clamp(0.75rem, 1.5vw, 0.95rem);
+            letter-spacing: 0.08em;
+        }
+
+        .stats span {
+            color: var(--hud-accent);
+            font-weight: 600;
+            margin-left: 0.35rem;
+        }
+
+        .weapon-dock {
+            position: fixed;
+            bottom: 2.5vh;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 0.6rem;
+            padding: 0.6rem 1rem;
+            border-radius: 999px;
+            backdrop-filter: blur(9px);
+            background: rgba(7, 10, 22, 0.58);
+            box-shadow: 0 14px 50px rgba(6, 12, 28, 0.65);
+            z-index: 12;
+            flex-wrap: wrap;
+            justify-content: center;
+            max-width: min(92vw, 960px);
+        }
+
+        .weapon-button {
+            position: relative;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1.15rem;
+            border-radius: 999px;
+            border: 1px solid rgba(148, 163, 184, 0.25);
+            color: #e2e8f0;
+            font-size: clamp(0.7rem, 1.65vw, 0.95rem);
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            background: rgba(15, 23, 42, 0.45);
+            cursor: pointer;
+            transition: transform 0.18s ease, border 0.18s ease, background 0.18s ease;
+        }
+
+        .weapon-button::before {
+            content: '';
+            width: 0.6rem;
+            height: 0.6rem;
+            border-radius: 50%;
+            background: currentColor;
+            opacity: 0.65;
+        }
+
+        .weapon-button[data-weapon="machinegun"]::before { color: #60a5fa; }
+        .weapon-button[data-weapon="cannon"]::before { color: #fcd34d; }
+        .weapon-button[data-weapon="nuke"]::before { color: #f97316; }
+        .weapon-button[data-weapon="middlefinger"]::before { color: #c084fc; }
+        .weapon-button[data-weapon="orbital"]::before { color: #5eead4; }
+
+        .weapon-button:hover,
+        .weapon-button:focus-visible {
+            background: var(--weapon-hover);
+            border-color: rgba(148, 163, 184, 0.45);
+            outline: none;
+            transform: translateY(-2px);
+        }
+
+        .weapon-button[aria-pressed="true"] {
+            background: var(--weapon-active);
+            border-color: rgba(148, 163, 184, 0.7);
+            box-shadow: 0 0 0 1px rgba(148, 163, 184, 0.35);
+            transform: translateY(-1px);
+        }
+
+        .toast {
+            position: fixed;
+            top: 12vh;
+            right: 3vw;
+            display: none;
+            padding: 0.75rem 1.2rem;
+            border-radius: 12px;
+            backdrop-filter: blur(7px);
+            background: rgba(15, 23, 42, 0.68);
+            box-shadow: 0 14px 45px rgba(5, 8, 20, 0.55);
+            font-size: 0.9rem;
+            letter-spacing: 0.05em;
+            z-index: 14;
+        }
+
+        .mega-banner {
+            position: fixed;
+            inset: 0;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            gap: 1.2rem;
+            background: rgba(2, 6, 23, 0.82);
+            backdrop-filter: blur(8px);
+            z-index: 18;
+            text-align: center;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+        }
+
+        .mega-banner strong {
+            font-size: clamp(2.2rem, 6.8vw, 4.5rem);
+            color: #f87171;
+            text-shadow: 0 0 24px rgba(248, 113, 113, 0.45);
+        }
+
+        .mega-banner span {
+            font-size: clamp(0.85rem, 2.6vw, 1.2rem);
+            color: rgba(224, 231, 255, 0.82);
+            letter-spacing: 0.08em;
+            text-transform: none;
+        }
+
+        @media (max-width: 720px) {
+            .weapon-dock {
+                border-radius: 24px;
+                padding: 0.65rem 0.85rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <canvas id="battlefield" aria-label="毀滅星球戰場"></canvas>
+    <div class="hud" role="presentation">
+        <h1>毀滅星球</h1>
+        <p>選擇武器，點擊星球或城市，享受極致的世界末日煙火。</p>
+        <div class="stats" aria-live="polite">
+            <div>星球完整度<span id="planetIntegrity">100%</span></div>
+            <div>城市存活率<span id="cityIntegrity">100%</span></div>
+            <div>連擊計數<span id="comboCount">0</span></div>
+        </div>
+    </div>
+    <div class="weapon-dock" role="toolbar" aria-label="武器選單">
+        <button class="weapon-button" data-weapon="machinegun" aria-pressed="true">機關槍</button>
+        <button class="weapon-button" data-weapon="cannon" aria-pressed="false">大炮</button>
+        <button class="weapon-button" data-weapon="nuke" aria-pressed="false">核彈</button>
+        <button class="weapon-button" data-weapon="middlefinger" aria-pressed="false">比中指</button>
+        <button class="weapon-button" data-weapon="orbital" aria-pressed="false">軌道雷射</button>
+    </div>
+    <div class="toast" id="statusToast" role="status" aria-live="polite"></div>
+    <section class="mega-banner" id="megaBanner" role="dialog" aria-modal="true" aria-labelledby="bannerTitle">
+        <strong id="bannerTitle">星球破碎</strong>
+        <span id="bannerMessage">你成功將文明打成宇宙塵埃。</span>
+    </section>
+    <script>
+        (function () {
+            'use strict';
+
+            const canvas = document.getElementById('battlefield');
+            const ctx = canvas.getContext('2d');
+            const toast = document.getElementById('statusToast');
+            const banner = document.getElementById('megaBanner');
+            const planetIntegrityEl = document.getElementById('planetIntegrity');
+            const cityIntegrityEl = document.getElementById('cityIntegrity');
+            const comboCountEl = document.getElementById('comboCount');
+
+            const weapons = {
+                machinegun: {
+                    id: 'machinegun',
+                    name: '機關槍',
+                    damage: 12,
+                    radius: 42,
+                    scatter: 36,
+                    cooldown: 95,
+                    autoFire: true,
+                    volley: 2,
+                    particleSpeed: 280,
+                    cityMultiplier: 0.8,
+                    planetMultiplier: 1.45,
+                    color: '#93c5fd',
+                    particlePalette: ['#bae6fd', '#60a5fa', '#f8fafc'],
+                    heat: 0.05,
+                    shake: 6,
+                    impactLife: 0.35
+                },
+                cannon: {
+                    id: 'cannon',
+                    name: '大炮',
+                    damage: 48,
+                    radius: 72,
+                    scatter: 10,
+                    cooldown: 420,
+                    autoFire: false,
+                    volley: 1,
+                    particleSpeed: 360,
+                    cityMultiplier: 1.2,
+                    planetMultiplier: 1.8,
+                    color: '#fcd34d',
+                    particlePalette: ['#fde68a', '#fbbf24', '#fb923c'],
+                    heat: 0.12,
+                    shake: 18,
+                    impactLife: 0.55,
+                    crater: true
+                },
+                nuke: {
+                    id: 'nuke',
+                    name: '核彈',
+                    damage: 210,
+                    radius: 190,
+                    scatter: 0,
+                    cooldown: 2800,
+                    autoFire: false,
+                    volley: 1,
+                    particleSpeed: 420,
+                    cityMultiplier: 2.6,
+                    planetMultiplier: 2.4,
+                    color: '#fb7185',
+                    particlePalette: ['#fef3c7', '#fde047', '#fca5a5', '#fb923c', '#ef4444'],
+                    heat: 0.45,
+                    shake: 42,
+                    impactLife: 0.95,
+                    crater: true,
+                    shockwave: true,
+                    flash: true
+                },
+                middlefinger: {
+                    id: 'middlefinger',
+                    name: '比中指',
+                    damage: 22,
+                    radius: 58,
+                    scatter: 28,
+                    cooldown: 650,
+                    autoFire: false,
+                    volley: 3,
+                    particleSpeed: 260,
+                    cityMultiplier: 1.05,
+                    planetMultiplier: 1.65,
+                    color: '#c084fc',
+                    particlePalette: ['#f5d0fe', '#c084fc', '#f472b6'],
+                    heat: 0.1,
+                    shake: 14,
+                    impactLife: 0.5,
+                    taunt: true
+                },
+                orbital: {
+                    id: 'orbital',
+                    name: '軌道雷射',
+                    damage: 90,
+                    radius: 110,
+                    scatter: 6,
+                    cooldown: 1350,
+                    autoFire: false,
+                    volley: 1,
+                    particleSpeed: 500,
+                    cityMultiplier: 1.7,
+                    planetMultiplier: 2.2,
+                    color: '#5eead4',
+                    particlePalette: ['#ccfbf1', '#5eead4', '#38bdf8'],
+                    heat: 0.2,
+                    shake: 24,
+                    impactLife: 0.65,
+                    beam: true,
+                    shockwave: true
+                }
+            };
+
+            const stars = [];
+            const buildings = [];
+            const impacts = [];
+            const particles = [];
+            const shockwaves = [];
+            const floatingTexts = [];
+            const fingerShots = [];
+
+            const pointer = { x: 0, y: 0, active: false };
+            const hudState = {
+                lastPlanetIntegrity: 100,
+                lastCityIntegrity: 100,
+                lastCombo: 0
+            };
+
+            const planet = {
+                x: 0,
+                y: 0,
+                radius: 160,
+                maxHealth: 1400,
+                health: 1400,
+                heat: 0,
+                damageMarks: [],
+                fractureLines: []
+            };
+
+            let currentWeapon = weapons.machinegun;
+            let lastShotAt = 0;
+            let comboCount = 0;
+            let comboTimer = 0;
+            let cameraShake = 0;
+            let screenFlash = 0;
+            let bannerShown = false;
+
+            function seededRandom(seed) {
+                let value = seed % 2147483647;
+                if (value <= 0) value += 2147483646;
+                return function () {
+                    value = value * 16807 % 2147483647;
+                    return (value - 1) / 2147483646;
+                };
+            }
+
+            const starRandom = seededRandom(20251109);
+
+            function createStars() {
+                stars.length = 0;
+                const starCount = Math.floor((window.innerWidth * window.innerHeight) / 16000);
+                for (let i = 0; i < starCount; i++) {
+                    stars.push({
+                        x: starRandom() * window.innerWidth,
+                        y: starRandom() * window.innerHeight,
+                        size: starRandom() * 1.5 + 0.5,
+                        alpha: 0.45 + starRandom() * 0.5,
+                        twinkleSpeed: 0.6 + starRandom() * 1.4,
+                        phase: starRandom() * Math.PI * 2
+                    });
+                }
+            }
+
+            function initBuildings() {
+                buildings.length = 0;
+                const count = 11;
+                const rand = seededRandom(87123);
+                for (let i = 0; i < count; i++) {
+                    buildings.push({
+                        slot: i,
+                        baseHealth: 260 + rand() * 120,
+                        health: 0,
+                        widthRatio: 0.045 + rand() * 0.01,
+                        heightRatio: 0.15 + rand() * 0.12,
+                        skew: (rand() - 0.5) * 0.15,
+                        smoke: 0,
+                        ember: 0,
+                        collapse: 0,
+                        colorPhase: rand() * Math.PI * 2
+                    });
+                }
+            }
+
+            function resetBuildingsHealth() {
+                buildings.forEach((b) => {
+                    b.health = b.baseHealth;
+                    b.smoke = 0;
+                    b.ember = 0;
+                    b.collapse = 0;
+                });
+            }
+
+            function layoutBuildings() {
+                const baseline = Math.min(window.innerHeight * 0.86, planet.y + planet.radius + window.innerHeight * 0.18);
+                const startX = window.innerWidth * 0.1;
+                const usableWidth = window.innerWidth * 0.8;
+                const gap = usableWidth * 0.015;
+                const unitWidth = (usableWidth - gap * (buildings.length - 1)) / buildings.length;
+
+                buildings.forEach((b, index) => {
+                    b.width = unitWidth * (0.75 + b.widthRatio);
+                    b.height = window.innerHeight * b.heightRatio;
+                    b.x = startX + index * (unitWidth + gap);
+                    b.y = baseline - b.height;
+                    b.baseY = baseline;
+                });
+            }
+
+            function resizeCanvas() {
+                const dpr = window.devicePixelRatio || 1;
+                canvas.width = window.innerWidth * dpr;
+                canvas.height = window.innerHeight * dpr;
+                canvas.style.width = window.innerWidth + 'px';
+                canvas.style.height = window.innerHeight + 'px';
+                ctx.setTransform(1, 0, 0, 1, 0, 0);
+                ctx.scale(dpr, dpr);
+
+                planet.x = window.innerWidth / 2;
+                planet.y = window.innerHeight * 0.5;
+                planet.radius = Math.min(window.innerWidth, window.innerHeight) * 0.23;
+
+                createStars();
+                layoutBuildings();
+            }
+
+            function selectWeapon(id) {
+                const nextWeapon = weapons[id];
+                if (!nextWeapon || nextWeapon === currentWeapon) return;
+                currentWeapon = nextWeapon;
+                document.querySelectorAll('.weapon-button').forEach((btn) => {
+                    btn.setAttribute('aria-pressed', btn.dataset.weapon === id ? 'true' : 'false');
+                });
+                showToast(`切換 ${nextWeapon.name}`, 1000);
+            }
+
+            function showToast(message, duration = 1500) {
+                toast.textContent = message;
+                toast.style.display = 'block';
+                clearTimeout(showToast._timer);
+                showToast._timer = setTimeout(() => {
+                    toast.style.display = 'none';
+                }, duration);
+            }
+
+            function showBanner(title, message) {
+                banner.querySelector('strong').textContent = title;
+                banner.querySelector('span').textContent = message;
+                banner.style.display = 'flex';
+                setTimeout(() => {
+                    banner.style.display = 'none';
+                }, 3600);
+            }
+
+            function getDistance(aX, aY, bX, bY) {
+                const dx = aX - bX;
+                const dy = aY - bY;
+                return Math.hypot(dx, dy);
+            }
+
+            function clamp(value, min, max) {
+                return Math.max(min, Math.min(max, value));
+            }
+
+            function hexToRgb(hex) {
+                let normalized = hex.replace('#', '');
+                if (normalized.length === 3) {
+                    normalized = normalized.split('').map((c) => c + c).join('');
+                }
+                const intVal = parseInt(normalized, 16);
+                return {
+                    r: (intVal >> 16) & 255,
+                    g: (intVal >> 8) & 255,
+                    b: intVal & 255
+                };
+            }
+
+            function colorWithAlpha(color, alpha) {
+                if (typeof color !== 'string') return color;
+                if (color.startsWith('#')) {
+                    const { r, g, b } = hexToRgb(color);
+                    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+                }
+                const match = color.match(/rgba?\(([^)]+)\)/);
+                if (match) {
+                    const parts = match[1].split(',').map((part) => part.trim());
+                    const [r, g, b] = parts;
+                    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+                }
+                return color;
+            }
+
+            function planetDamageAt(pointX, pointY, weapon) {
+                const distance = getDistance(pointX, pointY, planet.x, planet.y);
+                const effectiveRadius = planet.radius + weapon.radius * 0.6;
+                if (distance > effectiveRadius) {
+                    return 0;
+                }
+                const normalized = 1 - (distance / effectiveRadius);
+                const damage = weapon.damage * (weapon.planetMultiplier || 1) * Math.pow(normalized, 1.2);
+                const markRadius = weapon.radius * (0.4 + Math.random() * 0.35);
+
+                planet.damageMarks.push({
+                    x: pointX,
+                    y: pointY,
+                    radius: markRadius,
+                    alpha: 0.8,
+                    decay: 0.16 + Math.random() * 0.12,
+                    hue: weapon.color
+                });
+
+                if (weapon.crater) {
+                    planet.fractureLines.push({
+                        angle: Math.atan2(pointY - planet.y, pointX - planet.x),
+                        length: planet.radius * (0.35 + Math.random() * 0.45),
+                        width: 1.5 + Math.random() * 1.8,
+                        life: 0.95
+                    });
+                }
+
+                if (weapon.shockwave) {
+                    shockwaves.push({
+                        x: planet.x,
+                        y: planet.y,
+                        radius: planet.radius * 0.6,
+                        maxRadius: Math.max(window.innerWidth, window.innerHeight),
+                        width: 3.5,
+                        alpha: 0.35,
+                        growth: 880
+                    });
+                }
+
+                planet.heat = clamp(planet.heat + weapon.heat, 0, 1.8);
+                if (weapon.flash) {
+                    screenFlash = 1;
+                }
+                cameraShake = Math.max(cameraShake, weapon.shake);
+                return damage;
+            }
+
+            function distanceToBuilding(building, x, y) {
+                const dx = Math.max(building.x - x, 0, x - (building.x + building.width));
+                const dy = Math.max(building.y - y, 0, y - (building.y + building.height));
+                return Math.hypot(dx, dy);
+            }
+
+            function applyCityDamage(pointX, pointY, weapon) {
+                let inflicted = 0;
+                buildings.forEach((b) => {
+                    if (b.health <= 0) return;
+                    const distance = distanceToBuilding(b, pointX, pointY);
+                    if (distance > weapon.radius) return;
+                    const falloff = 1 - (distance / (weapon.radius + 1e-6));
+                    const damage = weapon.damage * (weapon.cityMultiplier || 1) * Math.pow(falloff, 1.1);
+                    if (damage <= 0) return;
+                    b.health = Math.max(0, b.health - damage);
+                    inflicted += damage;
+                    if (b.health <= 0) {
+                        b.collapse = 1;
+                        spawnParticles(b.x + b.width / 2, b.y + b.height / 2, 24, '#475569');
+                        spawnSmokeColumn(b);
+                    } else {
+                        b.smoke = Math.min(1, b.smoke + 0.35);
+                        b.ember = Math.min(1, b.ember + 0.5);
+                    }
+                });
+                return inflicted;
+            }
+
+            function spawnSmokeColumn(building) {
+                const originX = building.x + building.width / 2;
+                const originY = building.y;
+                for (let i = 0; i < 24; i++) {
+                    particles.push({
+                        x: originX + (Math.random() - 0.5) * building.width,
+                        y: originY + Math.random() * 12,
+                        vx: (Math.random() - 0.5) * 15,
+                        vy: -30 - Math.random() * 30,
+                        life: 1.8 + Math.random(),
+                        maxLife: 1.8 + Math.random(),
+                        size: 8 + Math.random() * 10,
+                        color: 'rgba(148, 163, 184, 0.25)',
+                        gravity: -12
+                    });
+                }
+            }
+
+            function spawnParticles(originX, originY, count, colorHint, speed = 320) {
+                for (let i = 0; i < count; i++) {
+                    const angle = Math.random() * Math.PI * 2;
+                    const magnitude = speed * (0.35 + Math.random() * 0.9);
+                    const palette = Array.isArray(colorHint) ? colorHint : [colorHint];
+                    const life = 0.35 + Math.random() * 0.9;
+                    particles.push({
+                        x: originX,
+                        y: originY,
+                        vx: Math.cos(angle) * magnitude,
+                        vy: Math.sin(angle) * magnitude,
+                        life,
+                        maxLife: life,
+                        size: 3 + Math.random() * 4,
+                        color: palette[Math.floor(Math.random() * palette.length)],
+                        gravity: 120
+                    });
+                }
+            }
+
+            function spawnFloatingText(x, y, text, color = '#fef3c7') {
+                floatingTexts.push({
+                    x,
+                    y,
+                    text,
+                    life: 1.05,
+                    maxLife: 1.05,
+                    color
+                });
+            }
+
+            function spawnFinger(x, y) {
+                const size = 80 + Math.random() * 40;
+                fingerShots.push({
+                    x,
+                    y,
+                    size,
+                    rotation: (Math.random() - 0.5) * 0.6,
+                    life: 0.7,
+                    maxLife: 0.7
+                });
+            }
+
+            function applyDamage(originX, originY, weapon) {
+                let totalDamage = 0;
+                const planetDamage = planetDamageAt(originX, originY, weapon);
+                if (planetDamage > 0) {
+                    totalDamage += planetDamage;
+                    planet.health = Math.max(0, planet.health - planetDamage);
+                }
+
+                const cityDamage = applyCityDamage(originX, originY, weapon);
+                totalDamage += cityDamage;
+
+                if (totalDamage > 0) {
+                    comboCount += 1;
+                    comboTimer = 2.5;
+                    spawnFloatingText(originX, originY, Math.floor(totalDamage), weapon.color);
+                } else {
+                    comboCount = Math.floor(comboCount * 0.5);
+                }
+
+                if (weapon.taunt) {
+                    spawnFinger(originX, originY);
+                    showToast('文明收到你的問候 👆', 1200);
+                }
+
+                if (planet.health <= 0 && !bannerShown) {
+                    bannerShown = true;
+                    showBanner('星球破碎', '核冬天正式開始，建議撤離宇宙。');
+                }
+
+            }
+
+            function fireWeapon(targetX, targetY) {
+                if (!currentWeapon) return;
+                const now = performance.now();
+                if (now - lastShotAt < currentWeapon.cooldown) {
+                    return;
+                }
+                lastShotAt = now;
+
+                for (let i = 0; i < currentWeapon.volley; i++) {
+                    const scatterRadius = currentWeapon.scatter;
+                    const offsetX = (Math.random() - 0.5) * scatterRadius;
+                    const offsetY = (Math.random() - 0.5) * scatterRadius;
+                    const impactX = targetX + offsetX;
+                    const impactY = targetY + offsetY;
+
+                    impacts.push({
+                        x: impactX,
+                        y: impactY,
+                        radius: currentWeapon.radius,
+                        life: currentWeapon.impactLife,
+                        maxLife: currentWeapon.impactLife,
+                        color: currentWeapon.color
+                    });
+
+                    spawnParticles(
+                        impactX,
+                        impactY,
+                        12 + Math.floor(Math.random() * 10),
+                        currentWeapon.particlePalette,
+                        currentWeapon.particleSpeed
+                    );
+
+                    if (currentWeapon.beam) {
+                        shockwaves.push({
+                            x: impactX,
+                            y: impactY,
+                            radius: 50,
+                            maxRadius: window.innerWidth,
+                            width: 2.5,
+                            alpha: 0.32,
+                            growth: 920
+                        });
+                    }
+
+                    applyDamage(impactX, impactY, currentWeapon);
+                }
+            }
+
+            function updatePlanet(delta) {
+                planet.heat = clamp(planet.heat - delta * 0.25, 0, 2);
+                planet.damageMarks.forEach((mark) => {
+                    mark.alpha = Math.max(0, mark.alpha - mark.decay * delta);
+                });
+                planet.damageMarks = planet.damageMarks.filter((mark) => mark.alpha > 0.02);
+
+                planet.fractureLines.forEach((line) => {
+                    line.life = Math.max(0, line.life - delta * 0.45);
+                });
+                planet.fractureLines = planet.fractureLines.filter((line) => line.life > 0.05);
+            }
+
+            function updateParticles(delta) {
+                for (let i = particles.length - 1; i >= 0; i--) {
+                    const p = particles[i];
+                    p.life -= delta;
+                    if (p.life <= 0) {
+                        particles.splice(i, 1);
+                        continue;
+                    }
+                    p.x += p.vx * delta;
+                    p.y += p.vy * delta;
+                    p.vy += (p.gravity || 0) * delta;
+                }
+            }
+
+            function updateImpacts(delta) {
+                for (let i = impacts.length - 1; i >= 0; i--) {
+                    const impact = impacts[i];
+                    impact.life -= delta;
+                    if (impact.life <= 0) {
+                        impacts.splice(i, 1);
+                    }
+                }
+            }
+
+            function updateShockwaves(delta) {
+                for (let i = shockwaves.length - 1; i >= 0; i--) {
+                    const wave = shockwaves[i];
+                    wave.radius += wave.growth * delta;
+                    wave.alpha -= delta * 0.28;
+                    if (wave.alpha <= 0 || wave.radius >= wave.maxRadius) {
+                        shockwaves.splice(i, 1);
+                    }
+                }
+            }
+
+            function updateFloatingTexts(delta) {
+                for (let i = floatingTexts.length - 1; i >= 0; i--) {
+                    const text = floatingTexts[i];
+                    text.life -= delta;
+                    text.y -= 20 * delta;
+                    if (text.life <= 0) {
+                        floatingTexts.splice(i, 1);
+                    }
+                }
+            }
+
+            function updateFingerShots(delta) {
+                for (let i = fingerShots.length - 1; i >= 0; i--) {
+                    const finger = fingerShots[i];
+                    finger.life -= delta;
+                    finger.y -= delta * 70;
+                    if (finger.life <= 0) {
+                        fingerShots.splice(i, 1);
+                    }
+                }
+            }
+
+            function updateBuildings(delta) {
+                buildings.forEach((b) => {
+                    if (b.health <= 0) {
+                        b.collapse = Math.max(0, b.collapse - delta * 0.6);
+                    } else {
+                        b.smoke = Math.max(0, b.smoke - delta * 0.35);
+                        b.ember = Math.max(0, b.ember - delta * 0.45);
+                    }
+                });
+            }
+
+            function updateCombo(delta) {
+                if (comboTimer > 0) {
+                    comboTimer -= delta;
+                    if (comboTimer <= 0) {
+                        comboCount = Math.floor(comboCount * 0.5);
+                    }
+                }
+            }
+
+            function updateCamera(delta) {
+                cameraShake = Math.max(0, cameraShake - delta * 28);
+                screenFlash = Math.max(0, screenFlash - delta * 0.45);
+            }
+
+            function updateHud() {
+                const planetIntegrity = Math.max(0, Math.round((planet.health / planet.maxHealth) * 100));
+                const totalCityHealth = buildings.reduce((sum, b) => sum + Math.max(0, b.health), 0);
+                const totalCityMax = buildings.reduce((sum, b) => sum + b.baseHealth, 0);
+                const cityIntegrity = totalCityMax > 0 ? Math.max(0, Math.round((totalCityHealth / totalCityMax) * 100)) : 0;
+
+                if (planetIntegrity !== hudState.lastPlanetIntegrity) {
+                    hudState.lastPlanetIntegrity = planetIntegrity;
+                    planetIntegrityEl.textContent = `${planetIntegrity}%`;
+                }
+                if (cityIntegrity !== hudState.lastCityIntegrity) {
+                    hudState.lastCityIntegrity = cityIntegrity;
+                    cityIntegrityEl.textContent = `${cityIntegrity}%`;
+                }
+                if (comboCount !== hudState.lastCombo) {
+                    hudState.lastCombo = comboCount;
+                    comboCountEl.textContent = comboCount;
+                }
+            }
+
+            function drawBackground(time) {
+                const gradient = ctx.createRadialGradient(
+                    planet.x,
+                    planet.y,
+                    planet.radius * 0.3,
+                    planet.x,
+                    planet.y,
+                    Math.max(window.innerWidth, window.innerHeight) * 0.65
+                );
+                gradient.addColorStop(0, '#091233');
+                gradient.addColorStop(1, '#020617');
+                ctx.fillStyle = gradient;
+                ctx.fillRect(0, 0, window.innerWidth, window.innerHeight);
+
+                stars.forEach((star) => {
+                    const twinkle = Math.sin(star.phase + time * star.twinkleSpeed) * 0.4 + star.alpha;
+                    ctx.fillStyle = `rgba(226, 232, 255, ${clamp(twinkle, 0, 1)})`;
+                    ctx.beginPath();
+                    ctx.arc(star.x, star.y, star.size, 0, Math.PI * 2);
+                    ctx.fill();
+                });
+            }
+
+            function drawPlanet() {
+                ctx.save();
+                const heatedColor = planet.heat > 0 ? `rgba(255, ${Math.floor(180 + planet.heat * 40)}, ${Math.floor(120 + planet.heat * 80)}, 0.15)` : 'rgba(255, 255, 255, 0.12)';
+
+                const planetGradient = ctx.createRadialGradient(
+                    planet.x - planet.radius * 0.35,
+                    planet.y - planet.radius * 0.35,
+                    planet.radius * 0.35,
+                    planet.x,
+                    planet.y,
+                    planet.radius
+                );
+
+                const integrity = clamp(planet.health / planet.maxHealth, 0, 1);
+                planetGradient.addColorStop(0, '#93c5fd');
+                planetGradient.addColorStop(clamp(0.35 + (1 - integrity) * 0.25, 0, 1), '#3b82f6');
+                planetGradient.addColorStop(1, '#1e3a8a');
+
+                ctx.fillStyle = planetGradient;
+                ctx.beginPath();
+                ctx.arc(planet.x, planet.y, planet.radius, 0, Math.PI * 2);
+                ctx.fill();
+
+                planet.damageMarks.forEach((mark) => {
+                    if (mark.alpha <= 0) return;
+                    const craterGradient = ctx.createRadialGradient(
+                        mark.x,
+                        mark.y,
+                        mark.radius * 0.25,
+                        mark.x,
+                        mark.y,
+                        mark.radius
+                    );
+                    craterGradient.addColorStop(0, `rgba(255, 255, 255, ${mark.alpha * 0.35})`);
+                    craterGradient.addColorStop(1, `rgba(130, 23, 23, 0)`);
+                    ctx.fillStyle = craterGradient;
+                    ctx.globalCompositeOperation = 'screen';
+                    ctx.beginPath();
+                    ctx.arc(mark.x, mark.y, mark.radius, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.globalCompositeOperation = 'source-over';
+                });
+
+                ctx.globalCompositeOperation = 'overlay';
+                ctx.beginPath();
+                ctx.arc(planet.x, planet.y, planet.radius, 0, Math.PI * 2);
+                ctx.fillStyle = heatedColor;
+                ctx.fill();
+                ctx.globalCompositeOperation = 'source-over';
+
+                ctx.strokeStyle = 'rgba(15, 23, 42, 0.65)';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.arc(planet.x, planet.y, planet.radius + 1.8, 0, Math.PI * 2);
+                ctx.stroke();
+
+                planet.fractureLines.forEach((line) => {
+                    if (line.life <= 0) return;
+                    const length = line.length * (0.7 + 0.3 * line.life);
+                    const startX = planet.x + Math.cos(line.angle) * (planet.radius * 0.3);
+                    const startY = planet.y + Math.sin(line.angle) * (planet.radius * 0.3);
+                    const endX = planet.x + Math.cos(line.angle) * length;
+                    const endY = planet.y + Math.sin(line.angle) * length;
+                    ctx.strokeStyle = `rgba(15, 23, 42, ${0.8 * line.life})`;
+                    ctx.lineWidth = line.width;
+                    ctx.beginPath();
+                    ctx.moveTo(startX, startY);
+                    ctx.lineTo(endX, endY);
+                    ctx.stroke();
+                });
+
+                ctx.restore();
+            }
+
+            function drawBuildings(time) {
+                ctx.save();
+                buildings.forEach((b) => {
+                    const integrity = clamp(b.health / b.baseHealth, 0, 1);
+                    const wobble = Math.sin(time * 3 + b.colorPhase) * 0.02;
+                    const collapseOffset = (1 - integrity) * 12;
+
+                    let drawY = b.y + collapseOffset;
+                    let drawHeight = b.height * integrity + (1 - integrity) * b.height * 0.2;
+                    if (b.health <= 0) {
+                        const rubbleHeight = b.height * 0.25;
+                        drawHeight = rubbleHeight;
+                        drawY = b.baseY - rubbleHeight * (0.4 + 0.6 * b.collapse);
+                    }
+
+                    const gradient = ctx.createLinearGradient(b.x, drawY, b.x + b.width, drawY + drawHeight);
+                    gradient.addColorStop(0, `rgba(${70 + (1 - integrity) * 80}, ${97 + (1 - integrity) * 40}, ${191 + integrity * 30}, 0.88)`);
+                    gradient.addColorStop(1, `rgba(${35 + (1 - integrity) * 60}, ${63 + (1 - integrity) * 30}, ${148 + integrity * 40}, 0.95)`);
+
+                    ctx.fillStyle = gradient;
+                    ctx.beginPath();
+                    const skewX = b.width * b.skew;
+                    ctx.moveTo(b.x + skewX, drawY);
+                    ctx.lineTo(b.x + b.width + skewX, drawY + drawHeight * (0.02 + wobble));
+                    ctx.lineTo(b.x + b.width - skewX, drawY + drawHeight);
+                    ctx.lineTo(b.x - skewX, drawY + drawHeight * (0.98 + wobble));
+                    ctx.closePath();
+                    ctx.fill();
+
+                    if (integrity < 0.7 && b.health > 0) {
+                        ctx.strokeStyle = `rgba(15, 23, 42, ${0.35 + (0.7 - integrity) * 0.8})`;
+                        ctx.lineWidth = 1.2;
+                        for (let i = 0; i < 3; i++) {
+                            const crackX = b.x + (i + 1) * (b.width / 4);
+                            ctx.beginPath();
+                            ctx.moveTo(crackX, drawY);
+                            ctx.lineTo(crackX + (Math.random() - 0.5) * 12, drawY + drawHeight);
+                            ctx.stroke();
+                        }
+                    }
+
+                    if (b.smoke > 0) {
+                        const smokeAlpha = b.smoke * 0.35;
+                        ctx.fillStyle = `rgba(148, 163, 184, ${smokeAlpha})`;
+                        ctx.beginPath();
+                        ctx.ellipse(
+                            b.x + b.width / 2,
+                            drawY - 18,
+                            b.width * 0.6,
+                            22 + b.smoke * 18,
+                            0,
+                            0,
+                            Math.PI * 2
+                        );
+                        ctx.fill();
+                    }
+
+                    if (b.ember > 0) {
+                        const emberCount = Math.ceil(b.ember * 8);
+                        ctx.fillStyle = 'rgba(252, 211, 77, 0.52)';
+                        for (let e = 0; e < emberCount; e++) {
+                            const emberX = b.x + Math.random() * b.width;
+                            const emberY = drawY + Math.random() * drawHeight;
+                            ctx.beginPath();
+                            ctx.arc(emberX, emberY, 1.4 + Math.random() * 1.1, 0, Math.PI * 2);
+                            ctx.fill();
+                        }
+                    }
+                });
+
+                ctx.fillStyle = 'rgba(15, 23, 42, 0.9)';
+                ctx.fillRect(0, Math.min(window.innerHeight * 0.9, planet.y + planet.radius * 1.35), window.innerWidth, window.innerHeight);
+                ctx.restore();
+            }
+
+            function drawImpacts() {
+                impacts.forEach((impact) => {
+                    const progress = 1 - impact.life / impact.maxLife;
+                    const radius = impact.radius * (0.5 + progress * 0.8);
+                    ctx.strokeStyle = `rgba(248, 250, 252, ${0.55 * impact.life / impact.maxLife})`;
+                    ctx.lineWidth = 1.4;
+                    ctx.beginPath();
+                    ctx.arc(impact.x, impact.y, radius, 0, Math.PI * 2);
+                    ctx.stroke();
+
+                    const gradient = ctx.createRadialGradient(
+                        impact.x,
+                        impact.y,
+                        0,
+                        impact.x,
+                        impact.y,
+                        radius
+                    );
+                    gradient.addColorStop(0, colorWithAlpha(impact.color, 0.55 * (impact.life / impact.maxLife)));
+                    gradient.addColorStop(1, colorWithAlpha(impact.color, 0));
+                    ctx.fillStyle = gradient;
+                    ctx.beginPath();
+                    ctx.arc(impact.x, impact.y, radius, 0, Math.PI * 2);
+                    ctx.fill();
+                });
+            }
+
+            function drawShockwaves() {
+                ctx.save();
+                shockwaves.forEach((wave) => {
+                    ctx.strokeStyle = `rgba(255, 255, 255, ${wave.alpha})`;
+                    ctx.lineWidth = wave.width;
+                    ctx.beginPath();
+                    ctx.arc(wave.x, wave.y, wave.radius, 0, Math.PI * 2);
+                    ctx.stroke();
+                });
+                ctx.restore();
+            }
+
+            function drawParticles(delta) {
+                particles.forEach((p) => {
+                    const progress = p.life / p.maxLife;
+                    ctx.fillStyle = colorWithAlpha(p.color, clamp(progress, 0, 1));
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, p.size * (0.3 + 0.7 * progress), 0, Math.PI * 2);
+                    ctx.fill();
+                });
+            }
+
+            function drawFloatingTexts() {
+                ctx.save();
+                ctx.font = '600 16px "Microsoft JhengHei", sans-serif';
+                ctx.textAlign = 'center';
+                floatingTexts.forEach((text) => {
+                    const alpha = clamp(text.life / text.maxLife, 0, 1);
+                    ctx.fillStyle = colorWithAlpha(text.color, alpha);
+                    ctx.fillText(text.text, text.x, text.y);
+                });
+                ctx.restore();
+            }
+
+            function drawFingerShots() {
+                ctx.save();
+                ctx.fillStyle = '#f8fafc';
+                fingerShots.forEach((finger) => {
+                    const alpha = clamp(finger.life / finger.maxLife, 0, 1);
+                    ctx.globalAlpha = alpha;
+                    ctx.translate(finger.x, finger.y);
+                    ctx.rotate(finger.rotation);
+                    ctx.fillRect(-finger.size * 0.15, -finger.size * 0.8, finger.size * 0.3, finger.size * 0.8);
+                    ctx.fillRect(-finger.size * 0.38, -finger.size * 0.8, finger.size * 0.76, finger.size * 0.25);
+                    ctx.setTransform(1, 0, 0, 1, 0, 0);
+                });
+                ctx.globalAlpha = 1;
+                ctx.restore();
+            }
+
+            function drawScreenFlash() {
+                if (screenFlash > 0) {
+                    ctx.fillStyle = `rgba(255, 244, 214, ${screenFlash * 0.55})`;
+                    ctx.fillRect(0, 0, window.innerWidth, window.innerHeight);
+                }
+            }
+
+            let lastTimestamp = 0;
+            function loop(timestamp) {
+                const delta = Math.min((timestamp - lastTimestamp) / 1000 || 0.016, 0.033);
+                lastTimestamp = timestamp;
+
+                if (pointer.active && currentWeapon.autoFire) {
+                    fireWeapon(pointer.x, pointer.y);
+                }
+
+                updatePlanet(delta);
+                updateParticles(delta);
+                updateImpacts(delta);
+                updateShockwaves(delta);
+                updateFloatingTexts(delta);
+                updateFingerShots(delta);
+                updateBuildings(delta);
+                updateCombo(delta);
+                updateCamera(delta);
+                updateHud();
+
+                const shakeX = (Math.random() - 0.5) * cameraShake;
+                const shakeY = (Math.random() - 0.5) * cameraShake;
+
+                ctx.save();
+                ctx.translate(shakeX, shakeY);
+                drawBackground(timestamp / 1000);
+                drawShockwaves();
+                drawPlanet();
+                drawBuildings(timestamp / 1000);
+                drawImpacts();
+                drawParticles(delta);
+                drawFloatingTexts();
+                drawFingerShots();
+                ctx.restore();
+                drawScreenFlash();
+
+                requestAnimationFrame(loop);
+            }
+
+            function pointerToCanvas(event) {
+                const rect = canvas.getBoundingClientRect();
+                const pointX = (event.clientX - rect.left);
+                const pointY = (event.clientY - rect.top);
+                return { x: pointX, y: pointY };
+            }
+
+            canvas.addEventListener('pointerdown', (event) => {
+                canvas.setPointerCapture(event.pointerId);
+                const coords = pointerToCanvas(event);
+                pointer.active = true;
+                pointer.x = coords.x;
+                pointer.y = coords.y;
+                fireWeapon(pointer.x, pointer.y);
+            });
+
+            canvas.addEventListener('pointermove', (event) => {
+                if (!pointer.active) return;
+                const coords = pointerToCanvas(event);
+                pointer.x = coords.x;
+                pointer.y = coords.y;
+            });
+
+            function stopPointer(event) {
+                if (canvas.hasPointerCapture(event.pointerId)) {
+                    canvas.releasePointerCapture(event.pointerId);
+                }
+                pointer.active = false;
+            }
+
+            canvas.addEventListener('pointerup', stopPointer);
+            canvas.addEventListener('pointercancel', stopPointer);
+            canvas.addEventListener('pointerleave', stopPointer);
+
+            document.querySelectorAll('.weapon-button').forEach((button) => {
+                button.addEventListener('click', () => selectWeapon(button.dataset.weapon));
+            });
+
+            window.addEventListener('resize', resizeCanvas);
+
+            function init() {
+                initBuildings();
+                resetBuildingsHealth();
+                resizeCanvas();
+                lastTimestamp = performance.now();
+                requestAnimationFrame(loop);
+            }
+
+            init();
+        })();
+    </script>
+</body>
+</html>
+

@@ -78,7 +78,7 @@
 
         .programs-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            grid-template-columns: repeat(5, minmax(0, 1fr));
             gap: 15px;
         }
 
@@ -326,6 +326,13 @@
                         file: "../game/asteroids/asteroids.html",
                         icon: "🌌",
                         description: "控制飛船射擊小行星，避免碰撞",
+                        type: "Canvas"
+                    },
+                    {
+                        name: "毀滅星球",
+                        file: "../game/planetdestroyer/planetdestroyer.html",
+                        icon: "💥",
+                        description: "切換五種武器瘋狂轟炸星球與城市",
                         type: "Canvas"
                     },
                     {
@@ -696,10 +703,6 @@
                     }
                 ]
             },
-            "模擬經營": {
-                icon: "🏪",
-                games: []
-            },
             "創意/實驗性遊戲": {
                 icon: "🎨",
                 games: [
@@ -709,6 +712,60 @@
                         icon: "🖌️",
                         description: "在畫布上自由繪畫",
                         type: "Canvas"
+                    }
+                ]
+            },
+            "英語學習遊戲": {
+                icon: "🗣️",
+                games: [
+                    {
+                        name: "英語遊戲選單",
+                        file: "../English/index.html",
+                        icon: "📚",
+                        description: "快速瀏覽並進入所有英語學習小遊戲",
+                        type: "HTML5"
+                    },
+                    {
+                        name: "單字卡 Flashcards",
+                        file: "../English/flashcards.html",
+                        icon: "🃏",
+                        description: "翻轉單字卡練習詞彙與解釋，支援洗牌與循環瀏覽",
+                        type: "HTML5"
+                    },
+                    {
+                        name: "配對 Matching",
+                        file: "../English/matching.html",
+                        icon: "🧠",
+                        description: "配對單字與定義的記憶挑戰，追蹤回合數與成績",
+                        type: "HTML5"
+                    },
+                    {
+                        name: "吊死鬼 Hangman",
+                        file: "../English/hangman.html",
+                        icon: "🪢",
+                        description: "猜字遊戲，附提示與剩餘嘗試次數提示",
+                        type: "HTML5"
+                    },
+                    {
+                        name: "英語測驗 Quiz",
+                        file: "../English/quiz.html",
+                        icon: "❓",
+                        description: "多選題形式檢測文法與詞彙，統計分數與進度",
+                        type: "HTML5"
+                    },
+                    {
+                        name: "單字重組 Word Scramble",
+                        file: "../English/scramble.html",
+                        icon: "🔀",
+                        description: "在倒數計時內解開亂序單字，提供提示與換題功能",
+                        type: "HTML5"
+                    },
+                    {
+                        name: "拼字 Spelling Bee",
+                        file: "../English/spelling-bee.html",
+                        icon: "🐝",
+                        description: "聽發音輸入拼字，隨時索取提示或釋義練習聽寫",
+                        type: "HTML5"
                     }
                 ]
             }
