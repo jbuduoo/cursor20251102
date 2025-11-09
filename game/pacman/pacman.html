@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>吃豆人</title>
+    <title>小精靈</title>
     <style>
         * {
             margin: 0;
@@ -141,7 +141,7 @@
 </head>
 <body>
     <header class="hud">
-        <h1>吃豆人</h1>
+        <h1>小精靈</h1>
         <div class="scoreboard" aria-live="polite">
             <span>分數 <strong id="score">0</strong></span>
             <span>生命 <strong id="lives">3</strong></span>
@@ -151,8 +151,8 @@
         </div>
     </header>
 
-    <canvas id="gameCanvas" width="600" height="600" aria-label="吃豆人遊戲畫布"></canvas>
-    <p class="controls">使用方向鍵在迷宮中移動，吃掉所有豆子</p>
+    <canvas id="gameCanvas" width="1200" height="1200" aria-label="小精靈遊戲畫布"></canvas>
+    <p class="controls">使用方向鍵移動小精靈，吃掉所有豆子</p>
 
     <div class="overlay" id="gameOver" role="dialog" aria-modal="true" aria-labelledby="gameOverTitle">
         <div class="title" id="gameOverTitle">遊戲結束</div>
@@ -165,10 +165,26 @@
         const gameOverDiv = document.getElementById('gameOver');
         const gameOverTitle = document.getElementById('gameOverTitle');
         const gameOverMessage = document.getElementById('gameOverMessage');
-        const gridSize = 20; const tileCount = canvas.width / gridSize;
-        let gameRunning = false; let score = 0; let lives = 3;
-        const pacman = { x: 10, y: 10, dx: 0, dy: 0, nextDx: 0, nextDy: 0 };
-        let dots = []; let ghosts = [];
+        const tileCount = 30;
+        const gridSize = canvas.width / tileCount;
+        const pacmanSpeed = 0.5;
+        const dotRadius = gridSize * 0.22;
+        let gameRunning = false;
+        let score = 0;
+        let lives = 3;
+        const pacman = { x: 10, y: 10, dx: 0, dy: 0, nextDx: 0, nextDy: 0, progress: 0 };
+        let pacmanMouthOpen = true;
+        let pacmanFacingAngle = 0;
+        let dots = [];
+        let ghosts = [];
+        const ghostColors = ['#ff4b5c', '#4fc3f7', '#facc15'];
+        const directions = [
+            { dx: 1, dy: 0 },
+            { dx: -1, dy: 0 },
+            { dx: 0, dy: 1 },
+            { dx: 0, dy: -1 }
+        ];
+        let audioCtx;
         const maze = Array(tileCount).fill().map(() => Array(tileCount).fill(0));
 
         for (let y = 0; y < tileCount; y++) {
@@ -184,7 +200,7 @@
             dots = [];
             for (let y = 0; y < tileCount; y++) {
                 for (let x = 0; x < tileCount; x++) {
-                    if (maze[y][x] === 0) {
+                    if (maze[y][x] === 0 && (x + y) % 2 === 0) {
                         dots.push({ x, y });
                     }
                 }
@@ -192,9 +208,77 @@
         }
 
         resetDots();
-        const keys = {};
+
+        function initAudio() {
+            if (!audioCtx) {
+                const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+                if (AudioContextClass) {
+                    audioCtx = new AudioContextClass();
+                } else {
+                    return;
+                }
+            }
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+        }
+
+        function playTone(frequency, duration, type = 'sine', gainValue = 0.08) {
+            if (!audioCtx) return;
+            const oscillator = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            gain.gain.setValueAtTime(gainValue, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + duration);
+            oscillator.type = type;
+            oscillator.frequency.setValueAtTime(frequency, audioCtx.currentTime);
+            oscillator.connect(gain);
+            gain.connect(audioCtx.destination);
+            oscillator.onended = () => {
+                oscillator.disconnect();
+                gain.disconnect();
+            };
+            oscillator.start();
+            oscillator.stop(audioCtx.currentTime + duration);
+        }
+
+        function playChompSound() {
+            if (!audioCtx) return;
+            playTone(520, 0.12, 'triangle', 0.09);
+        }
+
+        function playDeathSound() {
+            if (!audioCtx) return;
+            playTone(180, 0.25, 'sawtooth', 0.12);
+        }
+
+        function isWalkable(x, y) {
+            return x >= 0 && x < tileCount && y >= 0 && y < tileCount && maze[y][x] === 0;
+        }
+
+        function countWalkableNeighbors(x, y) {
+            return directions.reduce((count, dir) => count + (isWalkable(x + dir.dx, y + dir.dy) ? 1 : 0), 0);
+        }
+
+        function chooseGhostDirection(ghost) {
+            const opposite = { dx: -ghost.dx, dy: -ghost.dy };
+            const valid = directions.filter(dir => {
+                const nextX = ghost.x + dir.dx;
+                const nextY = ghost.y + dir.dy;
+                if (!isWalkable(nextX, nextY)) return false;
+                return !(dir.dx === opposite.dx && dir.dy === opposite.dy);
+            });
+            if (valid.length > 0) {
+                return valid[Math.floor(Math.random() * valid.length)];
+            }
+            const fallback = directions.filter(dir => isWalkable(ghost.x + dir.dx, ghost.y + dir.dy));
+            return fallback[Math.floor(Math.random() * fallback.length)] || { dx: 0, dy: 0 };
+        }
+
+        function createGhost(x, y, dx, dy, color) {
+            return { x, y, dx, dy, color, speed: 0.25, progress: 0 };
+        }
         document.addEventListener('keydown', (e) => {
-            keys[e.key] = true;
+            initAudio();
             if (e.key === 'ArrowUp') { pacman.nextDy = -1; pacman.nextDx = 0; }
             if (e.key === 'ArrowDown') { pacman.nextDy = 1; pacman.nextDx = 0; }
             if (e.key === 'ArrowLeft') { pacman.nextDx = -1; pacman.nextDy = 0; }
@@ -212,10 +296,18 @@
         }
 
         function startGame() {
+            initAudio();
             gameRunning = true; score = 0; lives = 3;
             pacman.x = 10; pacman.y = 10; pacman.dx = 0; pacman.dy = 0;
             pacman.nextDx = 0; pacman.nextDy = 0;
-            ghosts = [{ x: 15, y: 15, dx: 1, dy: 0 }];
+            pacman.progress = 0;
+            pacmanFacingAngle = 0;
+            pacmanMouthOpen = true;
+            ghosts = [
+                createGhost(14, 14, -1, 0, ghostColors[0]),
+                createGhost(5, 14, 1, 0, ghostColors[1]),
+                createGhost(14, 5, 0, 1, ghostColors[2])
+            ];
             resetDots();
             updateDisplay();
             hideOverlay();
@@ -225,44 +317,97 @@
             document.getElementById('score').textContent = score;
             document.getElementById('lives').textContent = lives;
         }
+        function handlePacmanHit() {
+            if (!gameRunning) return;
+            lives--;
+            playDeathSound();
+            pacman.x = 10;
+            pacman.y = 10;
+            pacman.dx = 0;
+            pacman.dy = 0;
+            pacman.nextDx = 0;
+            pacman.nextDy = 0;
+            pacman.progress = 0;
+            pacmanFacingAngle = 0;
+            pacmanMouthOpen = true;
+            updateDisplay();
+            if (lives <= 0) {
+                gameRunning = false;
+                showOverlay('遊戲結束', `你的得分：${score}`);
+            }
+        }
         function updatePacman() {
+            pacman.progress += pacmanSpeed;
+            if (pacman.progress < 1) {
+                return;
+            }
             const nextX = pacman.x + pacman.nextDx;
             const nextY = pacman.y + pacman.nextDy;
-            if (nextX >= 0 && nextX < tileCount && nextY >= 0 && nextY < tileCount && maze[nextY][nextX] === 0) {
+            if (isWalkable(nextX, nextY)) {
                 pacman.dx = pacman.nextDx; pacman.dy = pacman.nextDy;
             }
             const newX = pacman.x + pacman.dx;
             const newY = pacman.y + pacman.dy;
-            if (newX >= 0 && newX < tileCount && newY >= 0 && newY < tileCount && maze[newY][newX] === 0) {
+            let moved = false;
+            if ((pacman.dx !== 0 || pacman.dy !== 0) && isWalkable(newX, newY)) {
                 pacman.x = newX; pacman.y = newY;
+                if (pacman.dx !== 0 || pacman.dy !== 0) {
+                    pacmanFacingAngle = Math.atan2(pacman.dy, pacman.dx);
+                }
+                moved = true;
+                pacman.progress -= 1;
+            } else {
+                pacman.progress = 1;
             }
+            let ateDot = false;
             dots = dots.filter(dot => {
                 if (dot.x === pacman.x && dot.y === pacman.y) {
-                    score += 10; updateDisplay(); return false;
+                    ateDot = true;
+                    return false;
                 }
                 return true;
             });
+            if (ateDot) {
+                score += 10;
+                playChompSound();
+                updateDisplay();
+            }
+            if (moved) {
+                pacmanMouthOpen = !pacmanMouthOpen;
+            } else {
+                pacmanMouthOpen = true;
+            }
             if (dots.length === 0) {
                 gameRunning = false;
                 showOverlay('恭喜通關！', `你的得分：${score}`);
             }
         }
         function updateGhosts() {
+            let pacmanHitThisFrame = false;
             ghosts.forEach(ghost => {
+                ghost.progress += ghost.speed;
+                if (ghost.progress < 1) {
+                    return;
+                }
+                ghost.progress -= 1;
                 const nextX = ghost.x + ghost.dx;
                 const nextY = ghost.y + ghost.dy;
-                if (nextX < 0 || nextX >= tileCount || nextY < 0 || nextY >= tileCount || maze[nextY][nextX] === 1) {
-                    ghost.dx = (Math.random() - 0.5) > 0 ? 1 : -1;
-                    ghost.dy = (Math.random() - 0.5) > 0 ? 1 : -1;
-                } else {
-                    ghost.x = nextX; ghost.y = nextY;
+                const needNewDirection = !isWalkable(nextX, nextY);
+                const intersection = countWalkableNeighbors(ghost.x, ghost.y) > 2;
+                if (needNewDirection || (intersection && Math.random() < 0.35)) {
+                    const newDir = chooseGhostDirection(ghost);
+                    ghost.dx = newDir.dx;
+                    ghost.dy = newDir.dy;
                 }
-                if (ghost.x === pacman.x && ghost.y === pacman.y) {
-                    lives--; pacman.x = 10; pacman.y = 10; updateDisplay();
-                    if (lives <= 0) {
-                        gameRunning = false;
-                        showOverlay('遊戲結束', `你的得分：${score}`);
-                    }
+                const updatedX = ghost.x + ghost.dx;
+                const updatedY = ghost.y + ghost.dy;
+                if (isWalkable(updatedX, updatedY)) {
+                    ghost.x = updatedX;
+                    ghost.y = updatedY;
+                }
+                if (!pacmanHitThisFrame && ghost.x === pacman.x && ghost.y === pacman.y) {
+                    pacmanHitThisFrame = true;
+                    handlePacmanHit();
                 }
             });
         }
@@ -285,23 +430,49 @@
             ctx.fillStyle = '#ffd700';
             dots.forEach(dot => {
                 ctx.beginPath();
-                ctx.arc(dot.x * gridSize + gridSize/2, dot.y * gridSize + gridSize/2, 3, 0, Math.PI * 2);
+                ctx.arc(dot.x * gridSize + gridSize / 2, dot.y * gridSize + gridSize / 2, dotRadius, 0, Math.PI * 2);
                 ctx.fill();
             });
             ctx.fillStyle = '#ffff00';
-            ctx.beginPath();
-            ctx.arc(pacman.x * gridSize + gridSize/2, pacman.y * gridSize + gridSize/2, gridSize/2 - 2, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.fillStyle = '#ff0000';
+            const pacmanCenterX = pacman.x * gridSize + gridSize / 2;
+            const pacmanCenterY = pacman.y * gridSize + gridSize / 2;
+            const pacmanRadius = gridSize * 0.48;
+            if (pacmanMouthOpen) {
+                const mouthWidth = Math.PI / 4;
+                ctx.beginPath();
+                ctx.moveTo(pacmanCenterX, pacmanCenterY);
+                ctx.arc(
+                    pacmanCenterX,
+                    pacmanCenterY,
+                    pacmanRadius,
+                    pacmanFacingAngle + mouthWidth / 2,
+                    pacmanFacingAngle - mouthWidth / 2 + Math.PI * 2
+                );
+                ctx.closePath();
+                ctx.fill();
+            } else {
+                ctx.beginPath();
+                ctx.arc(pacmanCenterX, pacmanCenterY, pacmanRadius, 0, Math.PI * 2);
+                ctx.fill();
+            }
             ghosts.forEach(ghost => {
-                ctx.fillRect(ghost.x * gridSize + 2, ghost.y * gridSize + 2, gridSize - 4, gridSize - 4);
+                ctx.fillStyle = ghost.color;
+                ctx.beginPath();
+                const gx = ghost.x * gridSize;
+                const gy = ghost.y * gridSize;
+                ctx.moveTo(gx + gridSize / 2, gy + 1);
+                ctx.arc(gx + gridSize / 2, gy + gridSize / 2, gridSize / 2 - 1, Math.PI, 0, false);
+                ctx.lineTo(gx + gridSize - 1, gy + gridSize - 1);
+                ctx.lineTo(gx + 1, gy + gridSize - 1);
+                ctx.closePath();
+                ctx.fill();
             });
         }
         function gameLoop() {
             if (gameRunning) {
                 updatePacman(); updateGhosts(); draw();
             }
-            setTimeout(gameLoop, 200);
+            setTimeout(gameLoop, 180);
         }
         gameLoop();
         window.addEventListener('resize', resizeCanvas);
