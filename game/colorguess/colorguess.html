@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>猜顏色</title>
+    <title>猜顏色 - 文字陷阱</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -12,79 +12,259 @@
             font-family: 'Microsoft JhengHei', Arial, sans-serif;
         }
         .game-container {
-            text-align: center; background: rgba(255, 255, 255, 0.9); padding: 30px;
+            text-align: center; background: rgba(255, 255, 255, 0.95); padding: 30px;
             border-radius: 20px; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            max-width: 500px; width: 90%;
         }
         h1 { color: #333; margin-bottom: 20px; font-size: 2.5em; }
-        .info { margin-bottom: 20px; font-size: 1.2em; font-weight: bold; color: #4CAF50; }
-        .color-box {
-            width: 300px; height: 300px; margin: 20px auto;
-            border: 4px solid #333; border-radius: 10px;
+        .info { 
+            margin-bottom: 30px; font-size: 1.1em; 
+            color: #555; line-height: 1.6;
+        }
+        .info strong { color: #4CAF50; }
+        .text-display {
+            width: 100%; height: 200px; margin: 30px auto;
+            border: 4px solid #333; border-radius: 15px;
+            display: flex; align-items: center; justify-content: center;
+            background: rgba(240, 240, 240, 0.5);
+            position: relative;
+        }
+        .text-display.hidden {
+            opacity: 0;
+        }
+        .color-text {
+            font-size: 4em; font-weight: bold; 
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+            transition: opacity 0.3s;
+        }
+        .countdown {
+            font-size: 3em; font-weight: bold; color: #ff6b6b;
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
         }
         .choices {
-            display: grid; grid-template-columns: repeat(3, 100px);
-            gap: 10px; justify-content: center; margin: 20px 0;
+            display: grid; grid-template-columns: repeat(3, 1fr);
+            gap: 15px; margin: 30px 0;
         }
         .choice {
-            width: 100px; height: 100px; border: 4px solid #333;
-            border-radius: 10px; cursor: pointer; transition: transform 0.2s;
+            aspect-ratio: 1; min-height: 100px; border: 4px solid #333;
+            border-radius: 10px; cursor: pointer; transition: all 0.2s;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.3em; font-weight: bold; color: white;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
         }
-        .choice:hover { transform: scale(1.1); }
+        .choice:hover:not(.disabled) { 
+            transform: scale(1.1); 
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3); 
+        }
+        .choice.disabled { 
+            cursor: not-allowed; opacity: 0.6; 
+        }
+        .choice.correct { 
+            border-color: #4CAF50; 
+            box-shadow: 0 0 20px #4CAF50; 
+            animation: correctPulse 0.5s;
+        }
+        .choice.wrong { 
+            border-color: #ff6b6b; 
+            box-shadow: 0 0 20px #ff6b6b; 
+            animation: wrongShake 0.5s;
+        }
+        @keyframes correctPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.15); }
+        }
+        @keyframes wrongShake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
         button {
-            margin-top: 15px; padding: 10px 20px; font-size: 1em;
-            background: #4CAF50; color: white; border: none; border-radius: 5px;
-            cursor: pointer;
+            margin: 15px 5px; padding: 15px 30px; font-size: 1.1em;
+            background: #4CAF50; color: white; border: none; border-radius: 8px;
+            cursor: pointer; transition: all 0.3s; font-weight: bold;
         }
-        .score { margin-top: 20px; font-size: 1.2em; font-weight: bold; color: #4CAF50; }
+        button:hover:not(:disabled) { 
+            background: #45a049; 
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        button:disabled { 
+            background: #ccc; 
+            cursor: not-allowed; 
+            transform: none; 
+        }
+        .score-board {
+            display: flex; justify-content: space-around; margin-top: 25px;
+            font-size: 1.2em; font-weight: bold; flex-wrap: wrap; gap: 15px;
+        }
+        .score-item { 
+            color: #4CAF50; 
+        }
+        .streak { 
+            color: #ff6b6b; 
+        }
+        .feedback {
+            margin-top: 20px; font-size: 1.4em; font-weight: bold;
+            min-height: 40px; padding: 10px;
+        }
+        .feedback.correct { 
+            color: #4CAF50; 
+        }
+        .feedback.wrong { 
+            color: #ff6b6b; 
+        }
+        .ready-text {
+            font-size: 1.2em; color: #666; margin-top: 10px;
+        }
     </style>
 </head>
 <body>
     <div class="game-container">
         <h1>🎨 猜顏色</h1>
-        <div class="info">猜測顯示的顏色</div>
-        <div class="color-box" id="colorBox"></div>
+        <div class="info">
+            <strong>遊戲規則：</strong><br>
+            點擊「開始」後，會顯示一個顏色名稱文字<br>
+            文字的<strong>顏色</strong>與文字的<strong>內容</strong>可能不同<br>
+            請根據<strong>文字內容</strong>選擇正確的顏色！
+        </div>
+        <div class="text-display hidden" id="textDisplay">
+            <div class="color-text" id="colorText"></div>
+        </div>
         <div class="choices" id="choices"></div>
-        <div class="score">分數: <span id="score">0</span></div>
-        <button onclick="newRound()">下一題</button>
+        <div class="feedback" id="feedback"></div>
+        <div class="score-board">
+            <div class="score-item">分數: <span id="score">0</span></div>
+            <div class="score-item">正確: <span id="correct">0</span></div>
+            <div class="score-item">錯誤: <span id="wrong">0</span></div>
+            <div class="streak">連勝: <span id="streak">0</span></div>
+        </div>
+        <button onclick="startRound()" id="startBtn">開始</button>
     </div>
     <script>
-        let score = 0; let correctColor = '';
+        let score = 0, correctCount = 0, wrongCount = 0, streak = 0;
+        let correctColor = '';
+        let isRoundActive = false;
+        
         const colors = ['紅色', '藍色', '綠色', '黃色', '紫色', '橙色'];
         const colorValues = {
             '紅色': '#ff0000', '藍色': '#0000ff', '綠色': '#00ff00',
             '黃色': '#ffff00', '紫色': '#ff00ff', '橙色': '#ff8800'
         };
-        function newRound() {
+
+        function startRound() {
+            if (isRoundActive) return;
+            
+            isRoundActive = true;
+            document.getElementById('startBtn').disabled = true;
+            document.getElementById('feedback').textContent = '';
+            document.getElementById('feedback').className = 'feedback';
+            
+            // 隨機選擇正確答案（文字內容）
             correctColor = colors[Math.floor(Math.random() * colors.length)];
-            const colorBox = document.getElementById('colorBox');
-            colorBox.style.background = colorValues[correctColor];
+            
+            // 隨機選擇顯示顏色（可能與文字內容不同）
+            const displayColors = colors.filter(c => c !== correctColor);
+            const randomDisplayColor = displayColors[Math.floor(Math.random() * displayColors.length)];
+            
+            // 50% 機率顯示相同顏色，50% 顯示不同顏色（增加難度）
+            const useSameColor = Math.random() < 0.5;
+            const finalDisplayColor = useSameColor ? correctColor : randomDisplayColor;
+            
+            const textDisplay = document.getElementById('textDisplay');
+            const colorText = document.getElementById('colorText');
+            
+            // 顯示倒數
+            textDisplay.classList.remove('hidden');
+            colorText.style.display = 'none';
+            let countdown = 3;
+            const countdownEl = document.createElement('div');
+            countdownEl.className = 'countdown';
+            countdownEl.textContent = countdown;
+            textDisplay.appendChild(countdownEl);
+            
+            const countdownInterval = setInterval(() => {
+                countdown--;
+                if (countdown > 0) {
+                    countdownEl.textContent = countdown;
+                } else {
+                    clearInterval(countdownInterval);
+                    textDisplay.removeChild(countdownEl);
+                    
+                    // 顯示文字
+                    colorText.textContent = correctColor;
+                    colorText.style.color = colorValues[finalDisplayColor];
+                    colorText.style.display = 'block';
+                    
+                    // 1秒後隱藏
+                    setTimeout(() => {
+                        textDisplay.classList.add('hidden');
+                        colorText.style.display = 'none';
+                        generateChoices();
+                    }, 1000);
+                }
+            }, 1000);
+        }
+
+        function generateChoices() {
             const choicesDiv = document.getElementById('choices');
             const shuffled = [...colors].sort(() => Math.random() - 0.5).slice(0, 3);
             if (!shuffled.includes(correctColor)) {
                 shuffled[0] = correctColor;
                 shuffled.sort(() => Math.random() - 0.5);
             }
+            
             choicesDiv.innerHTML = '';
             shuffled.forEach(color => {
                 const choice = document.createElement('div');
                 choice.className = 'choice';
                 choice.style.background = colorValues[color];
-                choice.onclick = () => {
-                    if (color === correctColor) {
-                        score++;
-                        document.getElementById('score').textContent = score;
-                        alert('正確！');
-                        newRound();
-                    } else {
-                        alert('錯誤！正確答案是：' + correctColor);
-                        newRound();
-                    }
-                };
+                choice.textContent = color;
+                choice.onclick = () => handleChoice(color, choice);
                 choicesDiv.appendChild(choice);
             });
         }
-        newRound();
+
+        function handleChoice(color, choiceElement) {
+            if (!isRoundActive) return;
+            
+            const allChoices = document.querySelectorAll('.choice');
+            allChoices.forEach(c => {
+                c.classList.add('disabled');
+                c.onclick = null;
+            });
+            
+            if (color === correctColor) {
+                score++;
+                correctCount++;
+                streak++;
+                choiceElement.classList.add('correct');
+                document.getElementById('feedback').textContent = '✓ 正確！';
+                document.getElementById('feedback').className = 'feedback correct';
+            } else {
+                wrongCount++;
+                streak = 0;
+                choiceElement.classList.add('wrong');
+                // 標示正確答案
+                allChoices.forEach(c => {
+                    if (c.textContent === correctColor) {
+                        c.classList.add('correct');
+                    }
+                });
+                document.getElementById('feedback').textContent = `✗ 錯誤！正確答案是：${correctColor}`;
+                document.getElementById('feedback').className = 'feedback wrong';
+            }
+            
+            updateScore();
+            isRoundActive = false;
+            document.getElementById('startBtn').disabled = false;
+        }
+
+        function updateScore() {
+            document.getElementById('score').textContent = score;
+            document.getElementById('correct').textContent = correctCount;
+            document.getElementById('wrong').textContent = wrongCount;
+            document.getElementById('streak').textContent = streak;
+        }
     </script>
 </body>
 </html>
-
