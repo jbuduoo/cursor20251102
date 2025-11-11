@@ -1,0 +1,1246 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>K-Nearest Neighbors (KNN) 分類演算法 - 步驟式視覺化教學</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 100%;
+            width: 100%;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            padding: 15px;
+            box-sizing: border-box;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 5px;
+            font-size: 1.8em;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 15px;
+            font-size: 0.9em;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 20px;
+            align-items: start;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        @media (max-width: 1200px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .steps-panel {
+                position: relative;
+                top: 0;
+                max-height: none;
+            }
+        }
+
+        .canvas-section {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            min-width: 0;
+            box-sizing: border-box;
+        }
+
+        .canvas-container {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 12px;
+            margin-bottom: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            box-sizing: border-box;
+            overflow: hidden;
+        }
+
+        canvas {
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            background: white;
+            cursor: crosshair;
+            display: block;
+            margin: 0 auto;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            max-width: 100%;
+            width: 100%;
+            height: auto;
+            box-sizing: border-box;
+        }
+
+        .controls {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border-radius: 12px;
+            padding: 16px 20px;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            flex-wrap: nowrap;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            border: 1px solid #dee2e6;
+        }
+
+        .control-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-shrink: 0;
+            padding-right: 20px;
+            border-right: 2px solid #dee2e6;
+        }
+
+        .control-group label {
+            font-weight: 700;
+            color: #495057;
+            white-space: nowrap;
+            font-size: 0.95em;
+            letter-spacing: 0.3px;
+        }
+
+        select {
+            padding: 8px 16px;
+            border: 2px solid #ced4da;
+            border-radius: 8px;
+            background: white;
+            color: #212529;
+            font-size: 0.95em;
+            font-weight: 600;
+            cursor: pointer;
+            outline: none;
+            transition: all 0.3s ease;
+            min-width: 80px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        select:hover {
+            border-color: #667eea;
+            box-shadow: 0 2px 6px rgba(102, 126, 234, 0.2);
+        }
+
+        select:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.15);
+        }
+
+        .info-inline {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            flex-wrap: nowrap;
+            flex: 1;
+            justify-content: space-between;
+            padding-left: 20px;
+        }
+
+        .info-item-inline {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 10px 18px;
+            border-radius: 10px;
+            color: white;
+            font-size: 0.9em;
+            white-space: nowrap;
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            min-width: fit-content;
+        }
+
+        .info-item-inline .info-label {
+            opacity: 0.95;
+            font-weight: 600;
+            letter-spacing: 0.3px;
+        }
+
+        .info-item-inline .info-value {
+            font-weight: 700;
+            font-size: 1.15em;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+        }
+
+        .info-item-inline.prediction {
+            background: linear-gradient(135deg, #1a73e8 0%, #4285f4 100%);
+            padding: 12px 20px;
+            font-size: 0.95em;
+        }
+
+        .info-item-inline.prediction .info-value {
+            font-size: 1.2em;
+        }
+
+        .instruction-text {
+            background: #e8f0fe;
+            border-left: 4px solid #1a73e8;
+            border-radius: 5px;
+            padding: 8px 12px;
+            margin-bottom: 12px;
+            color: #1a73e8;
+            font-size: 0.85em;
+            font-weight: 500;
+        }
+
+        button {
+            padding: 10px 24px;
+            background: linear-gradient(135deg, #667eea 0%, #5568d3 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 0.9em;
+            font-weight: 700;
+            transition: all 0.3s ease;
+            box-shadow: 0 3px 10px rgba(102, 126, 234, 0.3);
+            white-space: nowrap;
+            flex-shrink: 0;
+            letter-spacing: 0.3px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        button:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .info-panel {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 10px;
+            padding: 12px;
+            color: white;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            margin-top: 12px;
+        }
+
+        .info-panel h2 {
+            margin-bottom: 12px;
+            font-size: 1.2em;
+            text-align: center;
+        }
+
+        .info-item {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            padding: 10px;
+            margin-bottom: 10px;
+            backdrop-filter: blur(10px);
+        }
+
+        .info-label {
+            font-size: 0.8em;
+            opacity: 0.9;
+            margin-bottom: 5px;
+        }
+
+        .info-value {
+            font-size: 1.2em;
+            font-weight: bold;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
+        }
+
+        .steps-panel {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 12px;
+            position: sticky;
+            top: 15px;
+            max-height: calc(100vh - 30px);
+            overflow-y: auto;
+            width: 100%;
+            box-sizing: border-box;
+            min-width: 0;
+        }
+
+        .steps-panel h2 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 1.1em;
+        }
+
+        .step {
+            background: white;
+            border-left: 4px solid #667eea;
+            border-radius: 5px;
+            padding: 8px;
+            margin-bottom: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .step.clickable {
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .step.clickable:hover {
+            background: #f0f4ff;
+            transform: translateX(3px);
+            box-shadow: 0 4px 10px rgba(102, 126, 234, 0.2);
+        }
+
+        .step-control {
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px dashed #dee2e6;
+        }
+
+        .step-control .control-group {
+            border: none;
+            padding: 0;
+        }
+
+        .step-info {
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px dashed #dee2e6;
+        }
+
+        .step-instruction {
+            color: #dc3545;
+            font-weight: 600;
+            margin-top: 8px;
+            font-size: 0.9em;
+        }
+
+        .step-info-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin: 6px 0;
+            padding: 6px 10px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 8px;
+            color: white;
+            font-size: 0.85em;
+        }
+
+        .step-info-item .info-label {
+            opacity: 0.95;
+            font-weight: 600;
+        }
+
+        .step-info-item .info-value {
+            font-weight: 700;
+            font-size: 1.1em;
+        }
+
+        .step-info-item.prediction {
+            background: linear-gradient(135deg, #1a73e8 0%, #4285f4 100%);
+            padding: 8px 12px;
+        }
+
+        .step-distance-list {
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px dashed #dee2e6;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .step-distance-list-title {
+            font-weight: 600;
+            color: #495057;
+            margin-bottom: 8px;
+            font-size: 0.9em;
+        }
+
+        .step-distance-item {
+            padding: 6px 10px;
+            margin: 4px 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 6px;
+            color: white;
+            font-size: 0.8em;
+            font-family: 'Courier New', monospace;
+        }
+
+        .step-distance-item.highlight {
+            background: linear-gradient(135deg, #a8c5f0 0%, #b8d0f5 100%);
+            color: #333;
+            font-weight: 600;
+        }
+
+        .step.active {
+            background: #e8f0fe;
+            border-left-color: #1a73e8;
+            box-shadow: 0 4px 10px rgba(26, 115, 232, 0.2);
+        }
+
+        .step-number {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 24px;
+            font-weight: bold;
+            font-size: 0.85em;
+            margin-right: 8px;
+        }
+
+        .step.active .step-number {
+            background: #1a73e8;
+        }
+
+        .step-title {
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 5px;
+            font-size: 0.9em;
+        }
+
+        .step-description {
+            color: #666;
+            font-size: 0.75em;
+            line-height: 1.4;
+        }
+
+        .legend {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 10px;
+            flex-wrap: wrap;
+            font-size: 0.85em;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            border: 2px solid #333;
+        }
+
+        .legend-color.square {
+            border-radius: 0;
+        }
+
+        .legend-color.star {
+            background: #22c55e;
+            clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
+        }
+
+        .distance-list {
+            max-height: 150px;
+            overflow-y: auto;
+            margin-top: 8px;
+            font-size: 0.75em;
+        }
+
+        .distance-item {
+            padding: 4px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .distance-item.highlight {
+            background: rgba(255, 255, 255, 0.3);
+            font-weight: bold;
+        }
+
+        .prerequisites-box {
+            background: linear-gradient(135deg, #fff3cd 0%, #ffe69c 100%);
+            border-left: 5px solid #ffc107;
+            border-radius: 10px;
+            padding: 12px;
+            margin: 12px 0;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .prerequisites-box h3 {
+            color: #856404;
+            margin-bottom: 10px;
+            font-size: 1em;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .prerequisites-box ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .prerequisites-box li {
+            color: #856404;
+            padding: 6px 0;
+            padding-left: 25px;
+            position: relative;
+            line-height: 1.5;
+            font-size: 0.85em;
+        }
+
+        .prerequisites-box li:before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: #28a745;
+            font-weight: bold;
+            font-size: 1.2em;
+        }
+
+        .prerequisites-box strong {
+            color: #856404;
+            font-weight: 700;
+        }
+
+        .data-example {
+            background: rgba(255, 255, 255, 0.5);
+            border-radius: 5px;
+            padding: 10px;
+            margin-top: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            border-left: 3px solid #ffc107;
+        }
+
+        .data-example code {
+            color: #856404;
+            font-weight: bold;
+        }
+
+        .data-explanation {
+            margin-top: 8px;
+            padding-left: 15px;
+            font-size: 0.8em;
+            line-height: 1.6;
+        }
+
+        .data-explanation .feature {
+            color: #856404;
+            margin: 4px 0;
+        }
+
+        .data-format-explanation {
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px dashed #dee2e6;
+        }
+
+        .data-example-code {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 6px;
+            padding: 10px;
+            margin-bottom: 10px;
+            font-family: 'Courier New', monospace;
+        }
+
+        .data-example-code code {
+            color: #495057;
+            font-size: 0.9em;
+            font-weight: 600;
+        }
+
+        .data-explanation-list {
+            margin-bottom: 12px;
+        }
+
+        .data-feature-item {
+            padding: 6px 0;
+            color: #495057;
+            font-size: 0.85em;
+            line-height: 1.5;
+        }
+
+        .data-feature-item strong {
+            color: #1a73e8;
+            font-weight: 600;
+        }
+
+        .download-section {
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px dashed #dee2e6;
+        }
+
+        .download-btn {
+            width: 100%;
+            padding: 10px 16px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.9em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+        }
+
+        .download-btn:hover {
+            background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        .download-btn:active {
+            transform: translateY(0);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔬 K-Nearest Neighbors (KNN) 分類演算法</h1>
+        <p class="subtitle">互動式步驟視覺化教學 - 理解機器學習分類演算法</p>
+
+        <div class="prerequisites-box">
+            <h3>📋 重要前提說明</h3>
+            <ul>
+                <li>
+                    <strong>KNN 是監督式學習演算法：</strong>
+                    K-Nearest Neighbors 屬於監督式學習（Supervised Learning），這意味著演算法需要從已標記的訓練資料中學習模式，然後對新的未標記資料進行分類預測。
+                </li>
+                <li>
+                    <strong>訓練資料已包含正確的類別標籤：</strong>
+                    畫布上的藍色圓形和紅色方形代表訓練資料點，這些點已經被正確標記為「類別 A」（藍色）或「類別 B」（紅色）。這些標籤（label）是 KNN 演算法進行分類的基礎，演算法會根據這些已知標籤來預測新測試點的類別。
+                </li>
+            </ul>
+        </div>
+
+        <div class="main-content">
+            <!-- 左側：步驟說明 -->
+            <div class="steps-panel">
+                <h2>📚 KNN 演算法步驟說明</h2>
+            <div class="step clickable" id="step-1">
+                <span class="step-number">1</span>
+                <span class="step-title">初始化訓練資料</span>
+                <div class="step-description">
+                    在 800×600 像素的畫布上隨機生成 50 個訓練資料點，分為兩類：
+                    藍色圓形代表「類別 A」，紅色方形代表「類別 B」。
+                    資料點略有分佈重疊，以創造有趣的決策邊界。
+                </div>
+                <div class="download-section">
+                    <button id="downloadDataBtn" class="download-btn" type="button">
+                        📄 查看訓練資料範例 (JSON)
+                    </button>
+                </div>
+            </div>
+            <div class="step" id="step-2">
+                <span class="step-number">2</span>
+                <span class="step-title">設定 K 值參數</span>
+                <div class="step-description">
+                    使用下拉選單選擇 K 值（範圍：1-12，預設為 3）。
+                    K 值決定了要考慮多少個最近鄰居來進行分類。
+                </div>
+                <div class="step-control">
+                    <div class="control-group">
+                        <label for="kSelect">K 值：</label>
+                        <select id="kSelect">
+                            <option value="1">1</option>
+                            <option value="2">2</option>
+                            <option value="3" selected>3</option>
+                            <option value="4">4</option>
+                            <option value="5">5</option>
+                            <option value="6">6</option>
+                            <option value="7">7</option>
+                            <option value="8">8</option>
+                            <option value="9">9</option>
+                            <option value="10">10</option>
+                            <option value="11">11</option>
+                            <option value="12">12</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="step" id="step-3">
+                <span class="step-number">3</span>
+                <span class="step-title">放置測試點</span>
+                <div class="step-description">
+                    點擊畫布上的任意位置來放置一個測試點（星號）。
+                    這個點就是我們要分類的新資料點。
+                </div>
+                <div class="step-instruction">
+                    點擊畫面，即可放置測試點。
+                </div>
+            </div>
+            <div class="step" id="step-4">
+                <span class="step-number">4</span>
+                <span class="step-title">計算歐幾里得距離</span>
+                <div class="step-description">
+                    計算測試點與所有 50 個訓練資料點之間的歐幾里得距離。
+                    距離公式：√[(x₁-x₂)² + (y₁-y₂)²]
+                </div>
+                <div class="step-distance-list" id="step-distance-list" style="display: none;">
+                    <div class="step-distance-list-title">K 個最近鄰居距離：</div>
+                    <div id="step-distance-items"></div>
+                </div>
+            </div>
+            <div class="step" id="step-5">
+                <span class="step-number">5</span>
+                <span class="step-title">選取 K 個最近鄰居</span>
+                <div class="step-description">
+                    根據計算出的距離，選出距離最近的 K 個訓練資料點。
+                    這些點就是參與投票的「鄰居」。
+                </div>
+            </div>
+            <div class="step" id="step-6">
+                <span class="step-number">6</span>
+                <span class="step-title">繪製連接線</span>
+                <div class="step-description">
+                    用虛線將測試點連接到這 K 個最近鄰居，
+                    讓使用者清楚看到哪些點參與了分類決策。
+                </div>
+            </div>
+            <div class="step" id="step-7">
+                <span class="step-number">7</span>
+                <span class="step-title">多數投票</span>
+                <div class="step-description">
+                    統計這 K 個鄰居中，類別 A（藍色）和類別 B（紅色）各有多少票。
+                    票數較多的類別即為預測結果。
+                </div>
+                <div class="step-info">
+                    <div class="step-info-item">
+                        <span class="info-label">類別 A 票數：</span>
+                        <span class="info-value" id="class-a-count-step">0</span>
+                    </div>
+                    <div class="step-info-item">
+                        <span class="info-label">類別 B 票數：</span>
+                        <span class="info-value" id="class-b-count-step">0</span>
+                    </div>
+                </div>
+            </div>
+            <div class="step" id="step-8">
+                <span class="step-number">8</span>
+                <span class="step-title">顯示分類結果</span>
+                <div class="step-description">
+                    將測試點的顏色從綠色變為預測類別的顏色（藍色或紅色），
+                    並在資訊面板中顯示詳細的分類資訊和投票統計。
+                </div>
+                <div class="step-info">
+                    <div class="step-info-item prediction">
+                        <span class="info-label">預測分類：</span>
+                        <span class="info-value" id="predicted-class-step" style="color: white;">尚未分類</span>
+                    </div>
+                </div>
+            </div>
+            </div>
+
+            <!-- 右側：畫布和控制 -->
+            <div class="canvas-section">
+                <div class="canvas-container">
+                    <canvas id="canvas" width="800" height="600"></canvas>
+                    <div class="legend">
+                        <div class="legend-item">
+                            <div class="legend-color" style="background: #3b82f6;"></div>
+                            <span>類別 A (藍色圓形)</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color" style="background: #ef4444; border-radius: 0;"></div>
+                            <span>類別 B (紅色方形)</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color star"></div>
+                            <span>測試點 (星號)</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ==================== 資料結構 ====================
+        let trainingData = [];
+        let testPoint = null;
+        const classColors = {
+            'A': '#3b82f6',  // 藍色
+            'B': '#ef4444'   // 紅色
+        };
+
+        // ==================== DOM 元素 ====================
+        let canvas;
+        let ctx;
+        let kSelect;
+        let step1;
+        let predictedClassDisplayStep;
+        let classACountDisplayStep;
+        let classBCountDisplayStep;
+        let stepDistanceList;
+        let stepDistanceItems;
+        let downloadDataBtn;
+
+        // ==================== 調整 Canvas 大小 ====================
+        function resizeCanvas() {
+            if (!canvas) return;
+            
+            const container = canvas.parentElement;
+            if (!container) return;
+            
+            const containerWidth = container.clientWidth - 24; // 減去 padding
+            const maxWidth = Math.min(800, containerWidth);
+            const aspectRatio = 600 / 800;
+            
+            canvas.style.width = maxWidth + 'px';
+            canvas.style.height = (maxWidth * aspectRatio) + 'px';
+            
+            // 重新繪製（如果已經初始化）
+            if (trainingData.length > 0) {
+                draw();
+            }
+        }
+
+        // ==================== 初始化 ====================
+        function init() {
+            // 獲取 DOM 元素
+            canvas = document.getElementById('canvas');
+            ctx = canvas.getContext('2d');
+            kSelect = document.getElementById('kSelect');
+            step1 = document.getElementById('step-1');
+            predictedClassDisplayStep = document.getElementById('predicted-class-step');
+            classACountDisplayStep = document.getElementById('class-a-count-step');
+            classBCountDisplayStep = document.getElementById('class-b-count-step');
+            stepDistanceList = document.getElementById('step-distance-list');
+            stepDistanceItems = document.getElementById('step-distance-items');
+            downloadDataBtn = document.getElementById('downloadDataBtn');
+
+            // 檢查元素是否存在
+            if (!canvas || !kSelect) {
+                console.error('無法找到必要的 DOM 元素');
+                return;
+            }
+
+            // 調整 Canvas 大小
+            resizeCanvas();
+            
+            // 防抖處理 resize 事件
+            let resizeTimer;
+            window.addEventListener('resize', () => {
+                clearTimeout(resizeTimer);
+                resizeTimer = setTimeout(() => {
+                    resizeCanvas();
+                }, 100);
+            });
+
+            // 生成訓練資料
+            generateTrainingData();
+            draw();
+            updateStepHighlight(1);
+
+            // ==================== 事件監聽器 ====================
+            // 步驟1點擊事件 - 重新生成訓練資料
+            if (step1) {
+                step1.addEventListener('click', () => {
+                    generateTrainingData();
+                    testPoint = null;
+                    clearInfo();
+                    updateStepHighlight(1);
+                    draw();
+                });
+            }
+
+            // K 值下拉選單
+            kSelect.addEventListener('change', (e) => {
+                const newK = parseInt(e.target.value);
+                if (testPoint) {
+                    updateStepHighlight(4);
+                    setTimeout(() => {
+                        classifyTestPoint();
+                        draw();
+                    }, 300);
+                }
+            });
+
+            // 畫布點擊事件
+            canvas.addEventListener('click', (e) => {
+                const rect = canvas.getBoundingClientRect();
+                const scaleX = canvas.width / rect.width;
+                const scaleY = canvas.height / rect.height;
+                const x = (e.clientX - rect.left) * scaleX;
+                const y = (e.clientY - rect.top) * scaleY;
+                
+                testPoint = {
+                    x: x,
+                    y: y,
+                    neighbors: [],
+                    predictedClass: null,
+                    distances: []
+                };
+                
+                updateStepHighlight(3);
+                setTimeout(() => {
+                    classifyTestPoint();
+                    draw();
+                }, 500);
+            });
+
+            // 下載訓練資料按鈕
+            if (downloadDataBtn) {
+                downloadDataBtn.addEventListener('click', () => {
+                    downloadTrainingDataJSON();
+                });
+            }
+        }
+
+        // ==================== 生成訓練資料 ====================
+        function generateTrainingData() {
+            trainingData = [];
+            const numPoints = 50;
+            const canvasWidth = canvas.width;
+            const canvasHeight = canvas.height;
+            
+            // 生成類別 A 的點（藍色圓形）- 左上區域
+            for (let i = 0; i < numPoints / 2; i++) {
+                trainingData.push({
+                    x: Math.random() * canvasWidth * 0.4 + canvasWidth * 0.1,
+                    y: Math.random() * canvasHeight * 0.4 + canvasHeight * 0.1,
+                    class: 'A'
+                });
+            }
+            
+            // 生成類別 B 的點（紅色方形）- 右下區域，略有重疊
+            for (let i = 0; i < numPoints / 2; i++) {
+                trainingData.push({
+                    x: Math.random() * canvasWidth * 0.4 + canvasWidth * 0.4,
+                    y: Math.random() * canvasHeight * 0.4 + canvasHeight * 0.4,
+                    class: 'B'
+                });
+            }
+        }
+
+        // ==================== 在新分頁顯示訓練資料 JSON ====================
+        function downloadTrainingDataJSON() {
+            // 生成50筆訓練資料範例
+            const sampleData = [];
+            const canvasWidth = 800;
+            const canvasHeight = 600;
+            
+            // 生成類別 A 的點（25筆）
+            for (let i = 0; i < 25; i++) {
+                const x = Math.random() * canvasWidth * 0.4 + canvasWidth * 0.1;
+                const y = Math.random() * canvasHeight * 0.4 + canvasHeight * 0.1;
+                sampleData.push({
+                    x: Math.round(x * 100) / 100,
+                    y: Math.round(y * 100) / 100,
+                    label: 'A'
+                });
+            }
+            
+            // 生成類別 B 的點（25筆）
+            for (let i = 0; i < 25; i++) {
+                const x = Math.random() * canvasWidth * 0.4 + canvasWidth * 0.4;
+                const y = Math.random() * canvasHeight * 0.4 + canvasHeight * 0.4;
+                sampleData.push({
+                    x: Math.round(x * 100) / 100,
+                    y: Math.round(y * 100) / 100,
+                    label: 'B'
+                });
+            }
+            
+            // 轉換為 JSON 字串（格式化）
+            const jsonString = JSON.stringify(sampleData, null, 2);
+            
+            // 轉義 JSON 字串以安全地插入 HTML
+            const escapedJsonString = jsonString
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;');
+            
+            // 構建 HTML 內容 - 使用字符串拼接避免语法错误
+            let htmlContent = '<!DOCTYPE html>\n';
+            htmlContent += '<html lang="zh-TW">\n';
+            htmlContent += '<head>\n';
+            htmlContent += '<meta charset="UTF-8">\n';
+            htmlContent += '<meta name="viewport" content="width=device-width, initial-scale=1.0">\n';
+            htmlContent += '<title>KNN 訓練資料範例 - JSON</title>\n';
+            htmlContent += '<style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:"Segoe UI",Tahoma,Geneva,Verdana,sans-serif;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);padding:20px;min-height:100vh}.container{max-width:1200px;margin:0 auto;background:white;border-radius:12px;box-shadow:0 10px 40px rgba(0,0,0,0.2);overflow:hidden}.header{background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);color:white;padding:30px;text-align:center}.header h1{font-size:2em;margin-bottom:10px}.header p{font-size:1.1em;opacity:0.9}.content{padding:30px}.info-box{background:#f8f9fa;border-left:4px solid #667eea;padding:15px 20px;margin-bottom:20px;border-radius:4px}.info-box p{color:#495057;line-height:1.6}pre{background:#282c34;color:#abb2bf;padding:20px;border-radius:8px;overflow-x:auto;font-family:"Courier New",monospace;font-size:14px;line-height:1.5;box-shadow:0 4px 12px rgba(0,0,0,0.1)}.copy-btn{margin-top:15px;padding:12px 24px;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);color:white;border:none;border-radius:8px;font-size:1em;font-weight:600;cursor:pointer;transition:all 0.3s ease;box-shadow:0 4px 12px rgba(102,126,234,0.3)}.copy-btn:hover{transform:translateY(-2px);box-shadow:0 6px 16px rgba(102,126,234,0.4)}.copy-btn:active{transform:translateY(0)}.copy-btn.copied{background:linear-gradient(135deg,#28a745 0%,#20c997 100%)}</style>\n';
+            htmlContent += '</head>\n';
+            htmlContent += '<body>\n';
+            htmlContent += '<div class="container">\n';
+            htmlContent += '<div class="header">\n';
+            htmlContent += '<h1>KNN 訓練資料範例</h1>\n';
+            htmlContent += '<p>50 筆訓練資料的 JSON 格式範例</p>\n';
+            htmlContent += '</div>\n';
+            htmlContent += '<div class="content">\n';
+            htmlContent += '<div class="info-box">\n';
+            htmlContent += '<p><strong>說明：</strong>這是 KNN 分類演算法所需的訓練資料格式。每筆資料包含兩個特徵值（x, y）和一個類別標籤（label: A 或 B）。</p>\n';
+            htmlContent += '</div>\n';
+            htmlContent += '<pre id="jsonContent">';
+            htmlContent += escapedJsonString;
+            htmlContent += '</pre>\n';
+            htmlContent += '<button class="copy-btn" onclick="copyToClipboard()">複製 JSON</button>\n';
+            htmlContent += '</div>\n';
+            htmlContent += '</div>\n';
+            htmlContent += '<script>\n';
+            htmlContent += 'function copyToClipboard(){\n';
+            htmlContent += 'var jsonContent=document.getElementById("jsonContent").textContent;\n';
+            htmlContent += 'navigator.clipboard.writeText(jsonContent).then(function(){\n';
+            htmlContent += 'var btn=document.querySelector(".copy-btn");\n';
+            htmlContent += 'var originalText=btn.textContent;\n';
+            htmlContent += 'btn.textContent=\\"已複製！\\";\n';
+            htmlContent += 'btn.classList.add("copied");\n';
+            htmlContent += 'setTimeout(function(){\n';
+            htmlContent += 'btn.textContent=originalText;\n';
+            htmlContent += 'btn.classList.remove("copied");\n';
+            htmlContent += '},2000);\n';
+            htmlContent += '});\n';
+            htmlContent += '}\n';
+            htmlContent += '<\\/script>\\n';
+            htmlContent += '</body>\n';
+            htmlContent += '</html>';
+            
+            const blob = new Blob([htmlContent], { type: 'text/html' });
+            const url = URL.createObjectURL(blob);
+            window.open(url, '_blank');
+        }
+
+        // ==================== 計算歐幾里得距離 ====================
+        function euclideanDistance(p1, p2) {
+            const dx = p1.x - p2.x;
+            const dy = p1.y - p2.y;
+            return Math.sqrt(dx * dx + dy * dy);
+        }
+
+        // ==================== KNN 分類 ====================
+        function classifyTestPoint() {
+            if (!testPoint) return;
+
+            updateStepHighlight(4);
+            
+            const k = parseInt(kSelect.value);
+            
+            // 步驟 4: 計算所有訓練資料點到測試點的距離
+            const distances = trainingData.map((point, index) => ({
+                point: point,
+                distance: euclideanDistance(testPoint, point),
+                index: index
+            }));
+            
+            // 儲存所有距離（用於顯示）
+            testPoint.distances = distances.map(d => ({
+                ...d,
+                formatted: d.distance.toFixed(2)
+            }));
+
+            // 步驟 5: 按距離排序並選取 K 個最近鄰居
+            distances.sort((a, b) => a.distance - b.distance);
+            const actualK = Math.min(k, distances.length);
+            testPoint.neighbors = distances.slice(0, actualK);
+
+            updateStepHighlight(5);
+
+            // 步驟 7: 多數投票
+            const classCounts = { 'A': 0, 'B': 0 };
+            testPoint.neighbors.forEach(neighbor => {
+                classCounts[neighbor.point.class]++;
+            });
+            
+            // 決定預測類別（如果平手，優先選擇類別A）
+            testPoint.predictedClass = classCounts['A'] >= classCounts['B'] ? 'A' : 'B';
+            testPoint.currentK = actualK;
+
+            updateStepHighlight(7);
+            
+            // 更新資訊顯示
+            updateClassificationInfo();
+        }
+
+        // ==================== 更新分類資訊顯示 ====================
+        function updateClassificationInfo() {
+            if (!testPoint) return;
+            
+            const k = parseInt(kSelect.value);
+            const classCounts = { 'A': 0, 'B': 0 };
+            
+            if (testPoint.neighbors && testPoint.neighbors.length > 0) {
+                testPoint.neighbors.forEach(neighbor => {
+                    classCounts[neighbor.point.class]++;
+                });
+            }
+            
+            // 更新步驟中的顯示
+            if (predictedClassDisplayStep) {
+                if (testPoint.predictedClass) {
+                    const className = testPoint.predictedClass === 'A' ? '類別 A (藍色)' : '類別 B (紅色)';
+                    predictedClassDisplayStep.textContent = className;
+                    predictedClassDisplayStep.style.color = 'white';
+                } else {
+                    predictedClassDisplayStep.textContent = '尚未分類';
+                    predictedClassDisplayStep.style.color = 'white';
+                }
+            }
+            
+            if (classACountDisplayStep) classACountDisplayStep.textContent = classCounts['A'];
+            if (classBCountDisplayStep) classBCountDisplayStep.textContent = classCounts['B'];
+            
+            // 顯示距離資訊在步驟4中
+            if (stepDistanceList && stepDistanceItems && testPoint.neighbors && testPoint.neighbors.length > 0) {
+                stepDistanceList.style.display = 'block';
+                stepDistanceItems.innerHTML = '';
+                testPoint.neighbors.forEach((neighbor, idx) => {
+                    const item = document.createElement('div');
+                    item.className = 'step-distance-item highlight';
+                    item.textContent = `${idx + 1}. 距離: ${neighbor.distance.toFixed(2)} - ${neighbor.point.class === 'A' ? '類別 A' : '類別 B'}`;
+                    stepDistanceItems.appendChild(item);
+                });
+            } else if (stepDistanceList) {
+                stepDistanceList.style.display = 'none';
+            }
+        }
+
+        // ==================== 清除資訊 ====================
+        function clearInfo() {
+            if (predictedClassDisplayStep) {
+                predictedClassDisplayStep.textContent = '尚未分類';
+                predictedClassDisplayStep.style.color = 'white';
+            }
+            if (classACountDisplayStep) classACountDisplayStep.textContent = '0';
+            if (classBCountDisplayStep) classBCountDisplayStep.textContent = '0';
+            if (stepDistanceList) stepDistanceList.style.display = 'none';
+        }
+
+        // ==================== 更新步驟高亮 ====================
+        function updateStepHighlight(activeStep) {
+            for (let i = 1; i <= 8; i++) {
+                const step = document.getElementById(`step-${i}`);
+                if (step) {
+                    if (i === activeStep) {
+                        step.classList.add('active');
+                    } else {
+                        step.classList.remove('active');
+                    }
+                }
+            }
+        }
+
+        // ==================== 繪製函數 ====================
+        function draw() {
+            // 清空畫布
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // 繪製訓練資料點
+            trainingData.forEach(point => {
+                ctx.fillStyle = classColors[point.class];
+                ctx.strokeStyle = '#333';
+                ctx.lineWidth = 2;
+                
+                if (point.class === 'A') {
+                    // 藍色圓形
+                    ctx.beginPath();
+                    ctx.arc(point.x, point.y, 8, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.stroke();
+                } else {
+                    // 紅色方形
+                    ctx.fillRect(point.x - 8, point.y - 8, 16, 16);
+                    ctx.strokeRect(point.x - 8, point.y - 8, 16, 16);
+                }
+            });
+            
+            // 如果有測試點，繪製測試點和連線
+            if (testPoint) {
+                // 確保neighbors數組已更新
+                if (!testPoint.neighbors || testPoint.neighbors.length === 0) {
+                    classifyTestPoint();
+                }
+                
+                // 步驟 6: 繪製虛線連接到 K 個最近鄰居
+                if (testPoint.neighbors && testPoint.neighbors.length > 0) {
+                    updateStepHighlight(6);
+                    
+                    ctx.strokeStyle = '#94a3b8';
+                    ctx.lineWidth = 1.5;
+                    ctx.setLineDash([5, 5]);
+                    
+                    testPoint.neighbors.forEach(neighbor => {
+                        ctx.beginPath();
+                        ctx.moveTo(testPoint.x, testPoint.y);
+                        ctx.lineTo(neighbor.point.x, neighbor.point.y);
+                        ctx.stroke();
+                    });
+                    
+                    ctx.setLineDash([]);
+                }
+                
+                // 步驟 8: 繪製測試點（星號）- 顏色根據預測類別決定
+                updateStepHighlight(8);
+                
+                const fillColor = testPoint.predictedClass ? classColors[testPoint.predictedClass] : '#22c55e';
+                ctx.fillStyle = fillColor;
+                ctx.strokeStyle = '#333';
+                ctx.lineWidth = 2;
+                
+                drawStar(ctx, testPoint.x, testPoint.y, 5, 12, 5);
+            }
+        }
+
+        // ==================== 繪製星號 ====================
+        function drawStar(ctx, cx, cy, spikes, outerRadius, innerRadius) {
+            let rot = Math.PI / 2 * 3;
+            let x = cx;
+            let y = cy;
+            const step = Math.PI / spikes;
+
+            ctx.beginPath();
+            ctx.moveTo(cx, cy - outerRadius);
+            
+            for (let i = 0; i < spikes; i++) {
+                x = cx + Math.cos(rot) * outerRadius;
+                y = cy + Math.sin(rot) * outerRadius;
+                ctx.lineTo(x, y);
+                rot += step;
+
+                x = cx + Math.cos(rot) * innerRadius;
+                y = cy + Math.sin(rot) * innerRadius;
+                ctx.lineTo(x, y);
+                rot += step;
+            }
+            
+            ctx.lineTo(cx, cy - outerRadius);
+            ctx.closePath();
+            ctx.fill();
+            ctx.stroke();
+        }
+
+        // ==================== 啟動應用程式 ====================
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', init);
+        } else {
+            init();
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Essay Reader - English Learning</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Segoe UI", Arial, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 2rem 1rem;
+      color: #1a2a42;
+    }
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+    }
+    header {
+      text-align: center;
+      margin-bottom: 2rem;
+      color: #fff;
+    }
+    h1 {
+      margin: 0 0 0.5rem;
+      font-size: 2.5rem;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+    }
+    .subtitle {
+      font-size: 1.1rem;
+      opacity: 0.95;
+    }
+    .card {
+      background: #fff;
+      border-radius: 20px;
+      padding: 2rem;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      margin-bottom: 1.5rem;
+    }
+    .essay-selector {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+      margin-bottom: 2rem;
+      padding: 1rem;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 16px;
+      backdrop-filter: blur(10px);
+    }
+    .essay-btn {
+      background: rgba(255, 255, 255, 0.95);
+      border: 2px solid rgba(255, 255, 255, 0.5);
+      border-radius: 12px;
+      padding: 1rem;
+      color: #667eea;
+      font-size: 1rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-align: center;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+    .essay-btn:hover {
+      background: #fff;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+      border-color: #667eea;
+    }
+    .essay-btn.active {
+      background: #667eea;
+      color: #fff;
+      font-weight: 600;
+      border-color: #667eea;
+      box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+    }
+    .essay-content {
+      display: none;
+    }
+    .essay-content.show {
+      display: block;
+    }
+    .essay-title {
+      font-size: 1.8rem;
+      margin: 0 0 1.5rem;
+      color: #1a2a42;
+      padding-bottom: 1rem;
+      border-bottom: 3px solid #667eea;
+    }
+    .essay-text {
+      font-size: 1.1rem;
+      line-height: 1.8;
+      color: #2c3e50;
+      margin-bottom: 1.5rem;
+      text-align: justify;
+    }
+    .controls {
+      display: flex;
+      gap: 1rem;
+      align-items: center;
+      flex-wrap: wrap;
+      padding-top: 1.5rem;
+      border-top: 2px solid #e0e0e0;
+    }
+    button {
+      border: none;
+      border-radius: 12px;
+      padding: 0.9rem 2rem;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    }
+    .play-btn {
+      background: #667eea;
+      color: #fff;
+    }
+    .play-btn:hover {
+      background: #5568d3;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+    }
+    .play-btn:active {
+      transform: translateY(0);
+    }
+    .play-btn:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+      transform: none;
+    }
+    .pause-btn {
+      background: #f0932b;
+      color: #fff;
+    }
+    .pause-btn:hover {
+      background: #e0821a;
+    }
+    .stop-btn {
+      background: #eb4d4b;
+      color: #fff;
+    }
+    .stop-btn:hover {
+      background: #d63c3a;
+    }
+    .word-count {
+      margin-left: auto;
+      color: #666;
+      font-size: 0.95rem;
+    }
+    .status {
+      color: #667eea;
+      font-weight: 600;
+      margin-left: 1rem;
+    }
+    .back-link {
+      display: inline-block;
+      margin-bottom: 1.5rem;
+      color: #fff;
+      text-decoration: none;
+      font-size: 1rem;
+      opacity: 0.9;
+      transition: opacity 0.2s;
+    }
+    .back-link:hover {
+      opacity: 1;
+      text-decoration: underline;
+    }
+    @media (max-width: 768px) {
+      h1 {
+        font-size: 2rem;
+      }
+      .essay-text {
+        font-size: 1rem;
+      }
+      .controls {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      .word-count {
+        margin-left: 0;
+        margin-top: 0.5rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <a href="./index.html" class="back-link">← Back to Games</a>
+    <header>
+      <h1>📖 Essay Reader</h1>
+      <p class="subtitle">Read and listen to English essays for middle school level</p>
+    </header>
+
+    <div class="essay-selector" id="essaySelector"></div>
+
+    <div class="card">
+      <div id="essayContainer">
+        <p style="text-align: center; color: #999; padding: 3rem;">
+          Select an essay above to start reading and listening.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const essays = [
+      {
+        title: "My Summer Vacation",
+        content: `Last summer, I had the most wonderful vacation with my family. We went to a beautiful beach town called Kenting in Taiwan. The trip lasted for five days, and it was filled with amazing experiences.
+
+On the first day, we arrived at our hotel near the beach. The hotel was very nice, and our room had a beautiful view of the ocean. I could hear the waves crashing on the shore, which was very relaxing. After checking in, we immediately went to the beach. The sand was white and soft, and the water was clear and blue. I spent hours playing in the water and building sandcastles with my younger sister.
+
+The second day was even more exciting. We went snorkeling in the coral reef area. I saw many colorful fish swimming around me. There were yellow fish, blue fish, and even some fish with stripes. The coral was also very beautiful, with different shapes and colors. My dad took many photos underwater, and we all had a great time.
+
+On the third day, we visited a local market. There were many interesting things to see and buy. I tried some local snacks that I had never tasted before. My favorite was a kind of fried squid that was very delicious. We also bought some souvenirs for our friends back home.
+
+The fourth day was rainy, so we stayed indoors and played board games. We also watched movies together. Even though we couldn't go to the beach, we still had fun spending time together as a family.
+
+On the last day, we went to a famous lighthouse. We climbed to the top and saw a breathtaking view of the entire area. The ocean looked endless, and the sky was clear and blue. We took many family photos there.
+
+This vacation was special because I got to spend quality time with my family. We laughed together, explored new places, and created wonderful memories. I learned that vacations are not just about visiting new places, but also about being with the people you love. I hope we can go on another family trip soon.`
+      },
+      {
+        title: "My Favorite Hobby",
+        content: `Everyone has hobbies that they enjoy doing in their free time. My favorite hobby is reading books. I have loved reading since I was a little child, and it has become an important part of my life.
+
+I started reading when I was in elementary school. My mother used to read bedtime stories to me every night. Those stories opened up a whole new world for me. I could imagine myself as a brave knight, a clever detective, or a magical wizard. As I grew older, I began to read books by myself, and my love for reading only grew stronger.
+
+Now, I read different types of books. I enjoy adventure stories because they take me to exciting places and let me experience thrilling adventures. I also like mystery novels because they make me think and try to solve puzzles. Science fiction books are interesting too, as they show me what the future might be like. Sometimes, I read biographies to learn about famous people and their lives.
+
+Reading has many benefits. First, it helps me learn new words and improve my English. When I read, I encounter many new vocabulary words, and I can understand how to use them in sentences. Second, reading makes me smarter. I learn about different topics, cultures, and ideas from books. Third, reading is relaxing. When I feel stressed from schoolwork, I can escape into a good book and forget about my worries for a while.
+
+I usually read for about one hour every day. I read before going to bed, during breaks at school, and whenever I have free time. My room has a small bookshelf filled with my favorite books. I also visit the library regularly to borrow new books.
+
+My friends sometimes ask me why I like reading so much. I tell them that books are like windows to different worlds. Through reading, I can travel to places I have never been, meet people I have never met, and experience things I have never done. Reading makes my life more interesting and colorful.
+
+I hope to continue reading throughout my life. There are so many books in the world that I want to read. Reading is not just a hobby for me; it is a passion that brings me joy and knowledge every day.`
+      },
+      {
+        title: "The Importance of Friendship",
+        content: `Friendship is one of the most important things in life. Good friends can make our lives happier, help us through difficult times, and make us better people. I believe that everyone needs friends, and I am very grateful for the friends I have.
+
+I have several close friends, but my best friend is named Alex. We met in elementary school when we were both seven years old. At first, we were just classmates, but we soon discovered that we had many things in common. We both liked playing basketball, reading comic books, and watching movies. We started spending more time together, and our friendship grew stronger.
+
+Alex is a very kind and helpful person. When I have problems with my homework, he always helps me understand the difficult parts. When I feel sad or worried, he listens to me and gives me advice. He never judges me and always supports me. I try to be the same kind of friend to him.
+
+Friendship teaches us many important lessons. First, it teaches us how to care for others. When we have friends, we learn to think about their feelings and needs, not just our own. Second, friendship teaches us how to communicate. We learn how to express our thoughts and listen to what others have to say. Third, friendship teaches us loyalty. True friends stick together through good times and bad times.
+
+However, maintaining friendships is not always easy. Sometimes friends disagree or have arguments. This is normal, but it is important to talk things through and forgive each other. Real friends can overcome conflicts and become even closer after solving problems together.
+
+I have learned that friendship requires effort from both sides. We need to spend time together, show that we care, and be there when our friends need us. We also need to be honest, trustworthy, and respectful.
+
+Having good friends makes school more enjoyable. When I go to school, I know that I will see my friends and have fun with them. We study together, eat lunch together, and play sports together. My friends make me laugh and help me feel confident.
+
+I think everyone should value their friendships. Friends are like family that we choose for ourselves. They support us, encourage us, and make our lives better. I am lucky to have such wonderful friends, and I will always try to be a good friend to them. Friendship is a gift that we should cherish and protect.`
+      },
+      {
+        title: "My Dream Job",
+        content: `When I grow up, I want to become a teacher. Teaching is my dream job because I love learning and I want to help others learn too. I think being a teacher is one of the most meaningful jobs in the world.
+
+I first thought about becoming a teacher when I was in the third grade. My teacher, Mrs. Chen, was very kind and patient. She made learning fun and interesting. She always encouraged us to ask questions and never gave up on any student. I admired her very much and wanted to be like her one day.
+
+As I got older, I realized that teachers do much more than just teach subjects. They help students discover their talents, build their confidence, and prepare them for the future. Teachers are like guides who show students the way to success. They inspire students to dream big and work hard to achieve their goals.
+
+I want to teach English because I love the language. English is important in today's world, and I want to help students learn it well. I want to make English classes fun and engaging, not boring. I will use games, stories, and activities to help students learn. I believe that when students enjoy learning, they learn better.
+
+To become a teacher, I need to study hard now. I need to get good grades in all subjects, especially English. After high school, I will go to university to study education. I will learn how to teach effectively and how to understand students' needs. I will also practice teaching by helping younger students or volunteering at schools.
+
+Being a teacher is not always easy. Teachers work long hours, prepare lessons, grade papers, and deal with many students who have different needs. However, I think the rewards are worth it. When a student finally understands something difficult, or when a student thanks you for helping them, it makes all the hard work worthwhile.
+
+I also want to be a teacher who cares about students as people, not just as learners. I want to know about their interests, their problems, and their dreams. I want to be someone they can talk to and trust. I believe that good relationships between teachers and students make learning more effective.
+
+My parents support my dream. They tell me that teaching is a noble profession and that I should follow my passion. They remind me that I need to work hard and never give up on my dream.
+
+I know that becoming a teacher will take many years of study and preparation, but I am willing to work hard. I believe that if I stay focused and keep learning, I can achieve my dream. One day, I hope to stand in front of a classroom full of students and help them learn and grow. That would be the greatest achievement of my life.`
+      },
+      {
+        title: "Protecting Our Environment",
+        content: `The environment is very important to all of us. It provides us with clean air, fresh water, and beautiful nature. However, our environment is facing many problems today, and we all need to do our part to protect it.
+
+One of the biggest problems is pollution. There are many types of pollution, including air pollution, water pollution, and land pollution. Air pollution comes from cars, factories, and power plants. It makes the air dirty and can cause health problems. Water pollution happens when waste is dumped into rivers and oceans, making the water unsafe for animals and people. Land pollution occurs when we throw garbage everywhere instead of putting it in the right place.
+
+Another serious problem is global warming. The Earth is getting warmer because of too much carbon dioxide in the air. This causes ice to melt, sea levels to rise, and weather to become more extreme. Animals are losing their homes, and some species are becoming extinct.
+
+We can all help protect the environment in simple ways. First, we should reduce, reuse, and recycle. Instead of throwing things away, we can reuse them or recycle them. For example, we can use both sides of paper, bring our own shopping bags, and separate our garbage for recycling.
+
+Second, we should save energy. We can turn off lights when we leave a room, unplug devices when we are not using them, and use energy-efficient light bulbs. We can also walk or ride bicycles instead of taking cars for short trips.
+
+Third, we should save water. We can take shorter showers, turn off the tap while brushing our teeth, and fix leaking faucets. Water is precious, and we should not waste it.
+
+Fourth, we should plant more trees. Trees help clean the air and provide oxygen. We can plant trees in our school, in our community, or even in our own backyard.
+
+At my school, we have an environmental club. We organize activities like cleaning up the school, planting trees, and teaching other students about environmental protection. We also have recycling bins everywhere, and we encourage everyone to use them.
+
+I believe that if everyone does their part, we can make a big difference. Protecting the environment is not just the government's job or the scientists' job. It is everyone's responsibility. We all live on this Earth, and we all need to take care of it.
+
+I hope that more people will realize how important the environment is and start taking action. We need to protect our planet for ourselves and for future generations. Let's work together to make our Earth a cleaner and healthier place to live.`
+      }
+    ];
+
+    const essaySelector = document.getElementById('essaySelector');
+    const essayContainer = document.getElementById('essayContainer');
+    let currentEssay = null;
+    let synth = window.speechSynthesis || null;
+    let currentUtterance = null;
+    let isPlaying = false;
+
+    // Check if elements exist
+    if (!essaySelector || !essayContainer) {
+      console.error('Required elements not found');
+    } else {
+      // Create essay selector buttons
+      essays.forEach((essay, index) => {
+        const btn = document.createElement('button');
+        btn.className = 'essay-btn';
+        btn.textContent = essay.title;
+        btn.addEventListener('click', () => showEssay(index));
+        essaySelector.appendChild(btn);
+      });
+    }
+
+    function showEssay(index) {
+      if (index < 0 || index >= essays.length) return;
+      if (!essayContainer) return;
+      
+      currentEssay = essays[index];
+      
+      // Stop any ongoing speech first (before clearing container)
+      if (synth) {
+        synth.cancel();
+        isPlaying = false;
+      }
+      
+      // Update active button
+      document.querySelectorAll('.essay-btn').forEach((btn, i) => {
+        btn.classList.toggle('active', i === index);
+      });
+
+      // Display essay
+      const wordCount = currentEssay.content.split(/\s+/).length;
+      essayContainer.innerHTML = `
+        <h2 class="essay-title">${currentEssay.title}</h2>
+        <div class="essay-text">${currentEssay.content.replace(/\n/g, '<br>')}</div>
+        <div class="controls">
+          <button class="play-btn" id="playBtn">
+            <span>▶</span> Read Aloud
+          </button>
+          <button class="pause-btn" id="pauseBtn" style="display: none;">
+            <span>⏸</span> Pause
+          </button>
+          <button class="stop-btn" id="stopBtn" style="display: none;">
+            <span>⏹</span> Stop
+          </button>
+          <div class="word-count">Words: ${wordCount}</div>
+          <div class="status" id="status"></div>
+        </div>
+      `;
+
+      // Add event listeners
+      const playBtn = document.getElementById('playBtn');
+      const pauseBtn = document.getElementById('pauseBtn');
+      const stopBtn = document.getElementById('stopBtn');
+      
+      if (playBtn) playBtn.addEventListener('click', playEssay);
+      if (pauseBtn) pauseBtn.addEventListener('click', pauseSpeech);
+      if (stopBtn) stopBtn.addEventListener('click', stopSpeech);
+    }
+
+    function playEssay() {
+      if (!currentEssay || !synth) {
+        document.getElementById('status').textContent = 'Speech not supported in this browser.';
+        return;
+      }
+
+      if (isPlaying && synth.speaking) {
+        // Resume if paused
+        synth.resume();
+        document.getElementById('playBtn').style.display = 'none';
+        document.getElementById('pauseBtn').style.display = 'flex';
+        document.getElementById('status').textContent = 'Reading...';
+        return;
+      }
+
+      // Stop any ongoing speech first
+      synth.cancel();
+
+      const utterance = new SpeechSynthesisUtterance(currentEssay.content);
+      utterance.lang = 'en-US';
+      utterance.rate = 0.9; // Slightly slower for better understanding
+      utterance.pitch = 1;
+      utterance.volume = 1;
+
+      utterance.onstart = () => {
+        isPlaying = true;
+        document.getElementById('playBtn').style.display = 'none';
+        document.getElementById('pauseBtn').style.display = 'flex';
+        document.getElementById('stopBtn').style.display = 'flex';
+        document.getElementById('status').textContent = 'Reading...';
+      };
+
+      utterance.onend = () => {
+        isPlaying = false;
+        document.getElementById('playBtn').style.display = 'flex';
+        document.getElementById('pauseBtn').style.display = 'none';
+        document.getElementById('stopBtn').style.display = 'none';
+        document.getElementById('status').textContent = 'Finished';
+      };
+
+      utterance.onerror = () => {
+        isPlaying = false;
+        document.getElementById('playBtn').style.display = 'flex';
+        document.getElementById('pauseBtn').style.display = 'none';
+        document.getElementById('stopBtn').style.display = 'none';
+        document.getElementById('status').textContent = 'Error occurred';
+      };
+
+      currentUtterance = utterance;
+      synth.speak(utterance);
+    }
+
+    function pauseSpeech() {
+      if (synth && synth.speaking && !synth.paused) {
+        synth.pause();
+        document.getElementById('playBtn').style.display = 'flex';
+        document.getElementById('pauseBtn').style.display = 'none';
+        document.getElementById('status').textContent = 'Paused';
+      }
+    }
+
+    function stopSpeech() {
+      if (synth) {
+        synth.cancel();
+        isPlaying = false;
+        const playBtn = document.getElementById('playBtn');
+        const pauseBtn = document.getElementById('pauseBtn');
+        const stopBtn = document.getElementById('stopBtn');
+        const status = document.getElementById('status');
+        if (playBtn) playBtn.style.display = 'flex';
+        if (pauseBtn) pauseBtn.style.display = 'none';
+        if (stopBtn) stopBtn.style.display = 'none';
+        if (status) status.textContent = '';
+      }
+    }
+
+    // Show first essay by default when page loads
+    window.addEventListener('DOMContentLoaded', () => {
+      if (essays.length > 0) {
+        showEssay(0);
+      }
+    });
+    
+    // Also try immediately in case DOMContentLoaded already fired
+    if (document.readyState === 'loading') {
+      // DOM is still loading, wait for DOMContentLoaded
+    } else {
+      // DOM is already loaded
+      if (essays.length > 0) {
+        showEssay(0);
+      }
+    }
+  </script>
+</body>
+</html>
+
+

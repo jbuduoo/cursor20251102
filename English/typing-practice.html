@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Typing Practice - English Learning</title>
+  <style>
+    html, body {
+      height: 100%;
+      width: 100%;
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    *, *::before, *::after { box-sizing: border-box; }
+    body {
+      font-family: "Segoe UI", Arial, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      overflow: hidden;
+    }
+    .game-container {
+      width: 90vw;
+      height: 85vh;
+      max-width: 90vw;
+      max-height: 85vh;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      overflow: hidden;
+    }
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.5rem;
+      z-index: 10;
+      flex-shrink: 0;
+    }
+    h1 {
+      margin: 0;
+      font-size: 1.2em;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+    }
+    .score-board {
+      display: flex;
+      gap: 1rem;
+      font-size: 0.9rem;
+      align-items: center;
+    }
+    .score-item {
+      background: rgba(255, 255, 255, 0.2);
+      padding: 0.3rem 0.8rem;
+      border-radius: 8px;
+      backdrop-filter: blur(5px);
+    }
+    .score-label {
+      font-size: 0.75rem;
+      opacity: 0.9;
+    }
+    .score-value {
+      font-size: 1.2rem;
+      font-weight: bold;
+      margin-top: 0.15rem;
+    }
+    .speed-selector {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: rgba(255, 255, 255, 0.2);
+      padding: 0.3rem 0.8rem;
+      border-radius: 8px;
+      backdrop-filter: blur(5px);
+    }
+    .speed-label {
+      font-size: 0.75rem;
+      opacity: 0.9;
+    }
+    .speed-buttons {
+      display: flex;
+      gap: 0.3rem;
+    }
+    .speed-btn {
+      border: none;
+      background: rgba(255, 255, 255, 0.3);
+      color: #fff;
+      padding: 0.2rem 0.5rem;
+      border-radius: 4px;
+      font-size: 0.7rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      min-width: 1.8rem;
+    }
+    .speed-btn:hover {
+      background: rgba(255, 255, 255, 0.5);
+    }
+    .speed-btn.active {
+      background: rgba(255, 255, 255, 0.9);
+      color: #667eea;
+      font-weight: bold;
+    }
+    .game-area {
+      flex: 1;
+      position: relative;
+      background: rgba(255, 255, 255, 0.05);
+      overflow: hidden;
+      min-height: 0;
+    }
+    .letter {
+      position: absolute;
+      font-size: 2.5rem;
+      font-weight: bold;
+      color: #fff;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+      user-select: none;
+      transition: transform 0.1s ease, opacity 0.3s ease;
+      cursor: default;
+    }
+    .letter.hit {
+      transform: scale(1.5);
+      opacity: 0;
+    }
+    .controls {
+      margin-top: 0.5rem;
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+      z-index: 10;
+      flex-shrink: 0;
+    }
+    button {
+      border: none;
+      border-radius: 12px;
+      padding: 0.8rem 2rem;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      background: rgba(255, 255, 255, 0.9);
+      color: #667eea;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    }
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+      background: #fff;
+    }
+    button:active {
+      transform: translateY(0);
+    }
+    button.pause {
+      background: rgba(255, 193, 7, 0.9);
+      color: #fff;
+    }
+    .instructions {
+      text-align: center;
+      margin-top: 0.3rem;
+      font-size: 0.8rem;
+      opacity: 0.9;
+      z-index: 10;
+      flex-shrink: 0;
+    }
+    .game-over {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(0, 0, 0, 0.9);
+      padding: 3rem;
+      border-radius: 20px;
+      text-align: center;
+      z-index: 100;
+      display: none;
+    }
+    .game-over.show {
+      display: block;
+    }
+    .game-over h2 {
+      margin-top: 0;
+      font-size: 2rem;
+    }
+    .game-over .final-score {
+      font-size: 3rem;
+      margin: 1rem 0;
+      color: #ffd700;
+    }
+  </style>
+</head>
+<body>
+  <div class="game-container">
+    <div class="header">
+      <h1>🎯 Typing Practice</h1>
+      <div class="score-board">
+        <div class="score-item">
+          <div class="score-label">Score</div>
+          <div class="score-value" id="score">0</div>
+        </div>
+        <div class="score-item">
+          <div class="score-label">Missed</div>
+          <div class="score-value" id="missed">0</div>
+        </div>
+        <div class="speed-selector">
+          <span class="speed-label">Speed:</span>
+          <div class="speed-buttons">
+            <button class="speed-btn" data-level="1">1</button>
+            <button class="speed-btn" data-level="2">2</button>
+            <button class="speed-btn active" data-level="3">3</button>
+            <button class="speed-btn" data-level="4">4</button>
+            <button class="speed-btn" data-level="5">5</button>
+            <button class="speed-btn" data-level="6">6</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="game-area" id="gameArea"></div>
+    <div class="controls">
+      <button id="startBtn">Start Game</button>
+      <button id="pauseBtn" class="pause" style="display: none;">Pause</button>
+    </div>
+    <div class="instructions">
+      Type the letters (A-Z) as they fall down. Press the correct key to eliminate them!
+    </div>
+    <div class="game-over" id="gameOver">
+      <h2>Game Over!</h2>
+      <div class="final-score" id="finalScore">0</div>
+      <button id="restartBtn">Play Again</button>
+    </div>
+  </div>
+
+  <script>
+    const gameArea = document.getElementById('gameArea');
+    const scoreEl = document.getElementById('score');
+    const missedEl = document.getElementById('missed');
+    const startBtn = document.getElementById('startBtn');
+    const pauseBtn = document.getElementById('pauseBtn');
+    const gameOverEl = document.getElementById('gameOver');
+    const finalScoreEl = document.getElementById('finalScore');
+    const restartBtn = document.getElementById('restartBtn');
+
+    let score = 0;
+    let missed = 0;
+    let gameRunning = false;
+    let gamePaused = false;
+    let letters = [];
+    let animationId = null;
+    let spawnInterval = null;
+    let currentSpeedLevel = 3; // Default level 3
+    let baseSpeed = 0;
+    let baseSpawnRate = 0;
+
+    // Speed levels configuration (Level 1 = slowest, Level 6 = fastest)
+    const speedLevels = {
+      1: { speed: 0.8, spawnRate: 2000 },
+      2: { speed: 1.2, spawnRate: 1700 },
+      3: { speed: 1.8, spawnRate: 1400 },
+      4: { speed: 2.5, spawnRate: 1100 },
+      5: { speed: 3.2, spawnRate: 900 },
+      6: { speed: 4.0, spawnRate: 700 }
+    };
+
+    const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    const colors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#f9ca24', '#f0932b', '#eb4d4b', '#6c5ce7', '#a29bfe'];
+
+    function getRandomLetter() {
+      return alphabet[Math.floor(Math.random() * alphabet.length)];
+    }
+
+    function getRandomColor() {
+      return colors[Math.floor(Math.random() * colors.length)];
+    }
+
+    function createLetter() {
+      const letter = document.createElement('div');
+      letter.className = 'letter';
+      letter.textContent = getRandomLetter();
+      letter.style.color = getRandomColor();
+      
+      const areaWidth = gameArea.offsetWidth;
+      const x = Math.random() * (areaWidth - 60) + 30;
+      letter.style.left = x + 'px';
+      letter.style.top = '-60px';
+      
+      const letterData = {
+        element: letter,
+        char: letter.textContent.toLowerCase(),
+        x: x,
+        y: -60,
+        speed: baseSpeed + Math.random() * 0.3
+      };
+      
+      letters.push(letterData);
+      gameArea.appendChild(letter);
+    }
+
+    function updateLetters() {
+      if (gamePaused) return;
+      
+      const areaHeight = gameArea.offsetHeight;
+      
+      for (let i = letters.length - 1; i >= 0; i--) {
+        const letter = letters[i];
+        letter.y += letter.speed;
+        letter.element.style.top = letter.y + 'px';
+        
+        // Check if letter reached bottom
+        if (letter.y > areaHeight) {
+          missed++;
+          missedEl.textContent = missed;
+          letter.element.remove();
+          letters.splice(i, 1);
+          
+          // Game over condition (optional - you can adjust this)
+          if (missed >= 10) {
+            endGame();
+            return;
+          }
+        }
+      }
+      
+      animationId = requestAnimationFrame(updateLetters);
+    }
+
+    function handleKeyPress(event) {
+      if (!gameRunning || gamePaused) return;
+      
+      const key = event.key.toLowerCase();
+      
+      // Only accept letters a-z (26 letters)
+      if (!/^[a-z]$/.test(key)) {
+        return;
+      }
+      
+      // Find matching letter
+      for (let i = 0; i < letters.length; i++) {
+        if (letters[i].char === key) {
+          // Hit!
+          const letter = letters[i];
+          letter.element.classList.add('hit');
+          
+          setTimeout(() => {
+            letter.element.remove();
+          }, 300);
+          
+          letters.splice(i, 1);
+          score++;
+          scoreEl.textContent = score;
+          
+          return;
+        }
+      }
+    }
+
+    function updateSpeedLevel(level) {
+      currentSpeedLevel = level;
+      const config = speedLevels[level];
+      baseSpeed = config.speed;
+      baseSpawnRate = config.spawnRate;
+      
+      // Update active button
+      document.querySelectorAll('.speed-btn').forEach(btn => {
+        btn.classList.toggle('active', parseInt(btn.dataset.level) === level);
+      });
+      
+      // Restart spawn interval if game is running
+      if (gameRunning && spawnInterval) {
+        clearInterval(spawnInterval);
+        spawnInterval = setInterval(createLetter, baseSpawnRate);
+      }
+    }
+
+    function startGame() {
+      score = 0;
+      missed = 0;
+      scoreEl.textContent = '0';
+      missedEl.textContent = '0';
+      
+      // Set speed based on current level
+      const config = speedLevels[currentSpeedLevel];
+      baseSpeed = config.speed;
+      baseSpawnRate = config.spawnRate;
+      
+      // Clear existing letters
+      letters.forEach(letter => letter.element.remove());
+      letters = [];
+      
+      gameRunning = true;
+      gamePaused = false;
+      startBtn.style.display = 'none';
+      pauseBtn.style.display = 'block';
+      gameOverEl.classList.remove('show');
+      
+      // Start spawning letters
+      spawnInterval = setInterval(createLetter, baseSpawnRate);
+      
+      // Start animation
+      updateLetters();
+    }
+
+    function pauseGame() {
+      if (!gameRunning) return;
+      
+      gamePaused = !gamePaused;
+      pauseBtn.textContent = gamePaused ? 'Resume' : 'Pause';
+      
+      if (!gamePaused) {
+        updateLetters();
+      }
+    }
+
+    function endGame() {
+      gameRunning = false;
+      gamePaused = false;
+      
+      if (spawnInterval) {
+        clearInterval(spawnInterval);
+        spawnInterval = null;
+      }
+      
+      if (animationId) {
+        cancelAnimationFrame(animationId);
+        animationId = null;
+      }
+      
+      finalScoreEl.textContent = score;
+      gameOverEl.classList.add('show');
+      startBtn.style.display = 'block';
+      pauseBtn.style.display = 'none';
+    }
+
+    startBtn.addEventListener('click', startGame);
+    pauseBtn.addEventListener('click', pauseGame);
+    restartBtn.addEventListener('click', startGame);
+    
+    // Speed level selector
+    document.querySelectorAll('.speed-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        if (!gameRunning) {
+          updateSpeedLevel(parseInt(btn.dataset.level));
+        }
+      });
+    });
+    
+    // Initialize speed level
+    updateSpeedLevel(currentSpeedLevel);
+    
+    window.addEventListener('keydown', handleKeyPress);
+    
+    // Prevent default behavior for letter keys to avoid input fields
+    window.addEventListener('keydown', (e) => {
+      if (gameRunning && /^[a-z]$/i.test(e.key)) {
+        e.preventDefault();
+      }
+    });
+  </script>
+</body>
+</html>
+
