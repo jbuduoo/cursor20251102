@@ -1,0 +1,1377 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+    />
+    <title>互動式決策樹｜創意實驗遊戲</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --bg: #f6f9fc;
+        --panel: #ffffff;
+        --border: #d9e2ec;
+        --text: #1f2933;
+        --muted: #52606d;
+        --node-internal-bg: #1976d2;
+        --node-internal-color: #ffffff;
+        --node-leaf-bg: #ff9800;
+        --node-leaf-color: #ffffff;
+        --connector: #9aa5b1;
+        --shadow: 0 12px 25px rgba(15, 23, 42, 0.08);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        font-family: "Segoe UI", "Noto Sans TC", sans-serif;
+        background: linear-gradient(160deg, #f6f9fc 0%, #eef3fb 100%);
+        color: var(--text);
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: clamp(1rem, 2vw, 2.5rem);
+      }
+
+      main {
+        width: min(1100px, 100%);
+        background: var(--panel);
+        border-radius: 28px;
+        padding: clamp(1.5rem, 3vw, 3rem);
+        box-shadow: var(--shadow);
+        display: flex;
+        flex-direction: column;
+        gap: clamp(1.5rem, 2.5vw, 2.5rem);
+      }
+
+      .article-card {
+        background: linear-gradient(140deg, rgba(234, 244, 255, 0.92), rgba(219, 229, 244, 0.85));
+        border: 1px solid rgba(30, 64, 175, 0.12);
+        border-radius: 22px;
+        padding: clamp(1.5rem, 2.8vw, 2.5rem);
+        display: flex;
+        flex-direction: column;
+        gap: 1.25rem;
+        color: #1c2a43;
+        box-shadow: 0 20px 45px rgba(15, 23, 42, 0.08);
+      }
+
+      .article-card h1 {
+        font-size: clamp(1.6rem, 2.6vw, 2.1rem);
+        margin: 0;
+        color: #0f295c;
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+      }
+
+      .article-card h1 span {
+        font-size: clamp(1.6rem, 2.6vw, 2.1rem);
+      }
+
+      .article-card p,
+      .article-card li {
+        line-height: 1.7;
+        color: #22314f;
+      }
+
+      .article-divider {
+        border: none;
+        height: 1px;
+        background: linear-gradient(90deg, rgba(79, 124, 219, 0.1), rgba(79, 124, 219, 0.35), rgba(79, 124, 219, 0.1));
+        margin: 0;
+      }
+
+      .article-section h2 {
+        font-size: clamp(1.2rem, 2.1vw, 1.55rem);
+        margin: 0 0 0.6rem;
+        color: #1a2f63;
+      }
+
+      .dataset-box {
+        background: rgba(79, 124, 219, 0.08);
+        border: 1px solid rgba(79, 124, 219, 0.18);
+        border-radius: 16px;
+        padding: 1rem 1.2rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.8rem;
+      }
+
+      .dataset-header {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .dataset-switch {
+        appearance: none;
+        border: none;
+        border-radius: 999px;
+        padding: 0.55rem 1.3rem;
+        font-size: 0.92rem;
+        font-weight: 600;
+        cursor: pointer;
+        color: #ffffff;
+        background: linear-gradient(135deg, #365edc, #4f7cdb);
+        box-shadow: 0 8px 18px rgba(79, 124, 219, 0.25);
+        transition: transform 0.15s ease, box-shadow 0.15s ease;
+      }
+
+      .dataset-switch:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 22px rgba(79, 124, 219, 0.35);
+      }
+
+      .dataset-table {
+        width: 100%;
+        border-collapse: collapse;
+        border-radius: 14px;
+        overflow: hidden;
+        box-shadow: 0 10px 20px rgba(15, 23, 42, 0.08);
+        font-size: 0.88rem;
+      }
+
+      .dataset-table th {
+        background: linear-gradient(135deg, #3358cc 0%, #25419c 100%);
+        color: #ffffff;
+        padding: 0.55rem 0.75rem;
+        text-align: left;
+      }
+
+      .dataset-table td {
+        background: rgba(255, 255, 255, 0.95);
+        color: #1f2d4f;
+        padding: 0.55rem 0.75rem;
+        border-bottom: 1px solid rgba(79, 124, 219, 0.12);
+      }
+
+      .dataset-table tbody tr:nth-child(odd) td {
+        background: rgba(235, 241, 255, 0.85);
+      }
+
+      .dataset-json {
+        display: none;
+        background: #0f172a;
+        color: #f8fafc;
+        padding: 1rem 1.2rem;
+        border-radius: 14px;
+        font-family: "JetBrains Mono", "Fira Code", Consolas, monospace;
+        font-size: 0.88rem;
+        line-height: 1.7;
+        overflow-x: auto;
+        box-shadow: 0 12px 24px rgba(15, 23, 42, 0.35);
+      }
+
+      .dataset-box[data-view="json"] .dataset-table {
+        display: none;
+      }
+
+      .dataset-box[data-view="json"] .dataset-json {
+        display: block;
+      }
+
+      .article-illustration {
+        display: flex;
+        flex-direction: column;
+        gap: 0.6rem;
+        align-items: center;
+        padding: 1.5rem 1rem;
+        background: rgba(237, 242, 255, 0.7);
+        border-radius: 18px;
+        border: 1px solid rgba(79, 124, 219, 0.18);
+        margin-top: 1.4rem;
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.65);
+      }
+
+      .article-illustration svg {
+        width: min(560px, 100%);
+        height: auto;
+      }
+
+      .article-illustration-caption {
+        font-size: 0.9rem;
+        color: #1f3467;
+        text-align: center;
+      }
+
+      .article-table {
+        width: 100%;
+        border-collapse: collapse;
+        border-radius: 16px;
+        overflow: hidden;
+        box-shadow: 0 14px 28px rgba(15, 23, 42, 0.08);
+      }
+
+      .article-table th,
+      .article-table td {
+        padding: 0.85rem 1rem;
+        text-align: left;
+        font-size: 0.95rem;
+        background: rgba(255, 255, 255, 0.9);
+      }
+
+      .article-table thead {
+        background: linear-gradient(135deg, #2d64d8 0%, #1a46a0 100%);
+        color: #ffffff;
+      }
+
+      .article-table tbody tr:nth-child(every odd) {
+        background: rgba(235, 241, 255, 0.75);
+      }
+
+      .article-code {
+        background: #0f172a;
+        color: #f8fafc;
+        padding: 1rem 1.25rem;
+        border-radius: 14px;
+        font-family: "JetBrains Mono", "Fira Code", Consolas, monospace;
+        font-size: 0.9rem;
+        line-height: 1.75;
+        overflow-x: auto;
+        box-shadow: 0 12px 24px rgba(15, 23, 42, 0.35);
+      }
+
+      .article-highlight {
+        background: rgba(79, 124, 219, 0.12);
+        border-left: 4px solid #4f7cdb;
+        padding: 0.85rem 1rem;
+        border-radius: 10px;
+        font-size: 0.92rem;
+        color: #1d2f5f;
+      }
+
+      .article-list {
+        padding-left: 1.1rem;
+        display: grid;
+        gap: 0.45rem;
+      }
+
+      .article-list li {
+        list-style: disc;
+      }
+
+      .article-subheading {
+        font-weight: 700;
+        color: #1b3d82;
+        margin-bottom: 0.25rem;
+      }
+
+      .article-table tbody tr:nth-child(odd) td {
+        background: rgba(235, 241, 255, 0.85);
+      }
+
+      .article-table tbody tr:nth-child(even) td {
+        background: rgba(248, 250, 255, 0.9);
+      }
+
+      .article-table td:last-child {
+        font-weight: 600;
+      }
+
+      .tab-group {
+        display: flex;
+        flex-direction: column;
+        gap: 0.9rem;
+      }
+
+      .tab-buttons {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.6rem;
+      }
+
+      .tab-btn {
+        appearance: none;
+        border: none;
+        border-radius: 8px;
+        padding: 0.45rem 1.1rem;
+        font-size: 0.9rem;
+        font-weight: 600;
+        cursor: pointer;
+        background: rgba(79, 124, 219, 0.12);
+        color: #1a2f63;
+        transition: background 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+      }
+
+      .tab-btn:hover {
+        background: rgba(79, 124, 219, 0.22);
+        transform: translateY(-1px);
+        box-shadow: 0 6px 12px rgba(79, 124, 219, 0.18);
+      }
+
+      .tab-btn.active {
+        background: linear-gradient(135deg, #2f63d5, #4a7ce6);
+        color: #ffffff;
+        box-shadow: 0 8px 20px rgba(47, 99, 213, 0.3);
+      }
+
+      .tab-pane {
+        display: none;
+        padding: 1rem 1.25rem;
+        border-radius: 14px;
+        background: rgba(244, 248, 255, 0.85);
+        border: 1px solid rgba(79, 124, 219, 0.16);
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6);
+        display: none;
+      }
+
+      .tab-pane.active {
+        display: block;
+      }
+
+      .tab-pane p {
+        margin-top: 0;
+        color: #1f2d4f;
+        line-height: 1.6;
+      }
+
+      .tab-diagram {
+        display: flex;
+        justify-content: center;
+        padding: 0.5rem 0 0.8rem;
+      }
+
+      .tab-diagram svg {
+        width: min(420px, 100%);
+        height: auto;
+      }
+
+      .tab-insight {
+        margin-top: 0.75rem;
+        background: rgba(47, 99, 213, 0.08);
+        border-left: 4px solid rgba(47, 99, 213, 0.7);
+        padding: 0.75rem 1rem;
+        border-radius: 10px;
+        color: #193059;
+        font-size: 0.92rem;
+        line-height: 1.6;
+      }
+
+      .mini-tree {
+        display: grid;
+        gap: 0.85rem;
+      }
+
+      .mini-tree svg {
+        width: min(380px, 100%);
+        height: auto;
+        margin: 0 auto;
+        display: block;
+      }
+
+      .mini-tree-note {
+        display: flex;
+        gap: 0.6rem;
+        align-items: flex-start;
+        padding: 0.7rem 0.85rem;
+        border-radius: 12px;
+        background: rgba(79, 124, 219, 0.12);
+        border: 1px solid rgba(79, 124, 219, 0.18);
+        color: #1a2f63;
+        font-size: 0.9rem;
+        line-height: 1.5;
+      }
+
+      .mini-tree-note strong {
+        font-size: 1rem;
+      }
+
+      header {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+      }
+
+      header h1 {
+        margin: 0;
+        font-size: clamp(1.75rem, 3vw, 2.5rem);
+        font-weight: 700;
+        color: #12355b;
+      }
+
+      header p {
+        margin: 0;
+        color: var(--muted);
+        line-height: 1.6;
+        font-size: clamp(0.95rem, 1.4vw, 1.05rem);
+      }
+
+      .controls {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+        align-items: center;
+        background-color: rgba(25, 118, 210, 0.07);
+        padding: 1rem 1.25rem;
+        border-radius: 18px;
+        border: 1px solid rgba(25, 118, 210, 0.1);
+      }
+
+      .controls label {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.95rem;
+      }
+
+      .controls input[type="file"] {
+        font-size: 0.95rem;
+      }
+
+      .btn {
+        appearance: none;
+        border: none;
+        border-radius: 999px;
+        padding: 0.65rem 1.4rem;
+        font-size: 0.95rem;
+        font-weight: 600;
+        cursor: pointer;
+        color: #ffffff;
+        background: linear-gradient(135deg, #1976d2, #2196f3);
+        box-shadow: 0 6px 14px rgba(33, 150, 243, 0.25);
+        transition: transform 0.15s ease, box-shadow 0.15s ease;
+      }
+
+      .btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 18px rgba(33, 150, 243, 0.35);
+      }
+
+      .legend {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+        font-size: 0.9rem;
+        color: var(--muted);
+      }
+
+      .legend-item {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+
+      .legend-node {
+        width: 16px;
+        height: 16px;
+        border-radius: 4px;
+        position: relative;
+      }
+
+      .legend-node.internal {
+        background: var(--node-internal-bg);
+      }
+
+      .legend-node.leaf {
+        background: var(--node-leaf-bg);
+        border-radius: 999px;
+      }
+
+      .tree-wrapper {
+        width: 100%;
+        overflow-x: auto;
+        padding-bottom: 0.5rem;
+      }
+
+      .tree {
+        margin: 0 auto;
+        width: fit-content;
+        min-width: min(680px, 100%);
+      }
+
+      .tree,
+      .tree ul {
+        position: relative;
+        list-style: none;
+        padding: 0;
+        margin: 0;
+      }
+
+      .tree ul {
+        padding-top: 1.5rem;
+        display: flex;
+        justify-content: center;
+        gap: clamp(1.5rem, 3vw, 3.5rem);
+        flex-wrap: wrap;
+      }
+
+      .tree li {
+        position: relative;
+        padding: 0;
+        text-align: center;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 1rem;
+      }
+
+      .tree li::before,
+      .tree li::after {
+        content: "";
+        position: absolute;
+        top: 0;
+        border-top: 2px solid var(--connector);
+        width: 50%;
+        height: 1.5rem;
+      }
+
+      .tree li::before {
+        left: -50%;
+      }
+
+      .tree li::after {
+        right: -50%;
+      }
+
+      .tree li:only-child::before,
+      .tree li:only-child::after {
+        display: none;
+      }
+
+      .tree li:first-child::before,
+      .tree li:last-child::after {
+        border: 0 none;
+      }
+
+      .tree li:last-child::before {
+        border-right: 2px solid var(--connector);
+        border-radius: 0 0 10px 0;
+      }
+
+      .tree li.root::before,
+      .tree li.root::after {
+        display: none;
+      }
+
+      .tree li:first-child::after {
+        border-left: 2px solid var(--connector);
+        border-radius: 0 0 0 10px;
+      }
+
+      .tree li .edge-label {
+        position: absolute;
+        top: -0.75rem;
+        transform: translateY(-40%);
+        color: var(--muted);
+        font-size: 0.8rem;
+        white-space: nowrap;
+        background: rgba(255, 255, 255, 0.85);
+        padding: 0.2rem 0.55rem;
+        border-radius: 999px;
+        border: 1px solid rgba(154, 165, 177, 0.25);
+        backdrop-filter: blur(6px);
+      }
+
+      .node {
+        position: relative;
+        padding: 0.9rem 1.6rem;
+        font-size: 1rem;
+        min-width: 10rem;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.6rem;
+        cursor: pointer;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        user-select: none;
+        text-align: center;
+        line-height: 1.4;
+      }
+
+      .node.internal {
+        background: var(--node-internal-bg);
+        color: var(--node-internal-color);
+        border-radius: 12px;
+        box-shadow: 0 8px 18px rgba(25, 118, 210, 0.25);
+      }
+
+      .node.leaf {
+        background: var(--node-leaf-bg);
+        color: var(--node-leaf-color);
+        border-radius: 999px;
+        padding: 0.9rem 1.3rem;
+        min-width: 8rem;
+        box-shadow: 0 8px 18px rgba(255, 152, 0, 0.2);
+      }
+
+      .node:hover {
+        transform: translateY(-3px);
+      }
+
+      .node::after {
+        content: attr(data-tooltip);
+        position: absolute;
+        pointer-events: none;
+        opacity: 0;
+        transition: opacity 0.2s ease, transform 0.2s ease;
+        transform: translate(-50%, -10px);
+        left: 50%;
+        bottom: calc(100% + 0.5rem);
+        background: rgba(33, 33, 33, 0.88);
+        color: #ffffff;
+        padding: 0.4rem 0.65rem;
+        border-radius: 6px;
+        font-size: 0.82rem;
+        white-space: nowrap;
+        z-index: 10;
+      }
+
+      .node:hover::after {
+        opacity: 1;
+        transform: translate(-50%, -6px);
+      }
+
+      .node.collapsible::before {
+        content: attr(data-state);
+        font-feature-settings: "tnum";
+        font-size: 0.8rem;
+        font-weight: 600;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        position: absolute;
+        top: -1.3rem;
+        right: 0.8rem;
+        padding: 0.15rem 0.55rem;
+        background: rgba(255, 255, 255, 0.28);
+        border-radius: 999px;
+        color: inherit;
+      }
+
+      .collapsed > ul {
+        display: none;
+      }
+
+      .tree ul ul li::before,
+      .tree ul ul li::after {
+        border-color: rgba(154, 165, 177, 0.6);
+      }
+
+      .empty-state {
+        text-align: center;
+        color: var(--muted);
+        font-size: 0.95rem;
+        background: rgba(148, 163, 184, 0.08);
+        border: 1px dashed rgba(148, 163, 184, 0.35);
+        border-radius: 16px;
+        padding: 2rem;
+      }
+
+      @media (max-width: 768px) {
+        .tree ul {
+          flex-direction: column;
+          align-items: center;
+          gap: 2rem;
+        }
+
+        .tree {
+          min-width: unset;
+        }
+
+        .tree li::before,
+        .tree li::after,
+        .tree li:first-child::after,
+        .tree li:last-child::before {
+          display: none;
+        }
+
+        .tree li {
+          gap: 0.5rem;
+        }
+
+        .tree ul > li > ul {
+          padding-top: 1rem;
+        }
+
+        .tree li .edge-label {
+          position: static;
+          transform: none;
+          border-radius: 8px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <section class="article-card">
+        <h1><span>🌳</span>決策樹（Decision Tree）概念與結構詳解</h1>
+        <p>
+          決策樹是一種直觀且強大的監督式機器學習演算法，能夠處理分類與迴歸任務。它像流程圖般，
+          依據特徵條件逐步分割資料，每一次判斷（節點）將資料導向下一個條件或最終的決策結果。
+        </p>
+        <hr class="article-divider" />
+
+        <div class="article-section">
+          <h2>I. 決策樹的核心組件 — 倒置樹狀結構</h2>
+          <table class="article-table">
+            <thead>
+              <tr>
+                <th>組件名稱</th>
+                <th>說明</th>
+                <th>教學常見顏色</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>樹根（Root Node）</strong></td>
+                <td>決策流程的起點，代表完整資料集與首要判斷條件。</td>
+                <td>🟡 黃色</td>
+              </tr>
+              <tr>
+                <td><strong>內部節點（Internal Node）</strong></td>
+                <td>對單一特徵進行的判斷測試，例如「年齡是否 &gt; 30？」。</td>
+                <td>🔵 藍色</td>
+              </tr>
+              <tr>
+                <td><strong>分支（Branch）</strong></td>
+                <td>節點的判斷結果所引導的路徑，通常以線條表示。</td>
+                <td>— 線條</td>
+              </tr>
+              <tr>
+                <td><strong>葉節點（Leaf Node）</strong></td>
+                <td>不再分支的終點，輸出最終的分類或預測值。</td>
+                <td>🔴 紅色</td>
+              </tr>
+            </tbody>
+          </table>
+          <div class="article-illustration">
+            <svg viewBox="0 0 580 300" aria-labelledby="decisionTreeIllustrationTitle decisionTreeIllustrationDesc" role="img">
+              <title id="decisionTreeIllustrationTitle">期末考情境決策樹示意圖</title>
+              <desc id="decisionTreeIllustrationDesc">此圖顯示根節點為期末考時間，依照臨近、暫無、緊急的情況分支，並在葉節點給出對應行動建議。</desc>
+              <defs>
+                <style>
+                  .node-box {
+                    fill: #1c6cd5;
+                    stroke: #0f3d91;
+                    stroke-width: 3;
+                    rx: 14;
+                    ry: 14;
+                  }
+                  .node-circle {
+                    fill: #ff9800;
+                    stroke: #ce6a00;
+                    stroke-width: 3;
+                  }
+                  .node-text {
+                    font-family: "Segoe UI", "Noto Sans TC", sans-serif;
+                    font-size: 20px;
+                    fill: #ffffff;
+                    font-weight: 600;
+                  }
+                  .node-text-small {
+                    font-size: 16px;
+                    fill: #2f3e5c;
+                    font-weight: 600;
+                  }
+                  .edge-text {
+                    font-family: "Segoe UI", "Noto Sans TC", sans-serif;
+                    font-size: 16px;
+                    fill: #4a5878;
+                    font-weight: 600;
+                  }
+                  .connector {
+                    stroke: #6b7a99;
+                    stroke-width: 3;
+                  }
+                </style>
+              </defs>
+
+              <!-- Root node -->
+              <rect class="node-box" x="210" y="30" width="160" height="60"></rect>
+              <text class="node-text" x="290" y="68" text-anchor="middle">期末考時間</text>
+              <text class="edge-text" x="290" y="98" text-anchor="middle">(首要考慮因素)</text>
+
+              <!-- Internal nodes -->
+              <rect class="node-box" x="80" y="140" width="150" height="60"></rect>
+              <text class="node-text" x="155" y="178" text-anchor="middle">心情狀態</text>
+
+              <rect class="node-box" x="360" y="140" width="170" height="60"></rect>
+              <text class="node-text" x="445" y="178" text-anchor="middle">朋友約遊戲</text>
+
+              <!-- Leaf nodes -->
+              <circle class="node-circle" cx="30" cy="140" r="32"></circle>
+              <text class="node-text" x="30" y="148" text-anchor="middle">學習</text>
+
+              <circle class="node-circle" cx="90" cy="250" r="32"></circle>
+              <text class="node-text" x="90" y="258" text-anchor="middle">打籃球</text>
+
+              <circle class="node-circle" cx="210" cy="250" r="32"></circle>
+              <text class="node-text" x="210" y="258" text-anchor="middle">學習</text>
+
+              <circle class="node-circle" cx="380" cy="250" r="32"></circle>
+              <text class="node-text" x="380" y="258" text-anchor="middle">學習</text>
+
+              <circle class="node-circle" cx="500" cy="250" r="32"></circle>
+              <text class="node-text" x="500" y="258" text-anchor="middle">玩遊戲</text>
+
+              <!-- Connectors -->
+              <line class="connector" x1="290" y1="90" x2="30" y2="140"></line>
+              <line class="connector" x1="290" y1="90" x2="155" y2="140"></line>
+              <line class="connector" x1="290" y1="90" x2="445" y2="140"></line>
+
+              <line class="connector" x1="155" y1="200" x2="90" y2="218"></line>
+              <line class="connector" x1="155" y1="200" x2="210" y2="218"></line>
+
+              <line class="connector" x1="445" y1="200" x2="380" y2="218"></line>
+              <line class="connector" x1="445" y1="200" x2="500" y2="218"></line>
+
+              <!-- Edge labels -->
+              <text class="edge-text" x="180" y="105" text-anchor="middle">緊急</text>
+              <text class="edge-text" x="220" y="128" text-anchor="middle">臨近</text>
+              <text class="edge-text" x="380" y="120" text-anchor="middle">暫無</text>
+
+              <text class="edge-text" x="110" y="215" text-anchor="middle">不好</text>
+              <text class="edge-text" x="200" y="215" text-anchor="middle">正常</text>
+
+              <text class="edge-text" x="390" y="215" text-anchor="middle">無約</text>
+              <text class="edge-text" x="490" y="215" text-anchor="middle">有約</text>
+            </svg>
+            <p class="article-illustration-caption">
+              圖 1：期末考情境決策樹示意圖。藍色方框為內部節點、橙色圓形為葉節點，線條標示判斷條件。
+            </p>
+          </div>
+        </div>
+
+        <div class="article-section">
+          <h2>II. 模型訓練前的資料準備</h2>
+          <div class="dataset-box" id="examDatasetBox" data-view="table">
+            <div class="dataset-header">
+              <div>
+                <span class="article-subheading">1. 準備資料</span>
+                <p style="margin: 0; color: #2b3c65; font-size: 0.92rem;">
+                  將情境資料整理成特徵與標籤，方便決策樹演算法讀取與學習。
+                </p>
+              </div>
+              <button type="button" class="dataset-switch" id="datasetSwitchBtn">
+                切換為 JSON
+              </button>
+            </div>
+            <table class="dataset-table">
+              <thead>
+                <tr>
+                  <th>期末考時間</th>
+                  <th>心情狀態</th>
+                  <th>朋友邀約</th>
+                  <th>決策行動</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>緊急</td>
+                  <td>—</td>
+                  <td>—</td>
+                  <td>學習</td>
+                </tr>
+                <tr>
+                  <td>緊急</td>
+                  <td>—</td>
+                  <td>—</td>
+                  <td>學習</td>
+                </tr>
+                <tr>
+                  <td>臨近</td>
+                  <td>心情不好</td>
+                  <td>—</td>
+                  <td>打籃球</td>
+                </tr>
+                <tr>
+                  <td>臨近</td>
+                  <td>心情不好</td>
+                  <td>—</td>
+                  <td>打籃球</td>
+                </tr>
+                <tr>
+                  <td>臨近</td>
+                  <td>心情正常</td>
+                  <td>—</td>
+                  <td>學習</td>
+                </tr>
+                <tr>
+                  <td>臨近</td>
+                  <td>心情正常</td>
+                  <td>—</td>
+                  <td>學習</td>
+                </tr>
+                <tr>
+                  <td>暫無</td>
+                  <td>—</td>
+                  <td>無約</td>
+                  <td>學習</td>
+                </tr>
+                <tr>
+                  <td>暫無</td>
+                  <td>—</td>
+                  <td>無約</td>
+                  <td>學習</td>
+                </tr>
+                <tr>
+                  <td>暫無</td>
+                  <td>—</td>
+                  <td>有約</td>
+                  <td>玩遊戲</td>
+                </tr>
+                <tr>
+                  <td>暫無</td>
+                  <td>—</td>
+                  <td>有約</td>
+                  <td>玩遊戲</td>
+                </tr>
+              </tbody>
+            </table>
+            <pre class="dataset-json" id="datasetJsonBlock">[
+  { "examTime": "緊急", "mood": null, "friendInvite": null, "action": "學習" },
+  { "examTime": "緊急", "mood": null, "friendInvite": null, "action": "學習" },
+  { "examTime": "臨近", "mood": "心情不好", "friendInvite": null, "action": "打籃球" },
+  { "examTime": "臨近", "mood": "心情不好", "friendInvite": null, "action": "打籃球" },
+  { "examTime": "臨近", "mood": "心情正常", "friendInvite": null, "action": "學習" },
+  { "examTime": "臨近", "mood": "心情正常", "friendInvite": null, "action": "學習" },
+  { "examTime": "暫無", "mood": null, "friendInvite": "無約", "action": "學習" },
+  { "examTime": "暫無", "mood": null, "friendInvite": "無約", "action": "學習" },
+  { "examTime": "暫無", "mood": null, "friendInvite": "有約", "action": "玩遊戲" },
+  { "examTime": "暫無", "mood": null, "friendInvite": "有約", "action": "玩遊戲" }
+]</pre>
+          </div>
+          <div>
+            <p class="article-subheading">2. 將資料轉為可訓練的格式</p>
+            <ul class="article-list" style="margin: 0;">
+              <li><strong>A. 確認目的（目標欄位）</strong>：標籤向量 <code>y</code>，對應「決策行動」。</li>
+              <li><strong>B. 整理特徵</strong>：視需要將類別轉數值，形成特徵矩陣 <code>X</code>。</li>
+            </ul>
+            <pre class="article-code"># 拆分特徵 (X) 與標籤 (y)
+X = [
+  ["緊急", None, None],
+  ["緊急", None, None],
+  ["臨近", "心情不好", None],
+  ["臨近", "心情不好", None],
+  ["臨近", "心情正常", None],
+  ["臨近", "心情正常", None],
+  ["暫無", None, "無約"],
+  ["暫無", None, "無約"],
+  ["暫無", None, "有約"],
+  ["暫無", None, "有約"]
+]
+
+y = ["學習", "學習", "打籃球", "打籃球", "學習", "學習", "學習", "學習", "玩遊戲", "玩遊戲"]</pre>
+          </div>
+          <div>
+            <p class="article-subheading">3. 將類別特徵轉為數值</p>
+            <pre class="article-code"># 手動映射版本（以數值向量示範）
+X = [
+  ["2", "-1", "-1"],
+  ["2", "-1", "-1"],
+  ["1", "0", "-1"],
+  ["1", "0", "-1"],
+  ["1", "1", "-1"],
+  ["1", "1", "-1"],
+  ["0", "-1", "0"],
+  ["0", "-1", "0"],
+  ["0", "-1", "1"],
+  ["0", "-1", "1"]
+]
+
+y = ["0", "0", "1", "1", "0", "0", "0", "0", "2", "2"]
+</pre>
+          </div>
+          <div>
+            <p class="article-subheading">4. 使用 Scikit-learn 訓練決策樹模型</p>
+            <div class="tab-group" data-tab-group>
+              <div class="tab-buttons">
+                <button type="button" class="tab-btn active" data-tab-target="tab-overall">
+                  整體模型
+                </button>
+                <button type="button" class="tab-btn" data-tab-target="tab-exam">
+                  期末考時間
+                </button>
+                <button type="button" class="tab-btn" data-tab-target="tab-mood">
+                  心情狀態
+                </button>
+                <button type="button" class="tab-btn" data-tab-target="tab-friend">
+                  朋友邀約
+                </button>
+              </div>
+              <div class="tab-pane active" id="tab-overall">
+                <p>
+                  以完整特徵矩陣 <code>X</code> 訓練模型，使用資訊熵（entropy）衡量資訊增益，
+                  找出最佳的分割規則。
+                </p>
+                <div class="tab-diagram">
+                  <svg viewBox="0 0 420 200" role="img" aria-label="完整決策樹">
+                    <defs>
+                      <style>
+                        .node-box { fill:#1c6cd5; stroke:#0f3d91; stroke-width:3; rx:14; ry:14; }
+                        .node-circle { fill:#ff9800; stroke:#ce6a00; stroke-width:3; }
+                        .node-text { font-family:"Segoe UI","Noto Sans TC",sans-serif; font-size:16px; fill:#ffffff; font-weight:600; }
+                        .edge-text { font-family:"Segoe UI","Noto Sans TC",sans-serif; font-size:13px; fill:#42516f; font-weight:600; }
+                        .connector { stroke:#6b7a99; stroke-width:2.6; }
+                      </style>
+                    </defs>
+                    <rect class="node-box" x="150" y="18" width="120" height="46"></rect>
+                    <text class="node-text" x="210" y="47" text-anchor="middle">期末考時間</text>
+
+                    <rect class="node-box" x="60" y="96" width="120" height="46"></rect>
+                    <text class="node-text" x="120" y="125" text-anchor="middle">心情狀態</text>
+
+                    <rect class="node-box" x="240" y="96" width="130" height="46"></rect>
+                    <text class="node-text" x="305" y="125" text-anchor="middle">朋友邀遊戲</text>
+
+                    <circle class="node-circle" cx="30" cy="96" r="28"></circle>
+                    <text class="node-text" x="30" y="103" text-anchor="middle">學習</text>
+
+                    <circle class="node-circle" cx="80" cy="174" r="28"></circle>
+                    <text class="node-text" x="80" y="182" text-anchor="middle">打籃球</text>
+
+                    <circle class="node-circle" cx="160" cy="174" r="28"></circle>
+                    <text class="node-text" x="160" y="182" text-anchor="middle">學習</text>
+
+                    <circle class="node-circle" cx="300" cy="174" r="28"></circle>
+                    <text class="node-text" x="300" y="182" text-anchor="middle">學習</text>
+
+                    <circle class="node-circle" cx="380" cy="174" r="28"></circle>
+                    <text class="node-text" x="380" y="182" text-anchor="middle">玩遊戲</text>
+
+                    <line class="connector" x1="210" y1="64" x2="120" y2="96"></line>
+                    <line class="connector" x1="210" y1="64" x2="305" y2="96"></line>
+                    <line class="connector" x1="210" y1="64" x2="30" y2="96"></line>
+
+                    <line class="connector" x1="120" y1="142" x2="80" y2="174"></line>
+                    <line class="connector" x1="120" y1="142" x2="160" y2="174"></line>
+                    <line class="connector" x1="305" y1="142" x2="300" y2="174"></line>
+                    <line class="connector" x1="305" y1="142" x2="380" y2="174"></line>
+
+                    <text class="edge-text" x="75" y="78" text-anchor="middle">緊急</text>
+                    <text class="edge-text" x="165" y="86" text-anchor="middle">臨近</text>
+                    <text class="edge-text" x="320" y="80" text-anchor="middle">暫無</text>
+                    <text class="edge-text" x="80" y="162" text-anchor="middle">不好</text>
+                    <text class="edge-text" x="160" y="162" text-anchor="middle">正常</text>
+                    <text class="edge-text" x="298" y="162" text-anchor="middle">無約</text>
+                    <text class="edge-text" x="378" y="162" text-anchor="middle">有約</text>
+                  </svg>
+                </div>
+                <pre class="article-code">from sklearn.tree import DecisionTreeClassifier, export_text
+
+clf = DecisionTreeClassifier(criterion="entropy")
+clf.fit(X, y)
+
+print(export_text(clf, feature_names=["期末考時間", "心情狀態", "朋友邀約"]))</pre>
+                <pre class="article-code">|--- 期末考時間 &lt;= 0.50
+|    |--- 朋友邀約 &lt;= 0.50
+|    |    |--- class: 學習
+|    |--- 朋友邀約 &gt;  0.50
+|         |--- class: 玩遊戲
+|--- 期末考時間 &gt;  0.50
+|    |--- 期末考時間 &lt;= 1.50
+|    |    |--- 心情狀態 &lt;= 0.50
+|    |    |    |--- class: 打籃球
+|    |    |--- 心情狀態 &gt;  0.50
+|    |         |--- class: 學習
+|    |--- 期末考時間 &gt;  1.50
+|         |--- class: 學習</pre>
+                <div class="tab-insight">
+                  <strong>解讀：</strong>完整模型先看期末考時間：緊急立即學習、臨近再看心情、暫無再看朋友邀約，雖然層次多，但覆蓋全部情境。
+                </div>
+              </div>
+              <div class="tab-pane" id="tab-exam">
+                <p>
+                  僅保留「期末考時間」單一特徵，觀察它對決策的影響。這能呈現時間壓力本身
+                  就能決定的情境。
+                </p>
+                <div class="tab-diagram">
+                  <svg viewBox="0 0 360 180" role="img" aria-label="只看期末考時間的決策樹">
+                    <defs>
+                      <style>
+                        .node-box { fill:#1c6cd5; stroke:#0f3d91; stroke-width:3; rx:14; ry:14; }
+                        .node-circle { fill:#ff9800; stroke:#ce6a00; stroke-width:3; }
+                        .node-text { font-family:"Segoe UI","Noto Sans TC",sans-serif; font-size:16px; fill:#ffffff; font-weight:600; }
+                        .edge-text { font-family:"Segoe UI","Noto Sans TC",sans-serif; font-size:13px; fill:#42516f; font-weight:600; }
+                        .connector { stroke:#6b7a99; stroke-width:2.6; }
+                      </style>
+                    </defs>
+                    <rect class="node-box" x="120" y="20" width="120" height="46"></rect>
+                    <text class="node-text" x="180" y="49" text-anchor="middle">期末考時間</text>
+
+                    <circle class="node-circle" cx="30" cy="90" r="28"></circle>
+                    <text class="node-text" x="30" y="98" text-anchor="middle">學習</text>
+
+                    <circle class="node-circle" cx="180" cy="148" r="28"></circle>
+                    <text class="node-text" x="180" y="156" text-anchor="middle">打籃球</text>
+
+                    <circle class="node-circle" cx="330" cy="90" r="28"></circle>
+                    <text class="node-text" x="330" y="98" text-anchor="middle">學習</text>
+
+                    <line class="connector" x1="180" y1="66" x2="30" y2="90"></line>
+                    <line class="connector" x1="180" y1="66" x2="330" y2="90"></line>
+                    <line class="connector" x1="180" y1="66" x2="180" y2="120"></line>
+
+                    <text class="edge-text" x="80" y="70" text-anchor="middle">暫無</text>
+                    <text class="edge-text" x="180" y="112" text-anchor="middle">臨近</text>
+                    <text class="edge-text" x="280" y="70" text-anchor="middle">緊急</text>
+                  </svg>
+                </div>
+                <pre class="article-code">from sklearn.tree import DecisionTreeClassifier, export_text
+
+X_exam_only = [[row[0]] for row in X]
+
+clf_exam = DecisionTreeClassifier(criterion="entropy")
+clf_exam.fit(X_exam_only, y)
+
+print(export_text(clf_exam, feature_names=["期末考時間"]))</pre>
+                <pre class="article-code">|--- 期末考時間 &lt;= 0.50
+|    |--- class: 學習
+|--- 期末考時間 &gt;  0.50
+|    |--- 期末考時間 &lt;= 1.50
+|    |    |--- class: 打籃球
+|    |--- 期末考時間 &gt;  1.50
+|         |--- class: 學習</pre>
+                <div class="tab-insight">
+                  <strong>解讀：</strong>期末考時間是資訊增益最大的特徵，單靠它就能分出大部分情境：只有臨近時需要再細分，其他直接得出結果。
+                </div>
+              </div>
+              <div class="tab-pane" id="tab-mood">
+                <p>
+                  僅使用「心情狀態」特徵建模，可評估心情是否能獨立決定行動。缺少該資訊時以 -1 代表未知。
+                </p>
+                <div class="tab-diagram">
+                  <svg viewBox="0 0 360 180" role="img" aria-label="只看心情狀態的決策樹">
+                    <defs>
+                      <style>
+                        .node-box { fill:#1c6cd5; stroke:#0f3d91; stroke-width:3; rx:14; ry:14; }
+                        .node-circle { fill:#ff9800; stroke:#ce6a00; stroke-width:3; }
+                        .node-text { font-family:"Segoe UI","Noto Sans TC",sans-serif; font-size:16px; fill:#ffffff; font-weight:600; }
+                        .edge-text { font-family:"Segoe UI","Noto Sans TC",sans-serif; font-size:13px; fill:#42516f; font-weight:600; }
+                        .connector { stroke:#6b7a99; stroke-width:2.6; }
+                      </style>
+                    </defs>
+                    <rect class="node-box" x="120" y="20" width="120" height="46"></rect>
+                    <text class="node-text" x="180" y="49" text-anchor="middle">心情狀態</text>
+
+                    <circle class="node-circle" cx="60" cy="130" r="28"></circle>
+                    <text class="node-text" x="60" y="138" text-anchor="middle">學習</text>
+
+                    <circle class="node-circle" cx="180" cy="130" r="28"></circle>
+                    <text class="node-text" x="180" y="138" text-anchor="middle">打籃球</text>
+
+                    <circle class="node-circle" cx="300" cy="130" r="28"></circle>
+                    <text class="node-text" x="300" y="138" text-anchor="middle">學習</text>
+
+                    <line class="connector" x1="180" y1="66" x2="60" y2="110"></line>
+                    <line class="connector" x1="180" y1="66" x2="180" y2="102"></line>
+                    <line class="connector" x1="180" y1="66" x2="300" y2="110"></line>
+
+                    <text class="edge-text" x="100" y="86" text-anchor="middle">未知</text>
+                    <text class="edge-text" x="180" y="96" text-anchor="middle">不好</text>
+                    <text class="edge-text" x="260" y="86" text-anchor="middle">正常</text>
+                  </svg>
+                </div>
+                <pre class="article-code">from sklearn.tree import DecisionTreeClassifier, export_text
+
+X_mood_only = [[row[1]] for row in X]
+
+clf_mood = DecisionTreeClassifier(criterion="entropy")
+clf_mood.fit(X_mood_only, y)
+
+print(export_text(clf_mood, feature_names=["心情狀態"]))</pre>
+                <pre class="article-code">|--- 心情狀態 &lt;= -0.50
+|    |--- class: 學習
+|--- 心情狀態 &gt;  -0.50
+|    |--- 心情狀態 &lt;= 0.50
+|    |    |--- class: 打籃球
+|    |--- 心情狀態 &gt;  0.50
+|         |--- class: 學習</pre>
+                <div class="tab-insight">
+                  <strong>解讀：</strong>心情資訊的增益較小，僅在「心情不好」時改變行動，其餘（未知或正常）都回到學習。
+              </div>
+              <div class="tab-pane" id="tab-friend">
+                <p>
+                  僅關注「朋友邀約」特徵，分析社交因素對決策的直接影響力。
+                </p>
+                <div class="tab-diagram">
+                  <svg viewBox="0 0 320 160" role="img" aria-label="只看朋友邀約的決策樹">
+                    <defs>
+                      <style>
+                        .node-box { fill:#1c6cd5; stroke:#0f3d91; stroke-width:3; rx:14; ry:14; }
+                        .node-circle { fill:#ff9800; stroke:#ce6a00; stroke-width:3; }
+                        .node-text { font-family:"Segoe UI","Noto Sans TC",sans-serif; font-size:16px; fill:#ffffff; font-weight:600; }
+                        .edge-text { font-family:"Segoe UI","Noto Sans TC",sans-serif; font-size:13px; fill:#42516f; font-weight:600; }
+                        .connector { stroke:#6b7a99; stroke-width:2.6; }
+                      </style>
+                    </defs>
+                    <rect class="node-box" x="100" y="20" width="120" height="46"></rect>
+                    <text class="node-text" x="160" y="49" text-anchor="middle">朋友邀約</text>
+
+                    <circle class="node-circle" cx="50" cy="120" r="28"></circle>
+                    <text class="node-text" x="50" y="128" text-anchor="middle">學習</text>
+
+                    <circle class="node-circle" cx="160" cy="120" r="28"></circle>
+                    <text class="node-text" x="160" y="128" text-anchor="middle">學習</text>
+
+                    <circle class="node-circle" cx="270" cy="120" r="28"></circle>
+                    <text class="node-text" x="270" y="128" text-anchor="middle">玩遊戲</text>
+
+                    <line class="connector" x1="160" y1="66" x2="50" y2="96"></line>
+                    <line class="connector" x1="160" y1="66" x2="160" y2="96"></line>
+                    <line class="connector" x1="160" y1="66" x2="270" y2="96"></line>
+
+                    <text class="edge-text" x="95" y="84" text-anchor="middle">未知</text>
+                    <text class="edge-text" x="160" y="96" text-anchor="middle">無約</text>
+                    <text class="edge-text" x="235" y="84" text-anchor="middle">有約</text>
+                  </svg>
+                </div>
+                <pre class="article-code">from sklearn.tree import DecisionTreeClassifier, export_text
+
+X_friend_only = [[row[2]] for row in X]
+
+clf_friend = DecisionTreeClassifier(criterion="entropy")
+clf_friend.fit(X_friend_only, y)
+
+print(export_text(clf_friend, feature_names=["朋友邀約"]))</pre>
+                <pre class="article-code">|--- 朋友邀約 &lt;= -0.50
+|    |--- class: 學習
+|--- 朋友邀約 &gt;  -0.50
+|    |--- 朋友邀約 &lt;= 0.50
+|    |    |--- class: 學習
+|    |--- 朋友邀約 &gt;  0.50
+|         |--- class: 玩遊戲</pre>
+                <div class="tab-insight">
+                  <strong>解讀：</strong>朋友邀約只有一個決策點，資訊增益也偏低：判斷是否有人約，搭配其他特徵才能形成完整樹。
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="article-section">
+          <h2>III. 決策樹輸出的規則化解讀（簡化示例）</h2>
+          <pre class="article-code">if AAA &lt;= 1.5:
+    if BBB == "A":
+        return "D"
+    else:
+        return "E"
+elif AAA &lt;= 2.5:
+    if BBB == "A":
+        return "F"
+    else:
+        return "G"
+else:
+    if BBB == "A":
+        # AAA = 3 且 BBB = "A" 時，可能對應 D 或 F
+        return "D" 或 "F"
+    else:
+        return "E"</pre>
+          <ul class="article-list">
+            <li><strong>AAA</strong>：主要的分類依據，先決定大方向。</li>
+            <li><strong>BBB</strong>：細分同一群組內的差異。</li>
+            <li><strong>葉節點（D、E、F、G）</strong>：最終輸出的決策或分類結果。</li>
+          </ul>
+        </div>
+      </section>
+
+    </main>
+
+    <script>
+      const defaultTree = {
+        title: "期末考時間",
+        description: "首要考慮因素",
+        type: "internal",
+        tooltip: "先判斷期末考的時間狀態",
+        children: [
+          {
+            title: "心情狀態",
+            description: "評估現在的心情",
+            type: "internal",
+            edgeLabel: "臨近",
+            tooltip: "當考試臨近時，先評估自己的心情狀態以決定策略",
+            children: [
+              {
+                title: "打籃球",
+                description: "舒緩心情",
+                edgeLabel: "心情不好",
+                type: "leaf",
+                tooltip: "心情不好 → 運動放鬆再回來學習",
+              },
+              {
+                title: "學習",
+                description: "維持專注",
+                edgeLabel: "心情正常",
+                type: "leaf",
+                tooltip:
+                  "保持節奏，充分利用臨近考試的時間進行複習",
+              },
+            ],
+          },
+          {
+            title: "朋友約遊戲",
+            description: "有朋友的遊戲邀約嗎？",
+            edgeLabel: "暫無",
+            type: "internal",
+            tooltip: "沒有考試壓力時轉向社交邀約的考量",
+            children: [
+              {
+                title: "學習",
+                description: "保持進度",
+                edgeLabel: "無約",
+                type: "leaf",
+                tooltip: "沒有額外活動 → 可專心複習或預習",
+              },
+              {
+                title: "玩遊戲",
+                description: "放鬆交流",
+                edgeLabel: "有約",
+                type: "leaf",
+                tooltip: "把握與朋友相聚的時間，但留意適度",
+              },
+            ],
+          },
+          {
+            title: "學習",
+            description: "時間緊迫，專注應戰",
+            edgeLabel: "緊急",
+            type: "leaf",
+            tooltip: "情況緊急 → 全力衝刺準備考試",
+          },
+        ],
+      };
+
+      const datasetBox = document.getElementById("examDatasetBox");
+      const datasetSwitchBtn = document.getElementById("datasetSwitchBtn");
+
+      if (datasetBox && datasetSwitchBtn) {
+        datasetSwitchBtn.addEventListener("click", () => {
+          const nextView = datasetBox.dataset.view === "table" ? "json" : "table";
+          datasetBox.dataset.view = nextView;
+          datasetSwitchBtn.textContent =
+            nextView === "json" ? "切換為表格" : "切換為 JSON";
+        });
+      }
+
+      const tabGroups = document.querySelectorAll("[data-tab-group]");
+      tabGroups.forEach((group) => {
+        const buttons = group.querySelectorAll(".tab-btn");
+        const panes = group.querySelectorAll(".tab-pane");
+
+        buttons.forEach((button) => {
+          button.addEventListener("click", () => {
+            const targetId = button.getAttribute("data-tab-target");
+
+            buttons.forEach((btn) => btn.classList.remove("active"));
+            panes.forEach((pane) => pane.classList.remove("active"));
+
+            button.classList.add("active");
+            const targetPane = group.querySelector(`#${targetId}`);
+            if (targetPane) {
+              targetPane.classList.add("active");
+            }
+          });
+        });
+      });
+
+    </script>
+  </body>
+</html>
+
