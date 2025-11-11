@@ -170,6 +170,118 @@
             line-height: 1.6;
         }
 
+        .upgrade-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(2, 6, 23, 0.78);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+            transition: opacity 0.25s ease;
+        }
+
+        .upgrade-overlay[hidden] {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .upgrade-panel {
+            width: min(420px, 92vw);
+            background: linear-gradient(145deg, rgba(15, 23, 42, 0.96), rgba(30, 41, 59, 0.9));
+            border: 1px solid rgba(148, 163, 184, 0.35);
+            border-radius: 16px;
+            padding: 24px 28px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            box-shadow: 0 28px 60px -28px rgba(56, 189, 248, 0.65);
+        }
+
+        .upgrade-panel h2 {
+            font-size: 1.3rem;
+            letter-spacing: 0.08em;
+            color: #38bdf8;
+        }
+
+        .upgrade-panel p {
+            font-size: 0.92rem;
+            color: #cbd5f5;
+            line-height: 1.55;
+        }
+
+        .upgrade-options {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .upgrade-card {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            padding: 14px 16px;
+            background: linear-gradient(140deg, rgba(56, 189, 248, 0.18), rgba(59, 130, 246, 0.12));
+            border: 1px solid rgba(148, 163, 184, 0.32);
+            border-radius: 12px;
+            transition: transform 0.18s ease, border-color 0.18s ease, background 0.18s ease;
+            text-align: left;
+            color: #e2e8f0;
+        }
+
+        .upgrade-card:hover,
+        .upgrade-card:focus-visible {
+            transform: translateY(-2px);
+            border-color: rgba(56, 189, 248, 0.55);
+            background: linear-gradient(140deg, rgba(56, 189, 248, 0.26), rgba(59, 130, 246, 0.2));
+            outline: none;
+        }
+
+        .upgrade-card:disabled {
+            opacity: 0.45;
+            transform: none;
+            cursor: not-allowed;
+            border-color: rgba(148, 163, 184, 0.2);
+            background: linear-gradient(140deg, rgba(71, 85, 105, 0.2), rgba(30, 41, 59, 0.3));
+        }
+
+        .upgrade-card .title {
+            font-size: 1rem;
+            font-weight: 600;
+            color: #38bdf8;
+        }
+
+        .upgrade-card .meta {
+            font-size: 0.78rem;
+            letter-spacing: 0.12em;
+            color: #94a3b8;
+            text-transform: uppercase;
+        }
+
+        .upgrade-card .desc {
+            font-size: 0.88rem;
+            color: #cbd5f5;
+            line-height: 1.45;
+        }
+
+        .upgrade-actions {
+            display: flex;
+            justify-content: flex-end;
+        }
+
+        .upgrade-actions button {
+            background: linear-gradient(135deg, #475569, #1e293b);
+            color: #e2e8f0;
+            border: 1px solid rgba(148, 163, 184, 0.4);
+        }
+
+        .upgrade-actions button:hover,
+        .upgrade-actions button:focus-visible {
+            transform: translateY(-1px);
+            box-shadow: 0 10px 24px -12px rgba(14, 165, 233, 0.4);
+            outline: none;
+        }
+
         @media (max-width: 640px) {
             .hud {
                 flex-direction: column;
@@ -194,6 +306,7 @@
                 <span>分數 <strong id="scoreDisplay">0</strong></span>
                 <span>生命 <strong id="livesDisplay">3</strong></span>
                 <span>波次 <strong id="waveDisplay">1</strong></span>
+                <span>無人機 <strong id="droneLevelDisplay">Lv0</strong></span>
             </div>
             <div class="actions">
                 <button type="button" id="startButton">開始遊戲</button>
@@ -213,6 +326,17 @@
         </div>
     </div>
 
+    <div class="upgrade-overlay" id="upgradeOverlay" hidden role="dialog" aria-modal="true" aria-labelledby="upgradeTitle">
+        <div class="upgrade-panel">
+            <h2 id="upgradeTitle">選擇升級</h2>
+            <p id="upgradeSubtitle">選擇一項能力強化。</p>
+            <div class="upgrade-options" id="upgradeOptions"></div>
+            <div class="upgrade-actions">
+                <button type="button" id="skipUpgradeButton">下次再說</button>
+            </div>
+        </div>
+    </div>
+
     <script>
         (() => {
             const canvas = document.getElementById('gameCanvas');
@@ -221,6 +345,7 @@
             const scoreDisplay = document.getElementById('scoreDisplay');
             const livesDisplay = document.getElementById('livesDisplay');
             const waveDisplay = document.getElementById('waveDisplay');
+            const droneLevelDisplay = document.getElementById('droneLevelDisplay');
             const statusMessage = document.getElementById('statusMessage');
 
             const startButton = document.getElementById('startButton');
@@ -229,6 +354,10 @@
             const overlayTitle = document.getElementById('overlayTitle');
             const overlayText = document.getElementById('overlayText');
             const overlayButton = document.getElementById('overlayButton');
+            const upgradeOverlay = document.getElementById('upgradeOverlay');
+            const upgradeOptions = document.getElementById('upgradeOptions');
+            const upgradeSubtitle = document.getElementById('upgradeSubtitle');
+            const skipUpgradeButton = document.getElementById('skipUpgradeButton');
 
             const state = {
                 running: false,
@@ -239,7 +368,11 @@
                 wave: 1,
                 spawnTimer: 0,
                 spawnInterval: 1.4,
-                statusTimer: 0
+                statusTimer: 0,
+                upgrading: false,
+                pendingUpgrades: [],
+                currentUpgrade: null,
+                droneLevelTwoQueued: false
             };
 
             const controls = {
@@ -262,6 +395,14 @@
 
             const bullets = [];
             const enemies = [];
+            const powerups = [];
+            const drones = [];
+            const droneBullets = [];
+
+            const droneWeapon = {
+                level: 0,
+                maxLevel: 10
+            };
 
             const keyMap = {
                 ArrowLeft: 'left',
@@ -287,9 +428,18 @@
                 state.statusTimer = 0;
                 bullets.length = 0;
                 enemies.length = 0;
+                powerups.length = 0;
+                drones.length = 0;
+                droneBullets.length = 0;
+                droneWeapon.level = 0;
                 player.x = canvas.width / 2 - player.width / 2;
                 player.y = canvas.height - 90;
                 player.cooldownTimer = 0;
+                state.upgrading = false;
+                state.pendingUpgrades.length = 0;
+                state.currentUpgrade = null;
+                state.droneLevelTwoQueued = false;
+                upgradeOverlay.hidden = true;
                 updateHUD();
                 statusMessage.textContent = '';
                 messageOverlay.hidden = true;
@@ -309,6 +459,10 @@
                     return;
                 }
 
+                if (state.upgrading) {
+                    return;
+                }
+
                 state.paused = !state.paused;
                 pauseButton.textContent = state.paused ? '繼續' : '暫停';
                 pauseButton.setAttribute('aria-pressed', String(state.paused));
@@ -321,12 +475,18 @@
                 messageOverlay.hidden = false;
                 overlayTitle.textContent = victory ? '任務完成！' : '遊戲結束';
                 overlayText.textContent = `本次得分：${state.score}\n最高波次：${state.wave}`;
+                upgradeOverlay.hidden = true;
+                state.upgrading = false;
+                state.pendingUpgrades.length = 0;
+                state.currentUpgrade = null;
+                state.droneLevelTwoQueued = false;
             }
 
             function updateHUD() {
                 scoreDisplay.textContent = state.score;
                 livesDisplay.textContent = state.lives;
                 waveDisplay.textContent = state.wave;
+                droneLevelDisplay.textContent = `Lv${droneWeapon.level}`;
             }
 
             function announce(message, duration = 2.2) {
@@ -383,6 +543,21 @@
                         bullets.splice(i, 1);
                     }
                 }
+
+                for (let i = droneBullets.length - 1; i >= 0; i -= 1) {
+                    const bullet = droneBullets[i];
+                    bullet.x += bullet.vx * dt;
+                    bullet.y += bullet.vy * dt;
+
+                    if (
+                        bullet.x < -40 ||
+                        bullet.x > canvas.width + 40 ||
+                        bullet.y < -60 ||
+                        bullet.y > canvas.height + 60
+                    ) {
+                        droneBullets.splice(i, 1);
+                    }
+                }
             }
 
             function updateEnemies(dt) {
@@ -407,17 +582,44 @@
                         continue;
                     }
 
+                    let removed = false;
+
                     for (let j = bullets.length - 1; j >= 0; j -= 1) {
                         const bullet = bullets[j];
                         if (rectsIntersect(enemy, bullet)) {
                             enemies.splice(i, 1);
                             bullets.splice(j, 1);
                             state.score += 120;
+                            maybeDropPowerup(enemy);
                             updateWave();
                             updateHUD();
                             announce('擊墜敵機 +120 分', 1.2);
+                            removed = true;
                             break;
                         }
+                    }
+
+                    if (removed) {
+                        continue;
+                    }
+
+                    for (let j = droneBullets.length - 1; j >= 0; j -= 1) {
+                        const bullet = droneBullets[j];
+                        if (rectsIntersect(enemy, bullet)) {
+                            enemies.splice(i, 1);
+                            droneBullets.splice(j, 1);
+                            state.score += 150;
+                            maybeDropPowerup(enemy);
+                            updateWave();
+                            updateHUD();
+                            announce('無人機殲滅 +150 分', 1.2);
+                            removed = true;
+                            break;
+                        }
+                    }
+
+                    if (removed) {
+                        continue;
                     }
                 }
             }
@@ -442,6 +644,9 @@
                     state.wave = nextWave;
                     state.spawnInterval = Math.max(0.6, 1.4 - (state.wave - 1) * 0.12);
                     announce(`第 ${state.wave} 波來襲！`, 2.4);
+                    if (state.wave > 1) {
+                        queueUpgrade();
+                    }
                 }
             }
 
@@ -454,9 +659,247 @@
                 );
             }
 
+            function maybeDropPowerup(enemy) {
+                if (
+                    droneWeapon.level >= droneWeapon.maxLevel ||
+                    Math.random() > 0.18
+                ) {
+                    return;
+                }
+
+                powerups.push({
+                    type: 'drone',
+                    x: enemy.x + enemy.width / 2 - 14,
+                    y: enemy.y + enemy.height / 2 - 14,
+                    width: 28,
+                    height: 28,
+                    speed: 120
+                });
+            }
+
+            function upgradeDroneWeapon() {
+                if (droneWeapon.level >= droneWeapon.maxLevel) {
+                    return;
+                }
+
+                droneWeapon.level += 1;
+                addDroneUnit();
+                updateHUD();
+
+                if (droneWeapon.level === 1 && !state.droneLevelTwoQueued) {
+                    state.droneLevelTwoQueued = true;
+                    state.pendingUpgrades.push({ type: 'drone', source: 'unlock' });
+                }
+
+                if (droneWeapon.level === droneWeapon.maxLevel) {
+                    announce('無人機支援已達滿級！', 3);
+                } else {
+                    announce(`無人機支援等級 ${droneWeapon.level}`, 2.4);
+                }
+
+                if (droneWeapon.level >= droneWeapon.maxLevel && state.upgrading) {
+                    upgradeSubtitle.textContent = '無人機支援已達上限。';
+                }
+            }
+
+            function queueUpgrade(source = 'wave') {
+                if (droneWeapon.level >= droneWeapon.maxLevel) {
+                    return;
+                }
+
+                state.pendingUpgrades.push({ type: 'drone', source });
+                if (!state.upgrading) {
+                    showUpgradeOverlay();
+                }
+            }
+
+            function showUpgradeOverlay() {
+                if (state.upgrading || state.pendingUpgrades.length === 0) {
+                    return;
+                }
+
+                state.currentUpgrade = state.pendingUpgrades.shift();
+                state.upgrading = true;
+                state.paused = true;
+                pauseButton.textContent = '繼續';
+                pauseButton.setAttribute('aria-pressed', 'true');
+                statusMessage.innerHTML = '<span>選擇升級</span>';
+                upgradeSubtitle.textContent = state.currentUpgrade?.source === 'powerup'
+                    ? '你獲得了一個強化核心，選擇要如何使用。'
+                    : '選擇一項能力強化。';
+                upgradeOverlay.hidden = false;
+                renderUpgradeOptions();
+            }
+
+            function renderUpgradeOptions() {
+                upgradeOptions.textContent = '';
+
+                if (!state.currentUpgrade) {
+                    const card = document.createElement('div');
+                    card.className = 'upgrade-card';
+                    card.innerHTML = `
+                        <span class="title">暫無可用升級</span>
+                        <span class="meta">提示</span>
+                        <span class="desc">目前沒有可選擇的升級項目。</span>
+                    `;
+                    upgradeOptions.append(card);
+                    skipUpgradeButton.textContent = '關閉';
+                    return;
+                }
+
+                if (droneWeapon.level >= droneWeapon.maxLevel) {
+                    const card = document.createElement('div');
+                    card.className = 'upgrade-card';
+                    card.setAttribute('aria-disabled', 'true');
+                    card.innerHTML = `
+                        <span class="title">無人機支援</span>
+                        <span class="meta">MAX</span>
+                        <span class="desc">所有無人機已達最高效率。</span>
+                    `;
+                    upgradeOptions.append(card);
+                    skipUpgradeButton.textContent = '確定';
+                    return;
+                }
+
+                const nextLevel = droneWeapon.level + 1;
+                const card = document.createElement('button');
+                card.type = 'button';
+                card.className = 'upgrade-card';
+                card.innerHTML = `
+                    <span class="title">無人機支援</span>
+                    <span class="meta">Lv ${droneWeapon.level} → Lv ${nextLevel}</span>
+                    <span class="desc">召喚並強化環繞無人機，鎖定目標並提供致命火力支援。</span>
+                `;
+                card.addEventListener('click', () => {
+                    upgradeDroneWeapon();
+                    completeUpgrade(true);
+                });
+                upgradeOptions.append(card);
+                skipUpgradeButton.textContent = '下次再說';
+            }
+
+            function completeUpgrade(applied = false) {
+                if (!state.upgrading) {
+                    return;
+                }
+
+                upgradeOverlay.hidden = true;
+                state.upgrading = false;
+                state.currentUpgrade = null;
+                state.paused = false;
+                pauseButton.textContent = '暫停';
+                pauseButton.setAttribute('aria-pressed', 'false');
+
+                if (!applied) {
+                    announce('已略過升級', 1.6);
+                }
+
+                if (state.pendingUpgrades.length > 0) {
+                    showUpgradeOverlay();
+                }
+            }
+
+            function addDroneUnit() {
+                const angle = Math.random() * Math.PI * 2;
+                drones.push({
+                    angle,
+                    fireCooldown: 0
+                });
+            }
+
+            function updatePowerups(dt) {
+                for (let i = powerups.length - 1; i >= 0; i -= 1) {
+                    const powerup = powerups[i];
+                    powerup.y += powerup.speed * dt;
+
+                    if (powerup.y > canvas.height + 40) {
+                        powerups.splice(i, 1);
+                        continue;
+                    }
+
+                    if (rectsIntersect(powerup, player)) {
+                        powerups.splice(i, 1);
+                        if (powerup.type === 'drone') {
+                            queueUpgrade('powerup');
+                            if (!state.upgrading) {
+                                announce('取得無人機強化核心', 2);
+                            }
+                        }
+                    }
+                }
+            }
+
+            function updateDrones(dt) {
+                if (!drones.length) {
+                    return;
+                }
+
+                const playerCenterX = player.x + player.width / 2;
+                const playerCenterY = player.y + player.height / 2;
+                const orbitRadius = 74 + droneWeapon.level * 3;
+                const fireInterval = Math.max(0.3, 1.2 - droneWeapon.level * 0.08);
+                const rotationSpeed = 0.9 + Math.min(1.8, droneWeapon.level * 0.12);
+
+                drones.forEach(drone => {
+                    drone.angle += rotationSpeed * dt;
+                    drone.x = playerCenterX + Math.cos(drone.angle) * orbitRadius;
+                    drone.y = playerCenterY + Math.sin(drone.angle) * orbitRadius;
+                    drone.fireCooldown = Math.max(0, drone.fireCooldown - dt);
+
+                    if (enemies.length === 0 || drone.fireCooldown > 0) {
+                        return;
+                    }
+
+                    const target = findNearestEnemy(drone.x, drone.y);
+                    if (!target) {
+                        return;
+                    }
+
+                    fireDroneBullet(drone.x, drone.y, target);
+                    drone.fireCooldown = fireInterval;
+                });
+            }
+
+            function findNearestEnemy(x, y) {
+                let nearest = null;
+                let nearestDistSq = Infinity;
+                enemies.forEach(enemy => {
+                    const cx = enemy.x + enemy.width / 2;
+                    const cy = enemy.y + enemy.height / 2;
+                    const dx = cx - x;
+                    const dy = cy - y;
+                    const distSq = dx * dx + dy * dy;
+                    if (distSq < nearestDistSq) {
+                        nearest = enemy;
+                        nearestDistSq = distSq;
+                    }
+                });
+                return nearest;
+            }
+
+            function fireDroneBullet(x, y, target) {
+                const cx = target.x + target.width / 2;
+                const cy = target.y + target.height / 2;
+                const dx = cx - x;
+                const dy = cy - y;
+                const length = Math.max(Math.hypot(dx, dy), 1);
+                const speed = 620;
+
+                droneBullets.push({
+                    x: x - 4,
+                    y: y - 4,
+                    width: 8,
+                    height: 8,
+                    vx: (dx / length) * speed,
+                    vy: (dy / length) * speed
+                });
+            }
+
             function update(dt) {
                 handleInput(dt);
+                updateDrones(dt);
                 updateBullets(dt);
+                updatePowerups(dt);
                 updateEnemies(dt);
 
                 state.spawnTimer += dt;
@@ -507,6 +950,57 @@
                     ctx.fillRect(bullet.x, bullet.y, bullet.width, bullet.height);
                 });
 
+                droneBullets.forEach(bullet => {
+                    const gradient = ctx.createRadialGradient(
+                        bullet.x + bullet.width / 2,
+                        bullet.y + bullet.height / 2,
+                        0,
+                        bullet.x + bullet.width / 2,
+                        bullet.y + bullet.height / 2,
+                        12
+                    );
+                    gradient.addColorStop(0, '#f472b6');
+                    gradient.addColorStop(1, 'rgba(244, 114, 182, 0)');
+                    ctx.fillStyle = gradient;
+                    ctx.fillRect(bullet.x, bullet.y, bullet.width, bullet.height);
+                });
+
+                powerups.forEach(powerup => {
+                    const gradient = ctx.createLinearGradient(powerup.x, powerup.y, powerup.x, powerup.y + powerup.height);
+                    gradient.addColorStop(0, '#22d3ee');
+                    gradient.addColorStop(1, '#0ea5e9');
+                    ctx.fillStyle = gradient;
+                    ctx.fillRect(powerup.x, powerup.y, powerup.width, powerup.height);
+                    ctx.strokeStyle = 'rgba(15, 23, 42, 0.9)';
+                    ctx.lineWidth = 2;
+                    ctx.strokeRect(powerup.x, powerup.y, powerup.width, powerup.height);
+                    ctx.fillStyle = '#020617';
+                    ctx.font = 'bold 16px "Segoe UI"';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillText('D', powerup.x + powerup.width / 2, powerup.y + powerup.height / 2 + 1);
+                });
+
+                drones.forEach(drone => {
+                    if (typeof drone.x === 'undefined' || typeof drone.y === 'undefined') {
+                        return;
+                    }
+                    ctx.save();
+                    ctx.translate(drone.x, drone.y);
+                    ctx.rotate(drone.angle);
+                    ctx.fillStyle = '#fbbf24';
+                    ctx.beginPath();
+                    ctx.moveTo(0, -12);
+                    ctx.lineTo(10, 12);
+                    ctx.lineTo(-10, 12);
+                    ctx.closePath();
+                    ctx.fill();
+                    ctx.strokeStyle = '#f59e0b';
+                    ctx.lineWidth = 2;
+                    ctx.stroke();
+                    ctx.restore();
+                });
+
                 enemies.forEach(enemy => {
                     const enemyGradient = ctx.createLinearGradient(enemy.x, enemy.y, enemy.x, enemy.y + enemy.height);
                     enemyGradient.addColorStop(0, '#f97316');
@@ -541,6 +1035,7 @@
             startButton.addEventListener('click', startGame);
             pauseButton.addEventListener('click', togglePause);
             overlayButton.addEventListener('click', startGame);
+            skipUpgradeButton.addEventListener('click', () => completeUpgrade(false));
 
             document.addEventListener('visibilitychange', () => {
                 if (document.hidden && state.running && !state.paused) {

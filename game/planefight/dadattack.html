@@ -349,9 +349,16 @@
         const enemies = [];
         const projectiles = [];
         const xpOrbs = [];
+        const drones = [];
+        const droneShots = [];
         const particles = [];
         const damageNumbers = [];
         const auraRipples = [];
+
+        const droneSystem = {
+            level: 0,
+            maxLevel: 10
+        };
 
         let kills = 0;
         let elapsedTime = 0;
@@ -385,6 +392,7 @@
             auraRadius: 0,
             auraDamage: 0,
             auraTickTimer: 0,
+            droneLevel: 0,
             upgrades: {}
         };
 
@@ -481,6 +489,21 @@
                 }
             },
             {
+                id: 'drone',
+                name: '無人機支援',
+                maxLevel: droneSystem.maxLevel,
+                description: (level) => {
+                    const fleetSize = Math.min(level, 6);
+                    const delay = Math.max(0.4, 1.35 - level * 0.08);
+                    return `部署 ${fleetSize} 架無人機，環繞射擊（冷卻 ${delay.toFixed(2)} 秒）`;
+                },
+                apply: (level) => {
+                    player.droneLevel = level;
+                    droneSystem.level = level;
+                    synchronizeDroneFleet();
+                }
+            },
+            {
                 id: 'heal',
                 name: '緊急補給',
                 maxLevel: 99,
@@ -522,7 +545,11 @@
             player.auraRadius = 0;
             player.auraDamage = 0;
             player.auraTickTimer = 0;
+            player.droneLevel = 0;
             player.upgrades = {};
+            drones.length = 0;
+            droneShots.length = 0;
+            droneSystem.level = 0;
         }
 
         function startGame() {
@@ -585,7 +612,9 @@
             updatePlayer(delta);
             applyPassiveRegen(delta);
             handleFiring(delta);
+            updateDrones(delta);
             updateProjectiles(delta);
+            updateDroneShots(delta);
             updateEnemies(delta);
             handleAura(delta);
             updateExperienceOrbs(delta);
@@ -710,6 +739,141 @@
                         if (enemy.health <= 0) {
                             eliminateEnemy(j);
                         }
+                        break;
+                    }
+                }
+            }
+        }
+
+        function findNearestEnemyToPoint(x, y) {
+            let closest = null;
+            let closestDist = Infinity;
+            for (const enemy of enemies) {
+                const dx = enemy.x - x;
+                const dy = enemy.y - y;
+                const dist = dx * dx + dy * dy;
+                if (dist < closestDist) {
+                    closestDist = dist;
+                    closest = enemy;
+                }
+            }
+            return closest;
+        }
+
+        function synchronizeDroneFleet() {
+            const targetCount = Math.min(player.droneLevel, 6);
+            while (drones.length < targetCount) {
+                drones.push({
+                    angle: Math.random() * Math.PI * 2,
+                    fireCooldown: Math.random() * droneFireDelay()
+                });
+            }
+            while (drones.length > targetCount) {
+                drones.pop();
+            }
+        }
+
+        function droneFireDelay() {
+            if (player.droneLevel <= 0) {
+                return 1.6;
+            }
+            return Math.max(0.35, 1.35 - player.droneLevel * 0.08);
+        }
+
+        function droneOrbitRadius() {
+            return 120 + player.droneLevel * 6;
+        }
+
+        function droneRotationSpeed() {
+            return 0.8 + Math.min(1.6, player.droneLevel * 0.09);
+        }
+
+        function spawnDroneShot(origin, target) {
+            const dx = target.x - origin.x;
+            const dy = target.y - origin.y;
+            const distance = Math.hypot(dx, dy) || 1;
+            const speed = 560 + player.droneLevel * 25;
+            droneShots.push({
+                x: origin.x,
+                y: origin.y,
+                vx: (dx / distance) * speed,
+                vy: (dy / distance) * speed,
+                radius: 7,
+                life: 1.15
+            });
+        }
+
+        function spawnDroneImpact(x, y) {
+            for (let i = 0; i < 10; i++) {
+                const angle = Math.random() * Math.PI * 2;
+                const speed = 180 + Math.random() * 160;
+                particles.push({
+                    x,
+                    y,
+                    vx: Math.cos(angle) * speed,
+                    vy: Math.sin(angle) * speed,
+                    radius: 3 + Math.random() * 3,
+                    life: 0.25 + Math.random() * 0.15,
+                    color: 'rgba(236, 72, 153, 0.45)'
+                });
+            }
+        }
+
+        function updateDrones(delta) {
+            if (player.droneLevel <= 0 || drones.length === 0) {
+                return;
+            }
+
+            const radius = droneOrbitRadius();
+            const rotation = droneRotationSpeed();
+            const fireDelay = droneFireDelay();
+
+            drones.forEach((drone) => {
+                drone.angle += rotation * delta;
+                const cos = Math.cos(drone.angle);
+                const sin = Math.sin(drone.angle);
+                drone.x = player.x + cos * radius;
+                drone.y = player.y + sin * radius;
+                drone.fireCooldown = Math.max(0, (drone.fireCooldown || 0) - delta);
+
+                if (drone.fireCooldown > 0 || enemies.length === 0) {
+                    return;
+                }
+
+                const target = findNearestEnemyToPoint(drone.x, drone.y);
+                if (!target) {
+                    return;
+                }
+
+                spawnDroneShot(drone, target);
+                drone.fireCooldown = fireDelay;
+            });
+        }
+
+        function updateDroneShots(delta) {
+            for (let i = droneShots.length - 1; i >= 0; i--) {
+                const shot = droneShots[i];
+                shot.x += shot.vx * delta;
+                shot.y += shot.vy * delta;
+                shot.life -= delta;
+
+                if (
+                    shot.life <= 0 ||
+                    shot.x < -80 || shot.x > canvas.width + 80 ||
+                    shot.y < -80 || shot.y > canvas.height + 80
+                ) {
+                    droneShots.splice(i, 1);
+                    continue;
+                }
+
+                for (let j = enemies.length - 1; j >= 0; j--) {
+                    const enemy = enemies[j];
+                    const distance = Math.hypot(enemy.x - shot.x, enemy.y - shot.y);
+                    if (distance <= enemy.radius + shot.radius) {
+                        spawnDamageNumber(enemy, enemy.health);
+                        spawnDroneImpact(enemy.x, enemy.y);
+                        eliminateEnemy(j);
+                        droneShots.splice(i, 1);
                         break;
                     }
                 }
@@ -921,12 +1085,16 @@
             }
 
             const auraUpgrade = UPGRADE_DEFS.find(up => up.id === 'aura');
+            const droneUpgrade = UPGRADE_DEFS.find(up => up.id === 'drone');
             const options = [];
             if (auraUpgrade) {
                 options.push(auraUpgrade);
             }
+            if (droneUpgrade && (player.upgrades[droneUpgrade.id] || 0) < droneUpgrade.maxLevel) {
+                options.push(droneUpgrade);
+            }
 
-            let pool = available.filter(upgrade => upgrade.id !== 'aura');
+            let pool = available.filter(upgrade => upgrade.id !== 'aura' && upgrade.id !== 'drone');
             if (pool.length === 0) {
                 const healUpgrade = UPGRADE_DEFS.find(up => up.id === 'heal');
                 if (healUpgrade) pool = [healUpgrade];
@@ -1119,6 +1287,46 @@
             });
         }
 
+        function drawDroneShots() {
+            droneShots.forEach((shot) => {
+                const gradient = ctx.createRadialGradient(shot.x, shot.y, 0, shot.x, shot.y, shot.radius * 2.6);
+                gradient.addColorStop(0, 'rgba(244, 114, 182, 0.95)');
+                gradient.addColorStop(1, 'rgba(244, 114, 182, 0)');
+                ctx.fillStyle = gradient;
+                ctx.beginPath();
+                ctx.arc(shot.x, shot.y, shot.radius, 0, Math.PI * 2);
+                ctx.fill();
+            });
+        }
+
+        function drawDrones() {
+            if (drones.length === 0) {
+                return;
+            }
+
+            ctx.save();
+            drones.forEach((drone) => {
+                if (typeof drone.x === 'undefined') {
+                    return;
+                }
+                ctx.save();
+                ctx.translate(drone.x, drone.y);
+                ctx.rotate(drone.angle);
+                ctx.fillStyle = '#f59e0b';
+                ctx.beginPath();
+                ctx.moveTo(0, -10);
+                ctx.lineTo(12, 10);
+                ctx.lineTo(-12, 10);
+                ctx.closePath();
+                ctx.fill();
+                ctx.strokeStyle = '#f97316';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+                ctx.restore();
+            });
+            ctx.restore();
+        }
+
         function drawExperienceOrbs() {
             xpOrbs.forEach((orb) => {
                 const gradient = ctx.createRadialGradient(orb.x, orb.y, 0, orb.x, orb.y, orb.radius * 1.6);
@@ -1230,7 +1438,9 @@
             drawExperienceOrbs();
             drawAura();
             drawEnemies();
+            drawDroneShots();
             drawProjectiles();
+            drawDrones();
             drawAuraRipples();
             drawParticlesLayer();
             drawPlayer();
