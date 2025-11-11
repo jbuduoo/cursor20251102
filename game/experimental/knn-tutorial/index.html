@@ -389,7 +389,8 @@
         }
 
         .step-distance-item.highlight {
-            background: linear-gradient(135deg, #1a73e8 0%, #4285f4 100%);
+            background: linear-gradient(135deg, #a8c5f0 0%, #b8d0f5 100%);
+            color: #333;
             font-weight: 600;
         }
 
@@ -551,6 +552,73 @@
             color: #856404;
             margin: 4px 0;
         }
+
+        .data-format-explanation {
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px dashed #dee2e6;
+        }
+
+        .data-example-code {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 6px;
+            padding: 10px;
+            margin-bottom: 10px;
+            font-family: 'Courier New', monospace;
+        }
+
+        .data-example-code code {
+            color: #495057;
+            font-size: 0.9em;
+            font-weight: 600;
+        }
+
+        .data-explanation-list {
+            margin-bottom: 12px;
+        }
+
+        .data-feature-item {
+            padding: 6px 0;
+            color: #495057;
+            font-size: 0.85em;
+            line-height: 1.5;
+        }
+
+        .data-feature-item strong {
+            color: #1a73e8;
+            font-weight: 600;
+        }
+
+        .download-section {
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px dashed #dee2e6;
+        }
+
+        .download-btn {
+            width: 100%;
+            padding: 10px 16px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.9em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+        }
+
+        .download-btn:hover {
+            background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        .download-btn:active {
+            transform: translateY(0);
+        }
     </style>
 </head>
 <body>
@@ -568,14 +636,6 @@
                 <li>
                     <strong>訓練資料已包含正確的類別標籤：</strong>
                     畫布上的藍色圓形和紅色方形代表訓練資料點，這些點已經被正確標記為「類別 A」（藍色）或「類別 B」（紅色）。這些標籤（label）是 KNN 演算法進行分類的基礎，演算法會根據這些已知標籤來預測新測試點的類別。
-                    <div class="data-example">
-                        <code>{ x: 10, y: 85, label: 'A' }</code>
-                    </div>
-                    <div class="data-explanation">
-                        <div class="feature"><strong>x: 10</strong> 是一個特徵值（第一個特徵）。</div>
-                        <div class="feature"><strong>y: 85</strong> 是另一個特徵值（第二個特徵）。</div>
-                        <div class="feature"><strong>label: 'A'</strong> 是這個點的標籤（我們想要預測的答案）。</div>
-                    </div>
                 </li>
             </ul>
         </div>
@@ -591,6 +651,11 @@
                     在 800×600 像素的畫布上隨機生成 50 個訓練資料點，分為兩類：
                     藍色圓形代表「類別 A」，紅色方形代表「類別 B」。
                     資料點略有分佈重疊，以創造有趣的決策邊界。
+                </div>
+                <div class="download-section">
+                    <button id="downloadDataBtn" class="download-btn" type="button">
+                        📄 查看訓練資料範例 (JSON)
+                    </button>
                 </div>
             </div>
             <div class="step" id="step-2">
@@ -624,7 +689,7 @@
                 <span class="step-number">3</span>
                 <span class="step-title">放置測試點</span>
                 <div class="step-description">
-                    點擊畫布上的任意位置來放置一個測試點（綠色星號）。
+                    點擊畫布上的任意位置來放置一個測試點（星號）。
                     這個點就是我們要分類的新資料點。
                 </div>
                 <div class="step-instruction">
@@ -708,7 +773,7 @@
                         </div>
                         <div class="legend-item">
                             <div class="legend-color star"></div>
-                            <span>測試點 (綠色星號)</span>
+                            <span>測試點 (星號)</span>
                         </div>
                     </div>
                 </div>
@@ -735,6 +800,7 @@
         let classBCountDisplayStep;
         let stepDistanceList;
         let stepDistanceItems;
+        let downloadDataBtn;
 
         // ==================== 調整 Canvas 大小 ====================
         function resizeCanvas() {
@@ -768,6 +834,7 @@
             classBCountDisplayStep = document.getElementById('class-b-count-step');
             stepDistanceList = document.getElementById('step-distance-list');
             stepDistanceItems = document.getElementById('step-distance-items');
+            downloadDataBtn = document.getElementById('downloadDataBtn');
 
             // 檢查元素是否存在
             if (!canvas || !kSelect) {
@@ -838,6 +905,13 @@
                     draw();
                 }, 500);
             });
+
+            // 下載訓練資料按鈕
+            if (downloadDataBtn) {
+                downloadDataBtn.addEventListener('click', () => {
+                    downloadTrainingDataJSON();
+                });
+            }
         }
 
         // ==================== 生成訓練資料 ====================
@@ -864,6 +938,93 @@
                     class: 'B'
                 });
             }
+        }
+
+        // ==================== 在新分頁顯示訓練資料 JSON ====================
+        function downloadTrainingDataJSON() {
+            // 生成50筆訓練資料範例
+            const sampleData = [];
+            const canvasWidth = 800;
+            const canvasHeight = 600;
+            
+            // 生成類別 A 的點（25筆）
+            for (let i = 0; i < 25; i++) {
+                const x = Math.random() * canvasWidth * 0.4 + canvasWidth * 0.1;
+                const y = Math.random() * canvasHeight * 0.4 + canvasHeight * 0.1;
+                sampleData.push({
+                    x: Math.round(x * 100) / 100,
+                    y: Math.round(y * 100) / 100,
+                    label: 'A'
+                });
+            }
+            
+            // 生成類別 B 的點（25筆）
+            for (let i = 0; i < 25; i++) {
+                const x = Math.random() * canvasWidth * 0.4 + canvasWidth * 0.4;
+                const y = Math.random() * canvasHeight * 0.4 + canvasHeight * 0.4;
+                sampleData.push({
+                    x: Math.round(x * 100) / 100,
+                    y: Math.round(y * 100) / 100,
+                    label: 'B'
+                });
+            }
+            
+            // 轉換為 JSON 字串（格式化）
+            const jsonString = JSON.stringify(sampleData, null, 2);
+            
+            // 轉義 JSON 字串以安全地插入 HTML
+            const escapedJsonString = jsonString
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;');
+            
+            // 構建 HTML 內容 - 使用字符串拼接避免语法错误
+            let htmlContent = '<!DOCTYPE html>\n';
+            htmlContent += '<html lang="zh-TW">\n';
+            htmlContent += '<head>\n';
+            htmlContent += '<meta charset="UTF-8">\n';
+            htmlContent += '<meta name="viewport" content="width=device-width, initial-scale=1.0">\n';
+            htmlContent += '<title>KNN 訓練資料範例 - JSON</title>\n';
+            htmlContent += '<style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:"Segoe UI",Tahoma,Geneva,Verdana,sans-serif;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);padding:20px;min-height:100vh}.container{max-width:1200px;margin:0 auto;background:white;border-radius:12px;box-shadow:0 10px 40px rgba(0,0,0,0.2);overflow:hidden}.header{background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);color:white;padding:30px;text-align:center}.header h1{font-size:2em;margin-bottom:10px}.header p{font-size:1.1em;opacity:0.9}.content{padding:30px}.info-box{background:#f8f9fa;border-left:4px solid #667eea;padding:15px 20px;margin-bottom:20px;border-radius:4px}.info-box p{color:#495057;line-height:1.6}pre{background:#282c34;color:#abb2bf;padding:20px;border-radius:8px;overflow-x:auto;font-family:"Courier New",monospace;font-size:14px;line-height:1.5;box-shadow:0 4px 12px rgba(0,0,0,0.1)}.copy-btn{margin-top:15px;padding:12px 24px;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);color:white;border:none;border-radius:8px;font-size:1em;font-weight:600;cursor:pointer;transition:all 0.3s ease;box-shadow:0 4px 12px rgba(102,126,234,0.3)}.copy-btn:hover{transform:translateY(-2px);box-shadow:0 6px 16px rgba(102,126,234,0.4)}.copy-btn:active{transform:translateY(0)}.copy-btn.copied{background:linear-gradient(135deg,#28a745 0%,#20c997 100%)}</style>\n';
+            htmlContent += '</head>\n';
+            htmlContent += '<body>\n';
+            htmlContent += '<div class="container">\n';
+            htmlContent += '<div class="header">\n';
+            htmlContent += '<h1>KNN 訓練資料範例</h1>\n';
+            htmlContent += '<p>50 筆訓練資料的 JSON 格式範例</p>\n';
+            htmlContent += '</div>\n';
+            htmlContent += '<div class="content">\n';
+            htmlContent += '<div class="info-box">\n';
+            htmlContent += '<p><strong>說明：</strong>這是 KNN 分類演算法所需的訓練資料格式。每筆資料包含兩個特徵值（x, y）和一個類別標籤（label: A 或 B）。</p>\n';
+            htmlContent += '</div>\n';
+            htmlContent += '<pre id="jsonContent">';
+            htmlContent += escapedJsonString;
+            htmlContent += '</pre>\n';
+            htmlContent += '<button class="copy-btn" onclick="copyToClipboard()">複製 JSON</button>\n';
+            htmlContent += '</div>\n';
+            htmlContent += '</div>\n';
+            htmlContent += '<script>\n';
+            htmlContent += 'function copyToClipboard(){\n';
+            htmlContent += 'var jsonContent=document.getElementById("jsonContent").textContent;\n';
+            htmlContent += 'navigator.clipboard.writeText(jsonContent).then(function(){\n';
+            htmlContent += 'var btn=document.querySelector(".copy-btn");\n';
+            htmlContent += 'var originalText=btn.textContent;\n';
+            htmlContent += 'btn.textContent=\\"已複製！\\";\n';
+            htmlContent += 'btn.classList.add("copied");\n';
+            htmlContent += 'setTimeout(function(){\n';
+            htmlContent += 'btn.textContent=originalText;\n';
+            htmlContent += 'btn.classList.remove("copied");\n';
+            htmlContent += '},2000);\n';
+            htmlContent += '});\n';
+            htmlContent += '}\n';
+            htmlContent += '<\\/script>\\n';
+            htmlContent += '</body>\n';
+            htmlContent += '</html>';
+            
+            const blob = new Blob([htmlContent], { type: 'text/html' });
+            const url = URL.createObjectURL(blob);
+            window.open(url, '_blank');
         }
 
         // ==================== 計算歐幾里得距離 ====================
@@ -935,7 +1096,7 @@
                 if (testPoint.predictedClass) {
                     const className = testPoint.predictedClass === 'A' ? '類別 A (藍色)' : '類別 B (紅色)';
                     predictedClassDisplayStep.textContent = className;
-                    predictedClassDisplayStep.style.color = classColors[testPoint.predictedClass];
+                    predictedClassDisplayStep.style.color = 'white';
                 } else {
                     predictedClassDisplayStep.textContent = '尚未分類';
                     predictedClassDisplayStep.style.color = 'white';
