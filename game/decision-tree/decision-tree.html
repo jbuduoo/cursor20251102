@@ -1223,41 +1223,15 @@ print(export_text(clf, feature_names=["喉嚨痛", "流鼻水", "發燒", "疲�
 
         <div class="article-section">
           <h2>III. 如何使用決策樹模型</h2>
-          <p style="margin-bottom: 1rem;">
-            訓練好的決策樹模型可以像程式碼一樣使用。以下是以醫療診斷為例的決策邏輯：
-          </p>
-          <pre class="article-code"># 假設新病患的症狀資料
-症狀 = {
-    "發燒": "無",      # 編碼為 0
-    "流鼻水": "是",     # 編碼為 1
-    "喉嚨痛": "輕微",   # 編碼為 1
-    "疲勞感": "無"      # 編碼為 0
-}
 
-# 使用決策樹進行診斷
-if 症狀["發燒"] == "無":  # 發燒 <= 0.50
-    if 症狀["流鼻水"] == "否":  # 流鼻水 <= 0.50
-        if 症狀["喉嚨痛"] == "無":  # 喉嚨痛 <= 0.50
-            return "健康"
-        else:  # 喉嚨痛 > 0.50
-            return "健康"
-    else:  # 流鼻水 > 0.50
-        if 症狀["喉嚨痛"] == "無":  # 喉嚨痛 <= 0.50
-            return "過敏"
-        else:  # 喉嚨痛 > 0.50
-            return "輕度感冒"
-else:  # 發燒 > 0.50 (有發燒)
-    if 症狀["疲勞感"] == "無" or 症狀["疲勞感"] == "輕微":  # 疲勞感 <= 1.50
-        return "感冒/需就醫"
-    else:  # 疲勞感 > 1.50 (嚴重)
-        return "其他狀況/需就醫"</pre>
-          <ul class="article-list">
-            <li><strong>發燒</strong>：首要判斷條件，決定是否需要進一步檢查其他症狀。</li>
-            <li><strong>流鼻水、疲勞感</strong>：在特定條件下進一步細分診斷結果。</li>
-            <li><strong>葉節點（健康、過敏、輕度感冒等）</strong>：最終的診斷結果，代表模型對該症狀組合的判斷。</li>
-          </ul>
-          <div class="tab-insight" style="margin-top: 1.5rem;">
-            <strong>實際應用：</strong>當我們輸入一個新病患的症狀資料時，模型會從根節點（發燒）開始，根據每個條件的判斷結果，沿著對應的分支往下走，直到到達葉節點，即得到最終的診斷結果。這個過程完全自動化，可以快速處理大量病患資料。
+
+          <!-- decision-tree2 圖片 -->
+          <div class="article-illustration" style="margin-top: 2rem;">
+            <img 
+              src="decision-tree2.png" 
+              alt="決策樹模型圖" 
+              style="width: 100%; max-width: 800px; height: auto; display: block; margin: 0 auto;"
+            />
           </div>
         </div>
       </section>
@@ -1359,6 +1333,168 @@ else:  # 發燒 > 0.50 (有發燒)
             }
           });
         });
+      });
+
+      // 互動式診斷功能
+      function diagnoseAndHighlight() {
+        // 讀取所有選單的當前值
+        const symptomData = {
+          fever: document.getElementById("symptom-fever").value,
+          runnyNose: document.getElementById("symptom-runnyNose").value,
+          soreThroat: document.getElementById("symptom-soreThroat").value,
+          fatigue: document.getElementById("symptom-fatigue").value
+        };
+
+        let diagnosis = "";
+        const pathIds = []; // 儲存需要高亮的 SVG 元素 ID
+
+        // 清除所有高亮
+        document.querySelectorAll('.highlight-path').forEach(el => {
+          el.classList.remove('highlight-path');
+        });
+
+        // 1. 根節點：發燒
+        pathIds.push('node-fever');
+        const feverNode = document.getElementById('node-fever');
+        const feverText = document.getElementById('text-fever');
+        if (feverNode) feverNode.classList.add('highlight-path');
+        if (feverText) feverText.classList.add('highlight-path');
+
+        if (symptomData.fever === "無") { // 發燒 <= 0.50
+          pathIds.push('path-fever-no');
+          const pathFeverNo = document.getElementById('path-fever-no');
+          if (pathFeverNo) pathFeverNo.classList.add('highlight-path');
+
+          // 1.1. 次節點：流鼻水
+          pathIds.push('node-runnyNose');
+          const runnyNoseNode = document.getElementById('node-runnyNose');
+          const runnyNoseText = document.getElementById('text-runnyNose');
+          if (runnyNoseNode) runnyNoseNode.classList.add('highlight-path');
+          if (runnyNoseText) runnyNoseText.classList.add('highlight-path');
+
+          if (symptomData.runnyNose === "否") { // 流鼻水 <= 0.50
+            pathIds.push('path-runnyNose-no');
+            const pathRunnyNo = document.getElementById('path-runnyNose-no');
+            if (pathRunnyNo) pathRunnyNo.classList.add('highlight-path');
+
+            // 1.1.1. 次節點：喉嚨痛
+            pathIds.push('node-soreThroat');
+            const soreThroatNode = document.getElementById('node-soreThroat');
+            const soreThroatText = document.getElementById('text-soreThroat');
+            if (soreThroatNode) soreThroatNode.classList.add('highlight-path');
+            if (soreThroatText) soreThroatText.classList.add('highlight-path');
+
+            if (symptomData.soreThroat === "無") { // 喉嚨痛 <= 0.50
+              pathIds.push('path-soreThroat-no');
+              const pathSoreNo = document.getElementById('path-soreThroat-no');
+              if (pathSoreNo) pathSoreNo.classList.add('highlight-path');
+              pathIds.push('leaf-health-1');
+              const leafHealth1 = document.getElementById('leaf-health-1');
+              const leafHealth1Text = document.getElementById('text-health-1');
+              if (leafHealth1) leafHealth1.classList.add('highlight-path');
+              if (leafHealth1Text) leafHealth1Text.classList.add('highlight-path');
+              diagnosis = "健康";
+            } else { // 喉嚨痛 > 0.50 (包含輕微/嚴重)
+              pathIds.push('path-soreThroat-yes');
+              const pathSoreYes = document.getElementById('path-soreThroat-yes');
+              if (pathSoreYes) pathSoreYes.classList.add('highlight-path');
+              pathIds.push('leaf-health-2');
+              const leafHealth2 = document.getElementById('leaf-health-2');
+              const leafHealth2Text = document.getElementById('text-health-2');
+              if (leafHealth2) leafHealth2.classList.add('highlight-path');
+              if (leafHealth2Text) leafHealth2Text.classList.add('highlight-path');
+              diagnosis = "健康";
+            }
+
+          } else { // 流鼻水 > 0.50 (是)
+            pathIds.push('path-runnyNose-yes');
+            const pathRunnyYes = document.getElementById('path-runnyNose-yes');
+            if (pathRunnyYes) pathRunnyYes.classList.add('highlight-path');
+
+            // 1.2.1. 次節點：喉嚨痛（分支2）
+            pathIds.push('node-soreThroat-branch2');
+            const soreThroatNode2 = document.getElementById('node-soreThroat-branch2');
+            const soreThroatText2 = document.getElementById('text-soreThroat-branch2');
+            if (soreThroatNode2) soreThroatNode2.classList.add('highlight-path');
+            if (soreThroatText2) soreThroatText2.classList.add('highlight-path');
+
+            if (symptomData.soreThroat === "無") { // 喉嚨痛 <= 0.50
+              pathIds.push('path-soreThroat-no-branch2');
+              const pathSoreNo2 = document.getElementById('path-soreThroat-no-branch2');
+              if (pathSoreNo2) pathSoreNo2.classList.add('highlight-path');
+              pathIds.push('leaf-allergy');
+              const leafAllergy = document.getElementById('leaf-allergy');
+              const leafAllergyText = document.getElementById('text-allergy');
+              if (leafAllergy) leafAllergy.classList.add('highlight-path');
+              if (leafAllergyText) leafAllergyText.classList.add('highlight-path');
+              diagnosis = "過敏";
+            } else { // 喉嚨痛 > 0.50
+              pathIds.push('path-soreThroat-yes-branch2');
+              const pathSoreYes2 = document.getElementById('path-soreThroat-yes-branch2');
+              if (pathSoreYes2) pathSoreYes2.classList.add('highlight-path');
+              pathIds.push('leaf-mild-cold');
+              const leafMildCold = document.getElementById('leaf-mild-cold');
+              const leafMildColdText = document.getElementById('text-mild-cold');
+              if (leafMildCold) leafMildCold.classList.add('highlight-path');
+              if (leafMildColdText) leafMildColdText.classList.add('highlight-path');
+              diagnosis = "輕度感冒";
+            }
+          }
+
+        } else { // 發燒 > 0.50 (有發燒)
+          pathIds.push('path-fever-yes');
+          const pathFeverYes = document.getElementById('path-fever-yes');
+          if (pathFeverYes) pathFeverYes.classList.add('highlight-path');
+
+          // 2.1. 次節點：疲勞感
+          pathIds.push('node-fatigue');
+          const fatigueNode = document.getElementById('node-fatigue');
+          const fatigueText = document.getElementById('text-fatigue');
+          if (fatigueNode) fatigueNode.classList.add('highlight-path');
+          if (fatigueText) fatigueText.classList.add('highlight-path');
+
+          if (symptomData.fatigue === "無" || symptomData.fatigue === "輕微") { // 疲勞感 <= 1.50
+            pathIds.push('path-fatigue-no');
+            const pathFatigueNo = document.getElementById('path-fatigue-no');
+            if (pathFatigueNo) pathFatigueNo.classList.add('highlight-path');
+            pathIds.push('leaf-cold-need-care');
+            const leafCold = document.getElementById('leaf-cold-need-care');
+            const leafColdText = document.getElementById('text-cold-need-care');
+            if (leafCold) leafCold.classList.add('highlight-path');
+            if (leafColdText) leafColdText.classList.add('highlight-path');
+            diagnosis = "感冒/需就醫";
+          } else { // 疲勞感 > 1.50 (嚴重)
+            pathIds.push('path-fatigue-yes');
+            const pathFatigueYes = document.getElementById('path-fatigue-yes');
+            if (pathFatigueYes) pathFatigueYes.classList.add('highlight-path');
+            pathIds.push('leaf-other-need-care');
+            const leafOther = document.getElementById('leaf-other-need-care');
+            const leafOtherText = document.getElementById('text-other-need-care');
+            if (leafOther) leafOther.classList.add('highlight-path');
+            if (leafOtherText) leafOtherText.classList.add('highlight-path');
+            diagnosis = "其他狀況/需就醫";
+          }
+        }
+
+        // 顯示診斷結果
+        const outputElement = document.getElementById("diagnosis-output");
+        if (outputElement) {
+          outputElement.textContent = diagnosis || "無法診斷";
+          outputElement.style.color = diagnosis ? "#1565c0" : "#d32f2f";
+        }
+
+        return diagnosis;
+      }
+
+      // 為所有症狀選單添加事件監聽器
+      document.addEventListener('DOMContentLoaded', function() {
+        const symptomSelects = document.querySelectorAll('.symptom-select');
+        symptomSelects.forEach(select => {
+          select.addEventListener('change', diagnoseAndHighlight);
+        });
+        
+        // 初始執行一次診斷
+        diagnoseAndHighlight();
       });
 
     </script>
