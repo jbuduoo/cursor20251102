@@ -973,122 +973,8 @@ for i, feature_name in enumerate(["喉嚨痛", "流鼻水", "發燒", "疲勞感
               <div class="tab-pane active" id="tab-overall">
                 <p>
                   以完整特徵矩陣 <code>X</code> 訓練模型，使用資訊熵（entropy）衡量資訊增益，
-                  找出最佳的分割規則。
+                  找出最佳的分割規則。訓練完成後，我們將在下一節展示完整的決策樹結構。
                 </p>
-                <div class="tab-diagram">
-                  <svg viewBox="0 0 420 200" role="img" aria-label="醫療診斷決策樹">
-                    <defs>
-                      <style>
-                        .node-box { fill:#1c6cd5; stroke:#0f3d91; stroke-width:3; rx:14; ry:14; }
-                        .node-circle { fill:#ff9800; stroke:#ce6a00; stroke-width:3; }
-                        .node-text { font-family:"Segoe UI","Noto Sans TC",sans-serif; font-size:16px; fill:#ffffff; font-weight:600; }
-                        .edge-text { font-family:"Segoe UI","Noto Sans TC",sans-serif; font-size:13px; fill:#42516f; font-weight:600; }
-                        .connector { stroke:#6b7a99; stroke-width:2.6; }
-                      </style>
-                    </defs>
-                    <rect class="node-box" x="150" y="18" width="120" height="46"></rect>
-                    <text class="node-text" x="210" y="47" text-anchor="middle">發燒</text>
-
-                    <rect class="node-box" x="60" y="96" width="120" height="46"></rect>
-                    <text class="node-text" x="120" y="125" text-anchor="middle">流鼻水</text>
-
-                    <rect class="node-box" x="240" y="96" width="120" height="46"></rect>
-                    <text class="node-text" x="300" y="125" text-anchor="middle">疲勞感</text>
-
-                    <circle class="node-circle" cx="30" cy="96" r="28"></circle>
-                    <text class="node-text" x="30" y="103" text-anchor="middle">健康</text>
-
-                    <circle class="node-circle" cx="80" cy="174" r="28"></circle>
-                    <text class="node-text" x="80" y="182" text-anchor="middle">過敏</text>
-
-                    <circle class="node-circle" cx="160" cy="174" r="28"></circle>
-                    <text class="node-text" x="160" y="182" text-anchor="middle">輕度感冒</text>
-
-                    <circle class="node-circle" cx="300" cy="174" r="28"></circle>
-                    <text class="node-text" x="300" y="182" text-anchor="middle">感冒/需就醫</text>
-
-                    <circle class="node-circle" cx="380" cy="174" r="28"></circle>
-                    <text class="node-text" x="380" y="182" text-anchor="middle">其他狀況/需就醫</text>
-
-                    <line class="connector" x1="210" y1="64" x2="120" y2="96"></line>
-                    <line class="connector" x1="210" y1="64" x2="300" y2="96"></line>
-                    <line class="connector" x1="210" y1="64" x2="30" y2="96"></line>
-
-                    <line class="connector" x1="120" y1="142" x2="80" y2="174"></line>
-                    <line class="connector" x1="120" y1="142" x2="160" y2="174"></line>
-                    <line class="connector" x1="300" y1="142" x2="300" y2="174"></line>
-                    <line class="connector" x1="300" y1="142" x2="380" y2="174"></line>
-
-                    <text class="edge-text" x="75" y="78" text-anchor="middle">無</text>
-                    <text class="edge-text" x="165" y="86" text-anchor="middle">有</text>
-                    <text class="edge-text" x="320" y="80" text-anchor="middle">有</text>
-                    <text class="edge-text" x="80" y="162" text-anchor="middle">是</text>
-                    <text class="edge-text" x="160" y="162" text-anchor="middle">否</text>
-                    <text class="edge-text" x="298" y="162" text-anchor="middle">輕微</text>
-                    <text class="edge-text" x="378" y="162" text-anchor="middle">嚴重</text>
-                  </svg>
-                </div>
-                <pre class="article-code">from sklearn.tree import DecisionTreeClassifier, export_text
-from sklearn.preprocessing import OrdinalEncoder
-
-# 重新定義訓練資料（確保與 feature_names 吻合）
-X_raw = [
-  ["輕微", "是", "無", "輕微"],
-  ["輕微", "是", "無", "無"],
-  ["嚴重", "是", "有", "嚴重"],
-  ["嚴重", "是", "有", "輕微"],
-  ["無", "否", "無", "無"],
-  ["無", "是", "無", "無"],
-  ["無", "是", "無", "輕微"],
-  ["輕微", "否", "無", "無"],
-  ["嚴重", "否", "有", "嚴重"],
-  ["輕微", "是", "有", "輕微"],
-  ["無", "否", "有", "嚴重"],
-  ["輕微", "否", "無", "輕微"]
-]
-
-encoder = OrdinalEncoder()
-X = encoder.fit_transform(X_raw)
-
-y = ["輕度感冒", "輕度感冒", "感冒/需就醫", "感冒/需就醫", "健康", "過敏", "過敏", "健康", "其他狀況/需就醫", "感冒/需就醫", "其他狀況/需就醫", "健康"]
-
-# 訓練模型
-clf = DecisionTreeClassifier(criterion="entropy")
-clf.fit(X, y)
-
-# 輸出決策樹
-print(export_text(clf, feature_names=["喉嚨痛", "流鼻水", "發燒", "疲勞感"]))</pre>
-                <pre class="article-code">|--- 發燒 &lt;= 0.50
-|    |--- 流鼻水 &lt;= 0.50
-|    |    |--- 喉嚨痛 &lt;= 0.50
-|    |    |    |--- class: 健康
-|    |    |--- 喉嚨痛 &gt;  0.50
-|    |         |--- class: 健康
-|    |--- 流鼻水 &gt;  0.50
-|         |--- 喉嚨痛 &lt;= 0.50
-|         |    |--- class: 過敏
-|         |--- 喉嚨痛 &gt;  0.50
-|              |--- class: 輕度感冒
-|--- 發燒 &gt;  0.50
-|    |--- 疲勞感 &lt;= 1.50
-|    |    |--- class: 感冒/需就醫
-|    |--- 疲勞感 &gt;  1.50
-|         |--- class: 其他狀況/需就醫</pre>
-                <div class="tab-insight">
-                  <strong>解讀：</strong>完整模型先看發燒：有發燒時需進一步判斷疲勞感；無發燒時再看流鼻水和喉嚨痛來區分健康、過敏或輕度感冒。
-                  <br><br>
-                  <strong>數值閾值對應關係：</strong>
-                  <ul style="margin: 0.5rem 0 0 1.5rem; padding-left: 0;">
-                    <li><code>發燒 &lt;= 0.50</code> 對應於「無發燒」（編碼為 0）</li>
-                    <li><code>發燒 &gt; 0.50</code> 對應於「有發燒」（編碼為 1）</li>
-                    <li><code>流鼻水 &lt;= 0.50</code> 對應於「否」（編碼為 0）</li>
-                    <li><code>流鼻水 &gt; 0.50</code> 對應於「是」（編碼為 1）</li>
-                    <li><code>喉嚨痛 &lt;= 0.50</code> 對應於「無」（編碼為 0）</li>
-                    <li><code>喉嚨痛 &gt; 0.50</code> 對應於「輕微」（編碼為 1）或「嚴重」（編碼為 2）</li>
-                    <li><code>疲勞感 &lt;= 1.50</code> 對應於「無」（編碼為 0）或「輕微」（編碼為 1）</li>
-                    <li><code>疲勞感 &gt; 1.50</code> 對應於「嚴重」（編碼為 2）</li>
-                  </ul>
-                </div>
               </div>
               <div class="tab-pane" id="tab-concept">
                 <h3 style="margin-top: 0; color: #1565c0; font-size: 1.3rem;">💡 決策樹的起點：根節點的選擇原則</h3>
@@ -1271,28 +1157,108 @@ print(export_text(clf, feature_names=["喉嚨痛", "流鼻水", "發燒", "疲�
         </div>
 
         <div class="article-section">
+          <h2>5. 訓練好的決策樹</h2>
+          <p style="margin-bottom: 1.5rem;">
+            完成訓練後，我們得到一個完整的決策樹模型。以下是訓練後的決策樹結構：
+          </p>
+          
+          <div class="article-illustration" style="margin-bottom: 1.5rem;">
+            <svg viewBox="0 0 420 200" role="img" aria-label="醫療診斷決策樹" style="width: 100%; max-width: 600px; height: auto;">
+              <defs>
+                <style>
+                  .node-box { fill:#1c6cd5; stroke:#0f3d91; stroke-width:3; rx:14; ry:14; }
+                  .node-circle { fill:#ff9800; stroke:#ce6a00; stroke-width:3; }
+                  .node-text { font-family:"Segoe UI","Noto Sans TC",sans-serif; font-size:16px; fill:#ffffff; font-weight:600; }
+                  .edge-text { font-family:"Segoe UI","Noto Sans TC",sans-serif; font-size:13px; fill:#42516f; font-weight:600; }
+                  .connector { stroke:#6b7a99; stroke-width:2.6; }
+                </style>
+              </defs>
+              <rect class="node-box" x="150" y="18" width="120" height="46"></rect>
+              <text class="node-text" x="210" y="47" text-anchor="middle">發燒</text>
+
+              <rect class="node-box" x="60" y="96" width="120" height="46"></rect>
+              <text class="node-text" x="120" y="125" text-anchor="middle">流鼻水</text>
+
+              <rect class="node-box" x="240" y="96" width="120" height="46"></rect>
+              <text class="node-text" x="300" y="125" text-anchor="middle">疲勞感</text>
+
+              <circle class="node-circle" cx="30" cy="96" r="28"></circle>
+              <text class="node-text" x="30" y="103" text-anchor="middle">健康</text>
+
+              <circle class="node-circle" cx="80" cy="174" r="28"></circle>
+              <text class="node-text" x="80" y="182" text-anchor="middle">過敏</text>
+
+              <circle class="node-circle" cx="160" cy="174" r="28"></circle>
+              <text class="node-text" x="160" y="182" text-anchor="middle">輕度感冒</text>
+
+              <circle class="node-circle" cx="300" cy="174" r="28"></circle>
+              <text class="node-text" x="300" y="182" text-anchor="middle">感冒/需就醫</text>
+
+              <circle class="node-circle" cx="380" cy="174" r="28"></circle>
+              <text class="node-text" x="380" y="182" text-anchor="middle">其他狀況/需就醫</text>
+
+              <line class="connector" x1="210" y1="64" x2="120" y2="96"></line>
+              <line class="connector" x1="210" y1="64" x2="300" y2="96"></line>
+              <line class="connector" x1="210" y1="64" x2="30" y2="96"></line>
+
+              <line class="connector" x1="120" y1="142" x2="80" y2="174"></line>
+              <line class="connector" x1="120" y1="142" x2="160" y2="174"></line>
+              <line class="connector" x1="300" y1="142" x2="300" y2="174"></line>
+              <line class="connector" x1="300" y1="142" x2="380" y2="174"></line>
+
+              <text class="edge-text" x="75" y="78" text-anchor="middle">無</text>
+              <text class="edge-text" x="165" y="86" text-anchor="middle">有</text>
+              <text class="edge-text" x="320" y="80" text-anchor="middle">有</text>
+              <text class="edge-text" x="80" y="162" text-anchor="middle">是</text>
+              <text class="edge-text" x="160" y="162" text-anchor="middle">否</text>
+              <text class="edge-text" x="298" y="162" text-anchor="middle">輕微</text>
+              <text class="edge-text" x="378" y="162" text-anchor="middle">嚴重</text>
+            </svg>
+          </div>
+          
+          <div class="tab-insight" style="margin-top: 0;">
+            <strong>解讀：</strong>完整模型先看發燒：有發燒時需進一步判斷疲勞感；無發燒時再看流鼻水和喉嚨痛來區分健康、過敏或輕度感冒。
+          </div>
+        </div>
+
+        <div class="article-section">
           <h2>III. 如何使用決策樹模型</h2>
-          <pre class="article-code">if AAA &lt;= 1.5:
-    if BBB == "A":
-        return "D"
-    else:
-        return "E"
-elif AAA &lt;= 2.5:
-    if BBB == "A":
-        return "F"
-    else:
-        return "G"
-else:
-    if BBB == "A":
-        # AAA = 3 且 BBB = "A" 時，可能對應 D 或 F
-        return "D" 或 "F"
-    else:
-        return "E"</pre>
+          <p style="margin-bottom: 1rem;">
+            訓練好的決策樹模型可以像程式碼一樣使用。以下是以醫療診斷為例的決策邏輯：
+          </p>
+          <pre class="article-code"># 假設新病患的症狀資料
+症狀 = {
+    "發燒": "無",      # 編碼為 0
+    "流鼻水": "是",     # 編碼為 1
+    "喉嚨痛": "輕微",   # 編碼為 1
+    "疲勞感": "無"      # 編碼為 0
+}
+
+# 使用決策樹進行診斷
+if 症狀["發燒"] == "無":  # 發燒 <= 0.50
+    if 症狀["流鼻水"] == "否":  # 流鼻水 <= 0.50
+        if 症狀["喉嚨痛"] == "無":  # 喉嚨痛 <= 0.50
+            return "健康"
+        else:  # 喉嚨痛 > 0.50
+            return "健康"
+    else:  # 流鼻水 > 0.50
+        if 症狀["喉嚨痛"] == "無":  # 喉嚨痛 <= 0.50
+            return "過敏"
+        else:  # 喉嚨痛 > 0.50
+            return "輕度感冒"
+else:  # 發燒 > 0.50 (有發燒)
+    if 症狀["疲勞感"] == "無" or 症狀["疲勞感"] == "輕微":  # 疲勞感 <= 1.50
+        return "感冒/需就醫"
+    else:  # 疲勞感 > 1.50 (嚴重)
+        return "其他狀況/需就醫"</pre>
           <ul class="article-list">
-            <li><strong>AAA</strong>：主要的分類依據，先決定大方向。</li>
-            <li><strong>BBB</strong>：細分同一群組內的差異。</li>
-            <li><strong>葉節點（D、E、F、G）</strong>：最終輸出的決策或分類結果。</li>
+            <li><strong>發燒</strong>：首要判斷條件，決定是否需要進一步檢查其他症狀。</li>
+            <li><strong>流鼻水、疲勞感</strong>：在特定條件下進一步細分診斷結果。</li>
+            <li><strong>葉節點（健康、過敏、輕度感冒等）</strong>：最終的診斷結果，代表模型對該症狀組合的判斷。</li>
           </ul>
+          <div class="tab-insight" style="margin-top: 1.5rem;">
+            <strong>實際應用：</strong>當我們輸入一個新病患的症狀資料時，模型會從根節點（發燒）開始，根據每個條件的判斷結果，沿著對應的分支往下走，直到到達葉節點，即得到最終的診斷結果。這個過程完全自動化，可以快速處理大量病患資料。
+          </div>
         </div>
       </section>
 
