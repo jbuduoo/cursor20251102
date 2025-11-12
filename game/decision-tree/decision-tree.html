@@ -925,7 +925,54 @@ print(export_text(clf, feature_names=["喉嚨痛", "流鼻水", "發燒", "疲�
 
         <div class="article-section">
           <h2>III. 如何使用決策樹模型</h2>
+          
+          <p style="margin-bottom: 1.5rem; color: #1f2d4f; line-height: 1.8;">
+            這個決策樹模型是一個簡單的症狀診斷工具，它根據四個主要的症狀（發燒、流鼻水、喉嚨痛、疲勞感）來幫助判斷一個人可能是「健康」、「輕度感冒」、「過敏」，或是需要「感冒/需就醫」、「其他狀況/需就醫」。
+          </p>
 
+          <div style="margin-bottom: 2rem;">
+            <h3 style="color: #1565c0; font-size: 1.2rem; margin-bottom: 1rem;">我們來追蹤兩個假想案例：</h3>
+            
+            <div style="margin-bottom: 2rem; padding: 1.5rem; background: rgba(237, 242, 255, 0.5); border-radius: 12px; border-left: 4px solid #2196f3;">
+              <h4 style="color: #1a237e; font-size: 1.1rem; margin-bottom: 0.8rem;">案例一：小明感到身體不適，來看看他會得到什麼診斷</h4>
+              <p style="margin-bottom: 0.8rem; color: #1f2d4f;"><strong>症狀：</strong> 沒有發燒、有流鼻水、輕微喉嚨痛、輕微疲勞。</p>
+              <ul style="margin: 0; padding-left: 1.5rem; color: #1f2d4f; line-height: 1.8;">
+                <li><strong>從最上面的「發燒」節點開始：</strong> 小明沒有發燒，所以我們走左邊的「無」分支。</li>
+                <li><strong>到達「流鼻水」節點：</strong> 小明有流鼻水，所以我們走右邊的「是」分支。</li>
+                <li><strong>到達「喉嚨痛」節點：</strong> 小明有輕微喉嚨痛，所以我們走右邊的「是」分支。</li>
+                <li><strong>最終結果：</strong> 樹狀圖顯示，小明的診斷是 <strong>「輕度感冒」</strong>。</li>
+              </ul>
+              <p style="margin-top: 0.8rem; margin-bottom: 0; color: #1f2d4f; font-style: italic;">
+                這與實際情況很符合：沒有發燒，但有流鼻水和喉嚨痛，通常就是輕度感冒。
+              </p>
+            </div>
+
+            <div style="margin-bottom: 2rem; padding: 1.5rem; background: rgba(237, 242, 255, 0.5); border-radius: 12px; border-left: 4px solid #2196f3;">
+              <h4 style="color: #1a237e; font-size: 1.1rem; margin-bottom: 0.8rem;">案例二：小華感到嚴重不適，來看看他會得到什麼診斷</h4>
+              <p style="margin-bottom: 0.8rem; color: #1f2d4f;"><strong>症狀：</strong> 有發燒、沒有流鼻水、沒有喉嚨痛、嚴重疲勞。</p>
+              <ul style="margin: 0; padding-left: 1.5rem; color: #1f2d4f; line-height: 1.8;">
+                <li><strong>從最上面的「發燒」節點開始：</strong> 小華有發燒，所以我們走右邊的「有」分支。</li>
+                <li><strong>到達「疲勞感」節點：</strong> 小華有嚴重疲勞，所以我們走右邊的「嚴重」分支。</li>
+                <li><strong>最終結果：</strong> 樹狀圖顯示，小華的診斷是 <strong>「其他狀況/需就醫」</strong>。</li>
+              </ul>
+              <p style="margin-top: 0.8rem; margin-bottom: 0; color: #1f2d4f; font-style: italic;">
+                這也合理：有發燒、嚴重疲勞但沒有喉嚨痛，可能不是典型感冒，需要醫生進一步檢查。
+              </p>
+            </div>
+          </div>
+
+          <div style="margin-bottom: 2rem; padding: 1.5rem; background: rgba(244, 248, 255, 0.85); border-radius: 12px; border: 1px solid rgba(79, 124, 219, 0.16);">
+            <h3 style="color: #1565c0; font-size: 1.2rem; margin-bottom: 1rem;">圖中各節點的意義：</h3>
+            <ul style="margin: 0; padding-left: 1.5rem; color: #1f2d4f; line-height: 1.8;">
+              <li><strong>方框</strong> (發燒, 流鼻水, 喉嚨痛, 疲勞感): 這些是決策節點，代表一個問題或一個需要判斷的特徵。</li>
+              <li><strong>分支上的文字</strong> (無, 有, 是, 否, 輕微, 嚴重): 這些是決策條件，代表根據特徵的不同值，模型會走向不同的路徑。</li>
+              <li><strong>圓形葉節點</strong> (健康, 輕度感冒, 感冒/需就醫, 其他狀況/需就醫): 這些是葉節點，代表決策樹判斷出的最終診斷結果。</li>
+            </ul>
+          </div>
+
+          <p style="margin-bottom: 1.5rem; color: #1f2d4f; line-height: 1.8;">
+            總之，這個決策樹提供了一個簡單而有效的方式，將複雜的症狀組合歸類到可能的診斷結果中，幫助使用者快速了解自己的健康狀況並判斷是否需要就醫。
+          </p>
 
           <!-- decision-tree2 圖片 -->
           <div class="article-illustration" style="margin-top: 2rem;">
