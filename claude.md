@@ -28,12 +28,12 @@ game/
 ## 🏷️ 原則 2：邏輯分類 = 使用者體驗
 
 ### 分類方式
-- **在 `Home/index.html` 的 JavaScript 中調整分類**
+- **在 `index.html` 的 JavaScript 中調整分類**
 - **不移動檔案系統中的檔案**
 - **一個遊戲可以出現在多個分類中**
 
 ### 分類位置
-- 編輯 `Home/index.html` 中的 `gameCategories` 物件
+- 編輯 `index.html` 中的 `gameCategories` 物件
 - 調整分類名稱、圖示、描述等
 
 ---
@@ -43,12 +43,12 @@ game/
 ### 完成新遊戲後
 1. ✅ 建立遊戲資料夾：`game/遊戲名/`
 2. ✅ 建立遊戲檔案：`game/遊戲名/遊戲名.html`
-3. ✅ **更新 `Home/index.html`** 中的連結
+3. ✅ **更新 `index.html`** 中的連結
 4. ✅ 檢查連結是否正確
 
 ### 檢查清單
 - [ ] 檔案已建立
-- [ ] 連結已加入 `Home/index.html`
+- [ ] 連結已加入 `index.html`
 - [ ] 連結路徑正確
 - [ ] 分類正確
 

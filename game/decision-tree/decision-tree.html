@@ -710,144 +710,38 @@
         <hr class="article-divider" />
 
         <div class="article-section">
-          <h2>I. 決策樹的核心組件 — 倒置樹狀結構</h2>
-          <table class="article-table">
-            <thead>
-              <tr>
-                <th>組件名稱</th>
-                <th>說明</th>
-                <th>教學常見顏色</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td><strong>樹根（Root Node）</strong></td>
-                <td>決策流程的起點，代表完整資料集與首要判斷條件。</td>
-                <td>🟡 黃色</td>
-              </tr>
-              <tr>
-                <td><strong>內部節點（Internal Node）</strong></td>
-                <td>對單一特徵進行的判斷測試，例如「年齡是否 &gt; 30？」。</td>
-                <td>🔵 藍色</td>
-              </tr>
-              <tr>
-                <td><strong>分支（Branch）</strong></td>
-                <td>節點的判斷結果所引導的路徑，通常以線條表示。</td>
-                <td>— 線條</td>
-              </tr>
-              <tr>
-                <td><strong>葉節點（Leaf Node）</strong></td>
-                <td>不再分支的終點，輸出最終的分類或預測值。</td>
-                <td>🔴 紅色</td>
-              </tr>
-            </tbody>
-          </table>
+          <h2>I. 什麼是決策樹</h2>
+          這是一張決策樹模型圖。它展示了如何根據一系列「是」或「否」的條件（綠色/藍色方塊）來一步步判斷，最終將輸入的數據分配到不同的類別（橙色橢圓）。每個數據點從頂部開始，沿著符合自身條件的路徑往下走，直到到達一個葉節點，即得到其最終的分類結果。這是機器學習中常用的分類方法。
           <div class="article-illustration">
-            <svg viewBox="0 0 580 300" aria-labelledby="decisionTreeIllustrationTitle decisionTreeIllustrationDesc" role="img">
-              <title id="decisionTreeIllustrationTitle">期末考情境決策樹示意圖</title>
-              <desc id="decisionTreeIllustrationDesc">此圖顯示根節點為期末考時間，依照臨近、暫無、緊急的情況分支，並在葉節點給出對應行動建議。</desc>
-              <defs>
-                <style>
-                  .node-box {
-                    fill: #1c6cd5;
-                    stroke: #0f3d91;
-                    stroke-width: 3;
-                    rx: 14;
-                    ry: 14;
-                  }
-                  .node-circle {
-                    fill: #ff9800;
-                    stroke: #ce6a00;
-                    stroke-width: 3;
-                  }
-                  .node-text {
-                    font-family: "Segoe UI", "Noto Sans TC", sans-serif;
-                    font-size: 20px;
-                    fill: #ffffff;
-                    font-weight: 600;
-                  }
-                  .node-text-small {
-                    font-size: 16px;
-                    fill: #2f3e5c;
-                    font-weight: 600;
-                  }
-                  .edge-text {
-                    font-family: "Segoe UI", "Noto Sans TC", sans-serif;
-                    font-size: 16px;
-                    fill: #4a5878;
-                    font-weight: 600;
-                  }
-                  .connector {
-                    stroke: #6b7a99;
-                    stroke-width: 3;
-                  }
-                </style>
-              </defs>
+            <img 
+              src="decision-tree.png.png" 
+              alt="決策樹結構示意圖" 
+              style="width: 100%; max-width: 600px; height: auto; display: block; margin: 0 auto;"
+            />
 
-              <!-- Root node -->
-              <rect class="node-box" x="210" y="30" width="160" height="60"></rect>
-              <text class="node-text" x="290" y="68" text-anchor="middle">期末考時間</text>
-              <text class="edge-text" x="290" y="98" text-anchor="middle">(首要考慮因素)</text>
-
-              <!-- Internal nodes -->
-              <rect class="node-box" x="80" y="140" width="150" height="60"></rect>
-              <text class="node-text" x="155" y="178" text-anchor="middle">心情狀態</text>
-
-              <rect class="node-box" x="360" y="140" width="170" height="60"></rect>
-              <text class="node-text" x="445" y="178" text-anchor="middle">朋友約遊戲</text>
-
-              <!-- Leaf nodes -->
-              <circle class="node-circle" cx="30" cy="140" r="32"></circle>
-              <text class="node-text" x="30" y="148" text-anchor="middle">學習</text>
-
-              <circle class="node-circle" cx="90" cy="250" r="32"></circle>
-              <text class="node-text" x="90" y="258" text-anchor="middle">打籃球</text>
-
-              <circle class="node-circle" cx="210" cy="250" r="32"></circle>
-              <text class="node-text" x="210" y="258" text-anchor="middle">學習</text>
-
-              <circle class="node-circle" cx="380" cy="250" r="32"></circle>
-              <text class="node-text" x="380" y="258" text-anchor="middle">學習</text>
-
-              <circle class="node-circle" cx="500" cy="250" r="32"></circle>
-              <text class="node-text" x="500" y="258" text-anchor="middle">玩遊戲</text>
-
-              <!-- Connectors -->
-              <line class="connector" x1="290" y1="90" x2="30" y2="140"></line>
-              <line class="connector" x1="290" y1="90" x2="155" y2="140"></line>
-              <line class="connector" x1="290" y1="90" x2="445" y2="140"></line>
-
-              <line class="connector" x1="155" y1="200" x2="90" y2="218"></line>
-              <line class="connector" x1="155" y1="200" x2="210" y2="218"></line>
-
-              <line class="connector" x1="445" y1="200" x2="380" y2="218"></line>
-              <line class="connector" x1="445" y1="200" x2="500" y2="218"></line>
-
-              <!-- Edge labels -->
-              <text class="edge-text" x="180" y="105" text-anchor="middle">緊急</text>
-              <text class="edge-text" x="220" y="128" text-anchor="middle">臨近</text>
-              <text class="edge-text" x="380" y="120" text-anchor="middle">暫無</text>
-
-              <text class="edge-text" x="110" y="215" text-anchor="middle">不好</text>
-              <text class="edge-text" x="200" y="215" text-anchor="middle">正常</text>
-
-              <text class="edge-text" x="390" y="215" text-anchor="middle">無約</text>
-              <text class="edge-text" x="490" y="215" text-anchor="middle">有約</text>
-            </svg>
-            <p class="article-illustration-caption">
-              圖 1：期末考情境決策樹示意圖。藍色方框為內部節點、橙色圓形為葉節點，線條標示判斷條件。
-            </p>
+            <div style="margin-top: 1.5rem; padding: 1.2rem; background: rgba(33, 150, 243, 0.08); border-left: 4px solid #2196f3; border-radius: 10px;">
+              <p style="margin: 0 0 0.8rem 0; font-weight: 600; color: #1565c0; font-size: 1rem;">
+                📋 決策樹結構說明：
+              </p>
+              <ul style="margin: 0; padding-left: 1.5rem; color: #1f2d4f; line-height: 1.8; font-size: 0.95rem;">
+                <li><strong>樹根（條件1）</strong>：決策流程的起點，代表完整資料集與首要判斷條件。</li>
+                <li><strong>內部節點（條件2、條件3、條件4）</strong>：對單一特徵進行的判斷測試，每個節點會根據判斷結果分支到下一層節點或葉節點。</li>
+                <li><strong>分支標籤（是/否）</strong>：表示判斷條件的結果，引導資料流向不同的路徑。</li>
+                <li><strong>葉節點（類別1～類別5）</strong>：不再分支的終點，輸出最終的分類或預測值。每個葉節點代表一個決策結果。</li>
+                <li><strong>決策路徑</strong>：從根節點到葉節點的完整路徑，代表一組判斷規則。例如「條件1=是 → 條件2=是 → 類別1」。</li>
+              </ul>
+            </div>
           </div>
         </div>
 
         <div class="article-section">
-          <h2>II. 模型訓練前的資料準備</h2>
+          <h2>II. 如何訓練模型</h2>
           <div class="dataset-box" id="examDatasetBox" data-view="table">
             <div class="dataset-header">
               <div>
                 <span class="article-subheading">1. 準備資料</span>
                 <p style="margin: 0; color: #2b3c65; font-size: 0.92rem;">
-                  將情境資料整理成特徵與標籤，方便決策樹演算法讀取與學習。
+                  將醫療診斷資料整理成特徵（症狀）與標籤（診斷結果），方便決策樹演算法讀取與學習。
                 </p>
               </div>
               <button type="button" class="dataset-switch" id="datasetSwitchBtn">
@@ -857,127 +751,176 @@
             <table class="dataset-table">
               <thead>
                 <tr>
-                  <th>期末考時間</th>
-                  <th>心情狀態</th>
-                  <th>朋友邀約</th>
-                  <th>決策行動</th>
+                  <th>症狀</th>
+                  <th>喉嚨痛</th>
+                  <th>流鼻水</th>
+                  <th>發燒</th>
+                  <th>疲勞感</th>
+                  <th>診斷</th>
                 </tr>
               </thead>
               <tbody>
                 <tr>
-                  <td>緊急</td>
-                  <td>—</td>
-                  <td>—</td>
-                  <td>學習</td>
+                  <td>1</td>
+                  <td>輕微</td>
+                  <td>是</td>
+                  <td>無</td>
+                  <td>輕微</td>
+                  <td>輕度感冒</td>
                 </tr>
                 <tr>
-                  <td>緊急</td>
-                  <td>—</td>
-                  <td>—</td>
-                  <td>學習</td>
+                  <td>2</td>
+                  <td>輕微</td>
+                  <td>是</td>
+                  <td>無</td>
+                  <td>無</td>
+                  <td>輕度感冒</td>
                 </tr>
                 <tr>
-                  <td>臨近</td>
-                  <td>心情不好</td>
-                  <td>—</td>
-                  <td>打籃球</td>
+                  <td>3</td>
+                  <td>嚴重</td>
+                  <td>是</td>
+                  <td>有</td>
+                  <td>嚴重</td>
+                  <td>感冒/需就醫</td>
                 </tr>
                 <tr>
-                  <td>臨近</td>
-                  <td>心情不好</td>
-                  <td>—</td>
-                  <td>打籃球</td>
+                  <td>4</td>
+                  <td>嚴重</td>
+                  <td>是</td>
+                  <td>有</td>
+                  <td>輕微</td>
+                  <td>感冒/需就醫</td>
                 </tr>
                 <tr>
-                  <td>臨近</td>
-                  <td>心情正常</td>
-                  <td>—</td>
-                  <td>學習</td>
+                  <td>5</td>
+                  <td>無</td>
+                  <td>否</td>
+                  <td>無</td>
+                  <td>無</td>
+                  <td>健康</td>
                 </tr>
                 <tr>
-                  <td>臨近</td>
-                  <td>心情正常</td>
-                  <td>—</td>
-                  <td>學習</td>
+                  <td>6</td>
+                  <td>無</td>
+                  <td>是</td>
+                  <td>無</td>
+                  <td>無</td>
+                  <td>過敏</td>
                 </tr>
                 <tr>
-                  <td>暫無</td>
-                  <td>—</td>
-                  <td>無約</td>
-                  <td>學習</td>
+                  <td>7</td>
+                  <td>無</td>
+                  <td>是</td>
+                  <td>無</td>
+                  <td>輕微</td>
+                  <td>過敏</td>
                 </tr>
                 <tr>
-                  <td>暫無</td>
-                  <td>—</td>
-                  <td>無約</td>
-                  <td>學習</td>
+                  <td>8</td>
+                  <td>輕微</td>
+                  <td>否</td>
+                  <td>無</td>
+                  <td>無</td>
+                  <td>健康</td>
                 </tr>
                 <tr>
-                  <td>暫無</td>
-                  <td>—</td>
-                  <td>有約</td>
-                  <td>玩遊戲</td>
+                  <td>9</td>
+                  <td>嚴重</td>
+                  <td>否</td>
+                  <td>有</td>
+                  <td>嚴重</td>
+                  <td>其他狀況/需就醫</td>
                 </tr>
                 <tr>
-                  <td>暫無</td>
-                  <td>—</td>
-                  <td>有約</td>
-                  <td>玩遊戲</td>
+                  <td>10</td>
+                  <td>輕微</td>
+                  <td>是</td>
+                  <td>有</td>
+                  <td>輕微</td>
+                  <td>感冒/需就醫</td>
+                </tr>
+                <tr>
+                  <td>11</td>
+                  <td>無</td>
+                  <td>否</td>
+                  <td>有</td>
+                  <td>嚴重</td>
+                  <td>其他狀況/需就醫</td>
+                </tr>
+                <tr>
+                  <td>12</td>
+                  <td>輕微</td>
+                  <td>否</td>
+                  <td>無</td>
+                  <td>輕微</td>
+                  <td>健康</td>
                 </tr>
               </tbody>
             </table>
             <pre class="dataset-json" id="datasetJsonBlock">[
-  { "examTime": "緊急", "mood": null, "friendInvite": null, "action": "學習" },
-  { "examTime": "緊急", "mood": null, "friendInvite": null, "action": "學習" },
-  { "examTime": "臨近", "mood": "心情不好", "friendInvite": null, "action": "打籃球" },
-  { "examTime": "臨近", "mood": "心情不好", "friendInvite": null, "action": "打籃球" },
-  { "examTime": "臨近", "mood": "心情正常", "friendInvite": null, "action": "學習" },
-  { "examTime": "臨近", "mood": "心情正常", "friendInvite": null, "action": "學習" },
-  { "examTime": "暫無", "mood": null, "friendInvite": "無約", "action": "學習" },
-  { "examTime": "暫無", "mood": null, "friendInvite": "無約", "action": "學習" },
-  { "examTime": "暫無", "mood": null, "friendInvite": "有約", "action": "玩遊戲" },
-  { "examTime": "暫無", "mood": null, "friendInvite": "有約", "action": "玩遊戲" }
+  { "symptom": 1, "soreThroat": "輕微", "runnyNose": "是", "fever": "無", "fatigue": "輕微", "diagnosis": "輕度感冒" },
+  { "symptom": 2, "soreThroat": "輕微", "runnyNose": "是", "fever": "無", "fatigue": "無", "diagnosis": "輕度感冒" },
+  { "symptom": 3, "soreThroat": "嚴重", "runnyNose": "是", "fever": "有", "fatigue": "嚴重", "diagnosis": "感冒/需就醫" },
+  { "symptom": 4, "soreThroat": "嚴重", "runnyNose": "是", "fever": "有", "fatigue": "輕微", "diagnosis": "感冒/需就醫" },
+  { "symptom": 5, "soreThroat": "無", "runnyNose": "否", "fever": "無", "fatigue": "無", "diagnosis": "健康" },
+  { "symptom": 6, "soreThroat": "無", "runnyNose": "是", "fever": "無", "fatigue": "無", "diagnosis": "過敏" },
+  { "symptom": 7, "soreThroat": "無", "runnyNose": "是", "fever": "無", "fatigue": "輕微", "diagnosis": "過敏" },
+  { "symptom": 8, "soreThroat": "輕微", "runnyNose": "否", "fever": "無", "fatigue": "無", "diagnosis": "健康" },
+  { "symptom": 9, "soreThroat": "嚴重", "runnyNose": "否", "fever": "有", "fatigue": "嚴重", "diagnosis": "其他狀況/需就醫" },
+  { "symptom": 10, "soreThroat": "輕微", "runnyNose": "是", "fever": "有", "fatigue": "輕微", "diagnosis": "感冒/需就醫" },
+  { "symptom": 11, "soreThroat": "無", "runnyNose": "否", "fever": "有", "fatigue": "嚴重", "diagnosis": "其他狀況/需就醫" },
+  { "symptom": 12, "soreThroat": "輕微", "runnyNose": "否", "fever": "無", "fatigue": "輕微", "diagnosis": "健康" }
 ]</pre>
           </div>
           <div>
             <p class="article-subheading">2. 將資料轉為可訓練的格式</p>
             <ul class="article-list" style="margin: 0;">
-              <li><strong>A. 確認目的（目標欄位）</strong>：標籤向量 <code>y</code>，對應「決策行動」。</li>
+              <li><strong>A. 確認目的（目標欄位）</strong>：標籤向量 <code>y</code>，對應「診斷」。</li>
               <li><strong>B. 整理特徵</strong>：視需要將類別轉數值，形成特徵矩陣 <code>X</code>。</li>
             </ul>
             <pre class="article-code"># 拆分特徵 (X) 與標籤 (y)
 X = [
-  ["緊急", None, None],
-  ["緊急", None, None],
-  ["臨近", "心情不好", None],
-  ["臨近", "心情不好", None],
-  ["臨近", "心情正常", None],
-  ["臨近", "心情正常", None],
-  ["暫無", None, "無約"],
-  ["暫無", None, "無約"],
-  ["暫無", None, "有約"],
-  ["暫無", None, "有約"]
+  ["輕微", "是", "無", "輕微"],
+  ["輕微", "是", "無", "無"],
+  ["嚴重", "是", "有", "嚴重"],
+  ["嚴重", "是", "有", "輕微"],
+  ["無", "否", "無", "無"],
+  ["無", "是", "無", "無"],
+  ["無", "是", "無", "輕微"],
+  ["輕微", "否", "無", "無"],
+  ["嚴重", "否", "有", "嚴重"],
+  ["輕微", "是", "有", "輕微"],
+  ["無", "否", "有", "嚴重"],
+  ["輕微", "否", "無", "輕微"]
 ]
 
-y = ["學習", "學習", "打籃球", "打籃球", "學習", "學習", "學習", "學習", "玩遊戲", "玩遊戲"]</pre>
+y = ["輕度感冒", "輕度感冒", "感冒/需就醫", "感冒/需就醫", "健康", "過敏", "過敏", "健康", "其他狀況/需就醫", "感冒/需就醫", "其他狀況/需就醫", "健康"]</pre>
           </div>
           <div>
             <p class="article-subheading">3. 將類別特徵轉為數值</p>
             <pre class="article-code"># 手動映射版本（以數值向量示範）
+# 喉嚨痛: 無=0, 輕微=1, 嚴重=2
+# 流鼻水: 否=0, 是=1
+# 發燒: 無=0, 有=1
+# 疲勞感: 無=0, 輕微=1, 嚴重=2
 X = [
-  ["2", "-1", "-1"],
-  ["2", "-1", "-1"],
-  ["1", "0", "-1"],
-  ["1", "0", "-1"],
-  ["1", "1", "-1"],
-  ["1", "1", "-1"],
-  ["0", "-1", "0"],
-  ["0", "-1", "0"],
-  ["0", "-1", "1"],
-  ["0", "-1", "1"]
+  [1, 1, 0, 1],
+  [1, 1, 0, 0],
+  [2, 1, 1, 2],
+  [2, 1, 1, 1],
+  [0, 0, 0, 0],
+  [0, 1, 0, 0],
+  [0, 1, 0, 1],
+  [1, 0, 0, 0],
+  [2, 0, 1, 2],
+  [1, 1, 1, 1],
+  [0, 0, 1, 2],
+  [1, 0, 0, 1]
 ]
 
-y = ["0", "0", "1", "1", "0", "0", "0", "0", "2", "2"]
+# 診斷: 健康=0, 輕度感冒=1, 過敏=2, 感冒/需就醫=3, 其他狀況/需就醫=4
+y = [1, 1, 3, 3, 0, 2, 2, 0, 4, 3, 4, 0]
 </pre>
           </div>
           <div>
@@ -1247,7 +1190,7 @@ print(export_text(clf_friend, feature_names=["朋友邀約"]))</pre>
         </div>
 
         <div class="article-section">
-          <h2>III. 決策樹輸出的規則化解讀（簡化示例）</h2>
+          <h2>III. 如何使用決策樹模型</h2>
           <pre class="article-code">if AAA &lt;= 1.5:
     if BBB == "A":
         return "D"
