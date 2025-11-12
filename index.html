@@ -1,0 +1,978 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JB 作品集</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: "Microsoft JhengHei", "微軟正黑體", Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+        }
+
+        .container {
+            max-width: 900px;
+            width: 90%;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            color: white;
+            margin-bottom: 5px;
+        }
+
+        header h1 {
+            font-size: 2em;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        header p {
+            font-size: 1em;
+            opacity: 0.9;
+        }
+
+        .category {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .category-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #667eea;
+        }
+
+        .category-icon {
+            font-size: 1.8em;
+            margin-right: 12px;
+        }
+
+        .category-title {
+            font-size: 1.5em;
+            color: #333;
+            font-weight: bold;
+        }
+
+        .category-description {
+            color: #666;
+            font-size: 0.85em;
+            margin-top: 3px;
+        }
+
+        .programs-grid {
+            display: grid;
+            grid-template-columns: repeat(5, minmax(0, 1fr));
+            gap: 15px;
+        }
+
+        .program-card {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            border-radius: 10px;
+            padding: 15px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            border: 2px solid transparent;
+            text-decoration: none;
+            color: inherit;
+            display: block;
+        }
+
+        .program-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            border-color: #667eea;
+            background: linear-gradient(135deg, #ffffff 0%, #e8edf5 100%);
+        }
+
+        .program-icon {
+            font-size: 2em;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .program-name {
+            font-size: 1.1em;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 8px;
+            text-align: center;
+        }
+
+        .program-description {
+            font-size: 0.8em;
+            color: #666;
+            text-align: center;
+            line-height: 1.4;
+        }
+
+
+        .footer {
+            text-align: center;
+            color: white;
+            margin-top: 25px;
+            padding: 15px;
+            opacity: 0.8;
+            font-size: 0.85em;
+        }
+
+        @media (max-width: 768px) {
+            .programs-grid {
+                grid-template-columns: 1fr;
+            }
+
+            header h1 {
+                font-size: 2em;
+            }
+
+            .category-title {
+                font-size: 1.5em;
+            }
+        }
+
+        .empty-category {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+            font-style: italic;
+        }
+
+        .subcategory {
+            margin-bottom: 20px;
+        }
+
+        .subcategory-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 15px;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 10px;
+        }
+
+        .subcategory-header:hover {
+            background: linear-gradient(135deg, #e9ecef 0%, #dee2e6 100%);
+        }
+
+        .subcategory-title {
+            display: flex;
+            align-items: center;
+            font-size: 1.1em;
+            font-weight: bold;
+            color: #495057;
+        }
+
+        .subcategory-icon {
+            font-size: 1.2em;
+            margin-right: 8px;
+        }
+
+        .subcategory-count {
+            background: #667eea;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.85em;
+            margin-left: 10px;
+        }
+
+        .subcategory-toggle {
+            font-size: 1.2em;
+            transition: transform 0.3s ease;
+            color: #667eea;
+        }
+
+        .subcategory-toggle.collapsed {
+            transform: rotate(-90deg);
+        }
+
+        .subcategory-content {
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+        }
+
+        .subcategory-content.collapsed {
+            max-height: 0;
+        }
+
+        .subcategory-content.expanded {
+            max-height: 5000px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🚀 專案儀表板</h1>
+            <p>歡迎來到我的專案集合！點擊下方卡片開啟對應的程式</p>
+        </header>
+
+        <!-- 遊戲類別 -->
+        <div class="category">
+            <div class="category-header">
+                <div class="category-icon">🎮</div>
+                <div>
+                    <div class="category-title">遊戲專案</div>
+                    <div class="category-description">經典遊戲與街機遊戲 | 共 <span id="total-games">0</span> 個遊戲</div>
+                </div>
+            </div>
+            <div id="game-categories">
+                <!-- 遊戲子分類將由 JavaScript 動態生成 -->
+            </div>
+        </div>
+
+        <!-- 工具類別 -->
+        <div class="category">
+            <div class="category-header">
+                <div class="category-icon">🛠️</div>
+                <div>
+                    <div class="category-title">工具專案</div>
+                    <div class="category-description">實用的工具與應用程式</div>
+                </div>
+            </div>
+            <div class="programs-grid" id="tools-programs">
+                <!-- 程式卡片將由 JavaScript 動態生成 -->
+            </div>
+        </div>
+
+        <!-- 故事類別 -->
+        <div class="category">
+            <div class="category-header">
+                <div class="category-icon">📖</div>
+                <div>
+                    <div class="category-title">故事專案</div>
+                    <div class="category-description">文字故事與內容</div>
+                </div>
+            </div>
+            <div class="programs-grid" id="story-programs">
+                <!-- 程式卡片將由 JavaScript 動態生成 -->
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>© 2024 專案集合 | 使用 HTML5, CSS3, JavaScript 開發</p>
+        </div>
+    </div>
+
+    <script>
+        // 遊戲分類資料庫
+        const gameCategories = {
+            "經典街機遊戲": {
+                icon: "🎯",
+                games: [
+                    {
+                        name: "貪食蛇",
+                        file: "game/snake/snake.html",
+                        icon: "🐍",
+                        description: "控制蛇吃食物成長，避免撞牆或撞到自己",
+                        type: "Canvas"
+                    },
+                    {
+                        name: "俄羅斯方塊",
+                        file: "game/tetris/tetris.html",
+                        icon: "🧩",
+                        description: "經典益智遊戲，移動和旋轉方塊消除行",
+                        type: "Canvas"
+                    },
+                    {
+                        name: "打磚塊",
+                        file: "game/breakout/breakout.html",
+                        icon: "🧱",
+                        description: "經典打磚塊遊戲，支援超高耐久度磚塊系統",
+                        type: "Canvas"
+                    },
+                    {
+                        name: "Flappy Bird",
+                        file: "game/flappybird/flappybird.html",
+                        icon: "🐤",
+                        description: "控制小鳥飛翔，避開管道障礙物",
+                        type: "Canvas"
+                    },
+                    {
+                        name: "Pong",
+                        file: "game/pong/pong.html",
+                        icon: "🏓",
+                        description: "經典乒乓球遊戲，與電腦對戰",
+                        type: "Canvas"
+                    },
+                    {
+                        name: "太空侵略者",
+                        file: "game/spaceinvaders/spaceinvaders.html",
+                        icon: "👾",
+                        description: "射擊來襲的外星人，保護地球",
+                        type: "Canvas"
+                    },
+                    {
+                        name: "小行星",
+                        file: "game/asteroids/asteroids.html",
+                        icon: "🌌",
+                        description: "控制飛船射擊小行星，避免碰撞",
+                        type: "Canvas"
+                    },
+                    {
+                        name: "毀滅星球",
+                        file: "game/planetdestroyer/planetdestroyer.html",
+                        icon: "💥",
+                        description: "切換五種武器瘋狂轟炸星球與城市",
+                        type: "Canvas"
+                    },
+                    {
+                        name: "打地鼠",
+                        file: "game/whackamole/whackamole.html",
+                        icon: "🐹",
+                        description: "在時間內點擊出現的地鼠得分",
+                        type: "HTML5"
+                    },
+                    {
+                        name: "接水果",
+                        file: "game/catchfruit/catchfruit.html",
+                        icon: "🍎",
+                        description: "控制籃子接住掉落的水果得分",
+                        type: "Canvas"
+                    },
+                    {
+                        name: "賽車",
+                        file: "game/racing/racing.html",
+                        icon: "🏎️",
+                        description: "控制賽車左右移動，避免碰撞障礙物",
+                        type: "Canvas"
+                    },
+                    {
+                        name: "飛機大戰",
+                        file: "game/planefight/planefight.html",
+                        icon: "✈️",
+                        description: "控制飛機射擊敵機，保護自己",
+                        type: "Canvas"
+                    },
+                    {
+                        name: "達達特攻 割草遊戲",
+                        file: "game/dadattack/dadattack.html",
+                        icon: "🛸",
+                        description: "操控達達割草勇者，自動攻擊成群敵人升級強化",
+                        type: "Canvas"
+                    },
+                    {
+                        name: "坦克大戰",
+                        file: "game/tankbattle/tankbattle.html",
+                        icon: "🛡️",
+                        description: "駐守中央自動開火，連鎖爆炸殲滅來襲坦克",
+                        type: "Canvas"
+                    },
+                    {
+                        name: "青蛙過河",
+                        file: "game/frogger/frogger.html",
+                        icon: "🐸",
+                        description: "控制青蛙過馬路到達對岸",
+                        type: "Canvas"
+                    },
+                    {
+                        name: "吃豆人",
+                        file: "game/pacman/pacman.html",
+                        icon: "👻",
+                        description: "控制吃豆人在迷宮中吃豆子，避開幽靈",
+                        type: "Canvas"
+                    }
+                ]
+            },
+            "益智解謎遊戲": {
+                icon: "🧩",
+                games: [
+                    {
+                        name: "井字遊戲",
+                        file: "game/tictactoe/tictactoe.htm",
+                        icon: "⭕",
+                        description: "經典雙人對戰遊戲，玩家輪流下棋，率先連成三子獲勝",
+                        type: "HTML"
+                    },
+                    {
+                        name: "2048",
+                        file: "game/2048/2048.html",
+                        icon: "🔢",
+                        description: "數字合併益智遊戲，通過滑動方塊合併相同數字",
+                        type: "HTML5"
+                    },
+                    {
+                        name: "數獨",
+                        file: "game/sudoku/sudoku.html",
+                        icon: "🔢",
+                        description: "經典的數字邏輯益智遊戲，填入數字1-9",
+                        type: "HTML5"
+                    },
+                    {
+                        name: "記憶翻牌",
+                        file: "game/memory/memory.html",
+                        icon: "🧠",
+                        description: "記憶配對遊戲，翻開卡片找到相同的配對",
+                        type: "HTML5"
+                    },
+                    {
+                        name: "消消樂",
+                        file: "game/match3/match3.html",
+                        icon: "💎",
+                        description: "三消益智遊戲，交換方塊形成連線消除",
+                        type: "HTML5"
+                    },
+                    {
+                        name: "推箱子",
+                        file: "game/sokoban/sokoban.html",
+                        icon: "📦",
+                        description: "將箱子推到目標位置的益智遊戲",
+                        type: "Canvas"
+                    },
+                    {
+                        name: "華容道",
+                        file: "game/klotski/klotski.html",
+                        icon: "🧩",
+                        description: "滑塊拼圖遊戲，移動方塊將目標方塊移到出口",
+                        type: "Canvas"
+                    },
+                    {
+                        name: "拼圖",
+                        file: "game/puzzle/puzzle.html",
+                        icon: "🧩",
+                        description: "滑塊拼圖遊戲，移動方塊完成拼圖",
+                        type: "HTML5"
+                    },
+                    {
+                        name: "管道連接",
+                        file: "game/pipes/pipes.html",
+                        icon: "🔧",
+                        description: "旋轉管道連接入口和出口的益智遊戲",
+                        type: "HTML5"
+                    },
+                    {
+                        name: "方塊消除",
+                        file: "game/blockpuzzle/blockpuzzle.html",
+                        icon: "🧩",
+                        description: "將方塊放置在網格中，填滿整行或整列即可消除",
+                        type: "HTML5"
+                    },
+                    {
+                        name: "找不同",
+                        file: "game/finddiff/finddiff.html",
+                        icon: "🔍",
+                        description: "在兩張相似的圖片中找出所有不同的地方",
+                        type: "Canvas"
+                    },
+                    {
+                        name: "單詞搜索",
+                        file: "game/wordsearch/wordsearch.html",
+                        icon: "🔤",
+                        description: "在字母網格中找到隱藏的單詞",
+                        type: "HTML5"
+                    },
+                    {
+                        name: "填字遊戲",
+                        file: "game/crossword/crossword.html",
+                        icon: "📝",
+                        description: "根據提示填入正確的單詞",
+                        type: "HTML5"
+                    },
+                    {
+                        name: "光線反射",
+                        file: "game/lightreflection/lightreflection.html",
+                        icon: "💡",
+                        description: "放置鏡子來反射光線，使其到達目標",
+                        type: "Canvas"
+                    },
+                    {
+                        name: "路徑規劃",
+                        file: "game/pathfinding/pathfinding.html",
+                        icon: "🗺️",
+                        description: "使用A*算法尋找從起點到終點的最短路徑",
+                        type: "HTML5"
+                    }
+                ]
+            },
+            "動作遊戲": {
+                icon: "⚡",
+                games: [
+                    {
+                        name: "憤怒鳥",
+                        file: "game/angrybirds/angrybirds.html",
+                        icon: "🐦",
+                        description: "物理模擬彈弓遊戲，發射小鳥摧毀建築結構",
+                        type: "Canvas"
+                    },
+                    {
+                        name: "平台跳躍",
+                        file: "game/platformjump/platformjump.html",
+                        icon: "🦘",
+                        description: "控制角色在平台間跳躍向上攀爬",
+                        type: "Canvas"
+                    },
+                    {
+                        name: "跑酷",
+                        file: "game/parkour/parkour.html",
+                        icon: "🏃",
+                        description: "無盡跑酷遊戲，跳躍避開障礙物",
+                        type: "Canvas"
+                    },
+                    {
+                        name: "跳躍球",
+                        file: "game/jumpball/jumpball.html",
+                        icon: "⚽",
+                        description: "控制球跳躍收集星星",
+                        type: "Canvas"
+                    },
+                    {
+                        name: "重力球",
+                        file: "game/gravityball/gravityball.html",
+                        icon: "⚫",
+                        description: "通過移動滑鼠控制重力方向，引導球收集星星",
+                        type: "Canvas"
+                    },
+                    {
+                        name: "彈跳球",
+                        file: "game/bounceball/bounceball.html",
+                        icon: "⚽",
+                        description: "球在平台間彈跳收集金幣",
+                        type: "Canvas"
+                    },
+                    {
+                        name: "躲避球",
+                        file: "game/dodgeball/dodgeball.html",
+                        icon: "⚡",
+                        description: "移動滑鼠躲避來襲的球",
+                        type: "Canvas"
+                    },
+                    {
+                        name: "平衡球",
+                        file: "game/balanceball/balanceball.html",
+                        icon: "⚖️",
+                        description: "控制平台傾斜，引導球到達目標",
+                        type: "Canvas"
+                    }
+                ]
+            },
+            "休閒小遊戲": {
+                icon: "🎲",
+                games: [
+                    {
+                        name: "踩地雷",
+                        file: "game/踩地雷/Minesweeper.html",
+                        icon: "💣",
+                        description: "經典掃雷遊戲，找出所有地雷",
+                        type: "HTML5"
+                    },
+                    {
+                        name: "猜數字",
+                        file: "game/guessing/guessing.html",
+                        icon: "🔢",
+                        description: "猜測1-100之間的數字",
+                        type: "HTML5"
+                    },
+                    {
+                        name: "石頭剪刀布",
+                        file: "game/rps/rps.html",
+                        icon: "✂️",
+                        description: "經典的猜拳遊戲，與電腦對戰",
+                        type: "HTML5"
+                    },
+                    {
+                        name: "輪盤賭",
+                        file: "game/roulette/roulette.html",
+                        icon: "🎰",
+                        description: "點擊轉盤進行遊戲",
+                        type: "Canvas"
+                    },
+                    {
+                        name: "拋硬幣",
+                        file: "game/coinflip/coinflip.html",
+                        icon: "🪙",
+                        description: "點擊硬幣進行拋擲",
+                        type: "HTML5"
+                    },
+                    {
+                        name: "骰子",
+                        file: "game/dice/dice.html",
+                        icon: "🎲",
+                        description: "點擊按鈕擲骰子",
+                        type: "HTML5"
+                    },
+                    {
+                        name: "反應測試",
+                        file: "game/reaction/reaction.html",
+                        icon: "⚡",
+                        description: "測試玩家的反應速度",
+                        type: "HTML5"
+                    },
+                    {
+                        name: "點擊速度",
+                        file: "game/clickspeed/clickspeed.html",
+                        icon: "👆",
+                        description: "測試玩家的點擊速度",
+                        type: "HTML5"
+                    },
+                    {
+                        name: "老虎機",
+                        file: "game/slot/slot.html",
+                        icon: "🎰",
+                        description: "轉動三個轉輪進行遊戲",
+                        type: "HTML5"
+                    },
+                    {
+                        name: "猜顏色",
+                        file: "game/colorguess/colorguess.html",
+                        icon: "🎨",
+                        description: "猜測顯示的顏色",
+                        type: "HTML5"
+                    },
+                    {
+                        name: "節奏遊戲",
+                        file: "game/rhythm/rhythm.html",
+                        icon: "🎵",
+                        description: "在正確的時機按下對應的按鍵來擊打音符",
+                        type: "HTML5"
+                    }
+                ]
+            },
+            "策略遊戲": {
+                icon: "♟️",
+                games: [
+                    {
+                        name: "五子棋",
+                        file: "game/gomoku/gomoku.html",
+                        icon: "⚫",
+                        description: "玩家輪流下棋，率先連成五子獲勝",
+                        type: "Canvas"
+                    },
+                    {
+                        name: "四子棋",
+                        file: "game/connect4/connect4.html",
+                        icon: "🔴",
+                        description: "玩家輪流下棋，率先連成四子獲勝",
+                        type: "HTML5"
+                    },
+                    {
+                        name: "黑白棋",
+                        file: "game/reversi/reversi.html",
+                        icon: "⚫",
+                        description: "通過翻轉對手的棋子來獲得更多棋子",
+                        type: "HTML5"
+                    }
+                ]
+            },
+            "物理模擬遊戲": {
+                icon: "🔬",
+                games: [
+                    {
+                        name: "彈球物理",
+                        file: "game/physicsball/physicsball.html",
+                        icon: "🔵",
+                        description: "展示球的物理碰撞和重力效果",
+                        type: "Canvas"
+                    },
+                    {
+                        name: "粒子系統",
+                        file: "game/particles/particles.html",
+                        icon: "✨",
+                        description: "展示粒子效果的物理模擬",
+                        type: "Canvas"
+                    }
+                ]
+            },
+            "角色扮演/冒險": {
+                icon: "🗡️",
+                games: [
+                    {
+                        name: "文字冒險",
+                        file: "game/textadventure/textadventure.html",
+                        icon: "📖",
+                        description: "通過選擇推進故事的角色扮演遊戲",
+                        type: "HTML5"
+                    }
+                ]
+            },
+            "創意/實驗性遊戲": {
+                icon: "🎨",
+                games: [
+                    {
+                        name: "塗鴉",
+                        file: "game/doodle/doodle.html",
+                        icon: "🖌️",
+                        description: "在畫布上自由繪畫",
+                        type: "Canvas"
+                    },
+                    {
+                        name: "KNN分類演算法",
+                        file: "game/experimental/knn-tutorial.html",
+                        icon: "📚",
+                        description: "KNN分類演算法",
+                        type: "Canvas"
+                    },
+                    {
+                        name: "互動式決策樹",
+                        file: "game/decision-tree/decision-tree.html",
+                        icon: "🌳",
+                        description: "互動式決策樹視覺化工具",
+                        type: "HTML5"
+                    }
+                ]
+            },
+            "英語學習遊戲": {
+                icon: "🗣️",
+                games: [
+                    {
+                        name: "英語遊戲選單",
+                        file: "English/index.html",
+                        icon: "📚",
+                        description: "快速瀏覽並進入所有英語學習小遊戲",
+                        type: "HTML5"
+                    },
+                    {
+                        name: "單字卡 Flashcards",
+                        file: "English/flashcards.html",
+                        icon: "🃏",
+                        description: "翻轉單字卡練習詞彙與解釋，支援洗牌與循環瀏覽",
+                        type: "HTML5"
+                    },
+                    {
+                        name: "配對 Matching",
+                        file: "English/matching.html",
+                        icon: "🧠",
+                        description: "配對單字與定義的記憶挑戰，追蹤回合數與成績",
+                        type: "HTML5"
+                    },
+                    {
+                        name: "吊死鬼 Hangman",
+                        file: "English/hangman.html",
+                        icon: "🪢",
+                        description: "猜字遊戲，附提示與剩餘嘗試次數提示",
+                        type: "HTML5"
+                    },
+                    {
+                        name: "英語測驗 Quiz",
+                        file: "English/quiz.html",
+                        icon: "❓",
+                        description: "多選題形式檢測文法與詞彙，統計分數與進度",
+                        type: "HTML5"
+                    },
+                    {
+                        name: "單字重組 Word Scramble",
+                        file: "English/scramble.html",
+                        icon: "🔀",
+                        description: "在倒數計時內解開亂序單字，提供提示與換題功能",
+                        type: "HTML5"
+                    },
+                    {
+                        name: "拼字 Spelling Bee",
+                        file: "English/spelling-bee.html",
+                        icon: "🐝",
+                        description: "聽發音輸入拼字，隨時索取提示或釋義練習聽寫",
+                        type: "HTML5"
+                    },
+                    {
+                        name: "打字練習 Typing Practice",
+                        file: "English/typing-practice.html",
+                        icon: "⌨️",
+                        description: "字母從上方掉落，輸入對應字母消除並得分，提升打字速度",
+                        type: "HTML5"
+                    },
+                    {
+                        name: "作文閱讀器 Essay Reader",
+                        file: "English/essay-reader.html",
+                        icon: "📖",
+                        description: "閱讀國中程度英語作文，點擊按鈕即可聽語音朗讀",
+                        type: "HTML5"
+                    }
+                ]
+            }
+        };
+
+        // 程式資料庫（保留工具和故事）
+        const programs = {
+            tools: [
+                {
+                    name: "語音轉文字",
+                    file: "tools/speech-to-text/speech-to-text.html",
+                    icon: "🎤",
+                    description: "將語音即時轉換為文字，支援 AI 順稿、翻譯等功能",
+                    type: "Web API"
+                },
+                {
+                    name: "文字轉語音",
+                    file: "tools/text-to-speech/text-to-speech.html",
+                    icon: "🔊",
+                    description: "將文字轉換為語音播放，支援多種語音選項",
+                    type: "Web API"
+                }
+            ],
+            story: [
+                {
+                    name: "樂樂",
+                    file: "story/樂樂.txt",
+                    icon: "📝",
+                    description: "樂樂的故事",
+                    type: "TXT"
+                },
+                {
+                    name: "樂樂大屁股",
+                    file: "story/樂樂大屁股.txt",
+                    icon: "📝",
+                    description: "樂樂大屁股的故事",
+                    type: "TXT"
+                }
+            ]
+        };
+
+        // 獲取檔案圖示
+        function getFileIcon(fileName) {
+            const ext = fileName.split('.').pop().toLowerCase();
+            const iconMap = {
+                'html': '🌐',
+                'htm': '🌐',
+                'txt': '📝',
+                'md': '📄',
+                'js': '📜',
+                'css': '🎨'
+            };
+            return iconMap[ext] || '📄';
+        }
+
+        // 獲取檔案類型
+        function getFileType(fileName) {
+            const ext = fileName.split('.').pop().toUpperCase();
+            return ext;
+        }
+
+        // 生成程式卡片
+        function createProgramCard(program) {
+            const card = document.createElement('a');
+            card.href = program.file;
+            card.target = '_blank';
+            card.className = 'program-card';
+            
+            card.innerHTML = `
+                <div class="program-icon">${program.icon}</div>
+                <div class="program-name">${program.name}</div>
+                <div class="program-description">${program.description}</div>
+            `;
+            
+            return card;
+        }
+
+        // 創建子分類
+        function createSubcategory(categoryName, categoryData) {
+            const subcategory = document.createElement('div');
+            subcategory.className = 'subcategory';
+            
+            const gameCount = categoryData.games.length;
+            const subcategoryId = `subcategory-${categoryName.replace(/\s+/g, '-')}`;
+            
+            const header = document.createElement('div');
+            header.className = 'subcategory-header';
+            header.onclick = () => toggleSubcategory(subcategoryId);
+            
+            const title = document.createElement('div');
+            title.className = 'subcategory-title';
+            title.innerHTML = `
+                <span class="subcategory-icon">${categoryData.icon}</span>
+                <span>${categoryName}</span>
+                <span class="subcategory-count">${gameCount}</span>
+            `;
+            
+            const toggle = document.createElement('span');
+            toggle.className = 'subcategory-toggle';
+            toggle.id = `toggle-${subcategoryId}`;
+            toggle.textContent = '▼';
+            
+            header.appendChild(title);
+            header.appendChild(toggle);
+            
+            const content = document.createElement('div');
+            content.className = 'subcategory-content expanded';
+            content.id = subcategoryId;
+            
+            const grid = document.createElement('div');
+            grid.className = 'programs-grid';
+            
+            categoryData.games.forEach(game => {
+                const card = createProgramCard(game);
+                grid.appendChild(card);
+            });
+            
+            content.appendChild(grid);
+            subcategory.appendChild(header);
+            subcategory.appendChild(content);
+            
+            return subcategory;
+        }
+
+        // 切換子分類展開/收合
+        function toggleSubcategory(subcategoryId) {
+            const content = document.getElementById(subcategoryId);
+            const toggle = document.getElementById(`toggle-${subcategoryId}`);
+            
+            if (content.classList.contains('collapsed')) {
+                content.classList.remove('collapsed');
+                content.classList.add('expanded');
+                toggle.classList.remove('collapsed');
+            } else {
+                content.classList.remove('expanded');
+                content.classList.add('collapsed');
+                toggle.classList.add('collapsed');
+            }
+        }
+
+        // 渲染遊戲分類
+        function renderGameCategories() {
+            const container = document.getElementById('game-categories');
+            let totalGames = 0;
+            
+            Object.keys(gameCategories).forEach(categoryName => {
+                const categoryData = gameCategories[categoryName];
+                totalGames += categoryData.games.length;
+                const subcategory = createSubcategory(categoryName, categoryData);
+                container.appendChild(subcategory);
+            });
+            
+            // 更新總遊戲數
+            document.getElementById('total-games').textContent = totalGames;
+        }
+
+        // 渲染程式列表
+        function renderPrograms() {
+            // 渲染遊戲分類
+            renderGameCategories();
+
+            // 渲染工具
+            const toolsContainer = document.getElementById('tools-programs');
+            programs.tools.forEach(program => {
+                toolsContainer.appendChild(createProgramCard(program));
+            });
+
+            // 渲染故事
+            const storyContainer = document.getElementById('story-programs');
+            programs.story.forEach(program => {
+                storyContainer.appendChild(createProgramCard(program));
+            });
+        }
+
+        // 初始化
+        document.addEventListener('DOMContentLoaded', () => {
+            renderPrograms();
+        });
+    </script>
+</body>
+</html>
+
