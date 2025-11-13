@@ -15,15 +15,202 @@
             font-family: "Microsoft JhengHei", "微軟正黑體", Arial, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
-            padding: 20px;
+            margin: 0;
+            padding: 0;
             display: flex;
-            justify-content: center;
-            align-items: flex-start;
+        }
+
+        /* 侧边栏样式 */
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 280px;
+            height: 100vh;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+            overflow-y: auto;
+            z-index: 1000;
+            transition: transform 0.3s ease;
+        }
+
+        /* 侧边栏滚动条样式 */
+        .sidebar::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .sidebar::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+
+        .sidebar::-webkit-scrollbar-thumb {
+            background: #667eea;
+            border-radius: 3px;
+        }
+
+        .sidebar::-webkit-scrollbar-thumb:hover {
+            background: #764ba2;
+        }
+
+        .sidebar.hidden {
+            transform: translateX(-100%);
+        }
+
+        .sidebar-header {
+            padding: 20px;
+            border-bottom: 2px solid #667eea;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .sidebar-header h2 {
+            margin: 0;
+            font-size: 1.3em;
+        }
+
+        .sidebar-section {
+            padding: 15px 20px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .sidebar-section-title {
+            font-size: 0.9em;
+            color: #666;
+            font-weight: bold;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .nav-link {
+            display: block;
+            padding: 10px 15px;
+            color: #333;
+            text-decoration: none;
+            border-radius: 6px;
+            margin-bottom: 5px;
+            transition: all 0.2s ease;
+        }
+
+        .nav-link:hover {
+            background: #f0f0f0;
+            color: #667eea;
+        }
+
+        .filter-btn {
+            display: block;
+            width: 100%;
+            padding: 12px 15px;
+            margin-bottom: 8px;
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.95em;
+            transition: all 0.2s ease;
+            text-align: left;
+        }
+
+        .filter-btn:hover {
+            background: #f8f9fa;
+            border-color: #667eea;
+            transform: translateX(5px);
+        }
+
+        .filter-btn.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-color: #667eea;
+        }
+
+        .accordion-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 15px;
+            cursor: pointer;
+            border-radius: 6px;
+            transition: background 0.2s ease;
+        }
+
+        .accordion-header:hover {
+            background: #f0f0f0;
+        }
+
+        .accordion-title {
+            font-size: 0.95em;
+            color: #333;
+            font-weight: 500;
+        }
+
+        .accordion-toggle {
+            font-size: 0.8em;
+            color: #667eea;
+            transition: transform 0.3s ease;
+        }
+
+        .accordion-toggle.collapsed {
+            transform: rotate(-90deg);
+        }
+
+        .accordion-content {
+            max-height: 500px;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+        }
+
+        .accordion-content.collapsed {
+            max-height: 0;
+        }
+
+        .accordion-link {
+            display: block;
+            padding: 8px 15px 8px 30px;
+            color: #666;
+            text-decoration: none;
+            font-size: 0.9em;
+            transition: all 0.2s ease;
+        }
+
+        .accordion-link:hover {
+            color: #667eea;
+            background: #f8f9fa;
+            padding-left: 35px;
+        }
+
+        /* 汉堡菜单按钮 */
+        .hamburger {
+            display: none;
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 1001;
+            background: rgba(255, 255, 255, 0.95);
+            border: none;
+            border-radius: 8px;
+            padding: 10px;
+            cursor: pointer;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+            font-size: 1.5em;
+        }
+
+        /* 主内容区 */
+        .main-content {
+            margin-left: 280px;
+            width: calc(100% - 280px);
+            padding: 20px;
+            transition: margin-left 0.3s ease;
+        }
+
+        .main-content.expanded {
+            margin-left: 0;
+            width: 100%;
         }
 
         .container {
-            max-width: 900px;
-            width: 90%;
+            max-width: 1200px;
+            width: 100%;
             margin: 0 auto;
         }
 
@@ -78,20 +265,91 @@
 
         .programs-grid {
             display: grid;
-            grid-template-columns: repeat(5, minmax(0, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
             gap: 15px;
+        }
+
+        /* 工具区块专用网格布局 */
+        .status-section .programs-grid {
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        }
+
+        /* 工具状态区块 */
+        .status-section {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .status-section-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 3px solid;
+        }
+
+        .status-section.stable .status-section-header {
+            border-color: #28a745;
+        }
+
+        .status-section.testing .status-section-header {
+            border-color: #ffc107;
+        }
+
+        .status-section.experimental .status-section-header {
+            border-color: #dc3545;
+        }
+
+        .status-icon {
+            font-size: 2em;
+            margin-right: 15px;
+        }
+
+        .status-title {
+            font-size: 1.8em;
+            color: #333;
+            font-weight: bold;
+            flex: 1;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+
+        .status-badge.stable {
+            background: #28a745;
+            color: white;
+        }
+
+        .status-badge.testing {
+            background: #ffc107;
+            color: #333;
+        }
+
+        .status-badge.experimental {
+            background: #dc3545;
+            color: white;
         }
 
         .program-card {
             background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
             border-radius: 10px;
-            padding: 15px;
+            padding: 20px;
             transition: all 0.3s ease;
-            cursor: pointer;
             border: 2px solid transparent;
-            text-decoration: none;
             color: inherit;
-            display: block;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            min-height: 200px;
         }
 
         .program-card:hover {
@@ -99,6 +357,55 @@
             box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
             border-color: #667eea;
             background: linear-gradient(135deg, #ffffff 0%, #e8edf5 100%);
+        }
+
+        .program-card.hidden {
+            display: none;
+        }
+
+        .tool-status-label {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.75em;
+            font-weight: bold;
+        }
+
+        .tool-status-label.stable {
+            background: #28a745;
+            color: white;
+        }
+
+        .tool-status-label.testing {
+            background: #ffc107;
+            color: #333;
+        }
+
+        .tool-status-label.experimental {
+            background: #dc3545;
+            color: white;
+        }
+
+        .tool-link-btn {
+            display: inline-block;
+            margin-top: 15px;
+            padding: 8px 16px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 6px;
+            text-decoration: none;
+            font-size: 0.9em;
+            transition: all 0.2s ease;
+            width: 100%;
+            text-align: center;
+            box-sizing: border-box;
+        }
+
+        .tool-link-btn:hover {
+            transform: scale(1.02);
+            box-shadow: 0 4px 10px rgba(102, 126, 234, 0.4);
         }
 
         .program-icon {
@@ -116,10 +423,31 @@
         }
 
         .program-description {
-            font-size: 0.8em;
+            font-size: 0.85em;
             color: #666;
             text-align: center;
-            line-height: 1.4;
+            line-height: 1.5;
+            margin-top: 8px;
+            margin-bottom: 8px;
+            min-height: 40px;
+        }
+
+        /* 工具卡片内部布局优化 */
+        .program-card .program-icon {
+            flex-shrink: 0;
+        }
+
+        .program-card .program-name {
+            flex-shrink: 0;
+        }
+
+        .program-card .program-description {
+            flex-grow: 1;
+        }
+
+        .program-card .tool-link-btn {
+            flex-shrink: 0;
+            margin-top: auto;
         }
 
 
@@ -133,15 +461,36 @@
         }
 
         @media (max-width: 768px) {
+            .hamburger {
+                display: block;
+            }
+
+            .sidebar {
+                transform: translateX(-100%);
+            }
+
+            .sidebar.show {
+                transform: translateX(0);
+            }
+
+            .main-content {
+                margin-left: 0;
+                width: 100%;
+            }
+
             .programs-grid {
                 grid-template-columns: 1fr;
             }
 
             header h1 {
-                font-size: 2em;
+                font-size: 1.8em;
             }
 
             .category-title {
+                font-size: 1.3em;
+            }
+
+            .status-title {
                 font-size: 1.5em;
             }
         }
@@ -151,6 +500,7 @@
             padding: 40px;
             color: #999;
             font-style: italic;
+            grid-column: 1 / -1;
         }
 
         .subcategory {
@@ -220,58 +570,166 @@
     </style>
 </head>
 <body>
-    <div class="container">
-        <header>
-            <h1>🚀 專案儀表板</h1>
-            <p>歡迎來到我的專案集合！點擊下方卡片開啟對應的程式</p>
-        </header>
+    <!-- 汉堡菜单按钮 -->
+    <button class="hamburger" id="hamburger-btn">☰</button>
 
-        <!-- 遊戲類別 -->
-        <div class="category">
-            <div class="category-header">
-                <div class="category-icon">🎮</div>
-                <div>
-                    <div class="category-title">遊戲專案</div>
-                    <div class="category-description">經典遊戲與街機遊戲 | 共 <span id="total-games">0</span> 個遊戲</div>
+    <!-- 侧边栏 -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <h2>🚀 專案導航</h2>
+        </div>
+
+        <!-- 主專案導航 -->
+        <div class="sidebar-section">
+            <div class="sidebar-section-title">主專案</div>
+            <a href="#dashboard" class="nav-link" onclick="scrollToSection('dashboard'); return false;">📊 儀表板</a>
+            <a href="#games" class="nav-link" onclick="scrollToSection('games'); return false;">🎮 遊戲專案</a>
+            <a href="#tools" class="nav-link" onclick="scrollToSection('tools'); return false;">🛠️ 工具專案</a>
+            <a href="#stories" class="nav-link" onclick="scrollToSection('stories'); return false;">📖 故事專案</a>
+        </div>
+
+        <!-- 工具狀態篩選器 -->
+        <div class="sidebar-section">
+            <div class="sidebar-section-title">工具狀態篩選</div>
+            <button class="filter-btn active" data-filter="all" onclick="filterTools('all', event)">
+                📋 顯示全部
+            </button>
+            <button class="filter-btn" data-filter="stable" onclick="filterTools('stable', event)">
+                ⭐ 穩定與正式發布
+            </button>
+            <button class="filter-btn" data-filter="testing" onclick="filterTools('testing', event)">
+                🚧 開發與測試中
+            </button>
+            <button class="filter-btn" data-filter="experimental" onclick="filterTools('experimental', event)">
+                🧪 實驗區與許願池
+            </button>
+        </div>
+
+        <!-- 工具功能分類 -->
+        <div class="sidebar-section">
+            <div class="sidebar-section-title">工具功能分類</div>
+            
+            <div class="accordion-item">
+                <div class="accordion-header" onclick="toggleAccordion('text-tools')">
+                    <span class="accordion-title">📝 文字與內容工具</span>
+                    <span class="accordion-toggle" id="toggle-text-tools">▼</span>
+                </div>
+                <div class="accordion-content collapsed" id="text-tools">
+                    <a href="#" class="accordion-link" onclick="filterByCategory('text'); return false;">語音轉文字</a>
+                    <a href="#" class="accordion-link" onclick="filterByCategory('text'); return false;">文字轉語音</a>
                 </div>
             </div>
-            <div id="game-categories">
-                <!-- 遊戲子分類將由 JavaScript 動態生成 -->
-            </div>
-        </div>
 
-        <!-- 工具類別 -->
-        <div class="category">
-            <div class="category-header">
-                <div class="category-icon">🛠️</div>
-                <div>
-                    <div class="category-title">工具專案</div>
-                    <div class="category-description">實用的工具與應用程式</div>
+            <div class="accordion-item">
+                <div class="accordion-header" onclick="toggleAccordion('media-tools')">
+                    <span class="accordion-title">🎨 圖像與視覺工具</span>
+                    <span class="accordion-toggle" id="toggle-media-tools">▼</span>
+                </div>
+                <div class="accordion-content collapsed" id="media-tools">
+                    <a href="#" class="accordion-link">（待新增）</a>
                 </div>
             </div>
-            <div class="programs-grid" id="tools-programs">
-                <!-- 程式卡片將由 JavaScript 動態生成 -->
-            </div>
-        </div>
 
-        <!-- 故事類別 -->
-        <div class="category">
-            <div class="category-header">
-                <div class="category-icon">📖</div>
-                <div>
-                    <div class="category-title">故事專案</div>
-                    <div class="category-description">文字故事與內容</div>
+            <div class="accordion-item">
+                <div class="accordion-header" onclick="toggleAccordion('utility-tools')">
+                    <span class="accordion-title">⚙️ 實用與計算工具</span>
+                    <span class="accordion-toggle" id="toggle-utility-tools">▼</span>
+                </div>
+                <div class="accordion-content collapsed" id="utility-tools">
+                    <a href="#" class="accordion-link" onclick="filterByCategory('music'); return false;">音樂工具集</a>
                 </div>
             </div>
-            <div class="programs-grid" id="story-programs">
-                <!-- 程式卡片將由 JavaScript 動態生成 -->
+        </div>
+    </aside>
+
+    <!-- 主內容區 -->
+    <main class="main-content" id="main-content">
+        <div class="container">
+            <header id="dashboard">
+                <h1>🚀 專案儀表板</h1>
+                <p>歡迎來到我的專案集合！點擊下方卡片開啟對應的程式</p>
+            </header>
+
+            <!-- 遊戲類別 -->
+            <div class="category" id="games">
+                <div class="category-header">
+                    <div class="category-icon">🎮</div>
+                    <div>
+                        <div class="category-title">遊戲專案</div>
+                        <div class="category-description">經典遊戲與街機遊戲 | 共 <span id="total-games">0</span> 個遊戲</div>
+                    </div>
+                </div>
+                <div id="game-categories">
+                    <!-- 遊戲子分類將由 JavaScript 動態生成 -->
+                </div>
+            </div>
+
+            <!-- 工具類別 -->
+            <div class="category" id="tools">
+                <div class="category-header">
+                    <div class="category-icon">🛠️</div>
+                    <div>
+                        <div class="category-title">工具專案</div>
+                        <div class="category-description">實用的工具與應用程式</div>
+                    </div>
+                </div>
+
+                <!-- ⭐ 穩定與正式發布區 -->
+                <div class="status-section stable" id="stable-section">
+                    <div class="status-section-header">
+                        <span class="status-icon">⭐</span>
+                        <span class="status-title">穩定與正式發布</span>
+                        <span class="status-badge stable">[完成]</span>
+                    </div>
+                    <div class="programs-grid" id="stable-tools">
+                        <!-- 穩定工具將由 JavaScript 動態生成 -->
+                    </div>
+                </div>
+
+                <!-- 🚧 開發與測試區 -->
+                <div class="status-section testing" id="testing-section">
+                    <div class="status-section-header">
+                        <span class="status-icon">🚧</span>
+                        <span class="status-title">開發與測試中</span>
+                        <span class="status-badge testing">[測試中]</span>
+                    </div>
+                    <div class="programs-grid" id="testing-tools">
+                        <!-- 測試工具將由 JavaScript 動態生成 -->
+                    </div>
+                </div>
+
+                <!-- 🧪 實驗區與許願池 -->
+                <div class="status-section experimental" id="experimental-section">
+                    <div class="status-section-header">
+                        <span class="status-icon">🧪</span>
+                        <span class="status-title">實驗區與許願池</span>
+                        <span class="status-badge experimental">[不穩定]</span>
+                    </div>
+                    <div class="programs-grid" id="experimental-tools">
+                        <!-- 實驗工具將由 JavaScript 動態生成 -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- 故事類別 -->
+            <div class="category" id="stories">
+                <div class="category-header">
+                    <div class="category-icon">📖</div>
+                    <div>
+                        <div class="category-title">故事專案</div>
+                        <div class="category-description">文字故事與內容</div>
+                    </div>
+                </div>
+                <div class="programs-grid" id="story-programs">
+                    <!-- 程式卡片將由 JavaScript 動態生成 -->
+                </div>
+            </div>
+
+            <div class="footer">
+                <p>© 2024 專案集合 | 使用 HTML5, CSS3, JavaScript 開發</p>
             </div>
         </div>
-
-        <div class="footer">
-            <p>© 2024 專案集合 | 使用 HTML5, CSS3, JavaScript 開發</p>
-        </div>
-    </div>
+    </main>
 
     <script>
         // 遊戲分類資料庫
@@ -398,7 +856,7 @@
                 games: [
                     {
                         name: "井字遊戲",
-                        file: "game/tictactoe/tictactoe.htm",
+                        file: "game/tictactoe/tictactoe.html",
                         icon: "⭕",
                         description: "經典雙人對戰遊戲，玩家輪流下棋，率先連成三子獲勝",
                         type: "HTML"
@@ -807,14 +1265,27 @@
                     file: "tools/speech-to-text/speech-to-text.html",
                     icon: "🎤",
                     description: "將語音即時轉換為文字，支援 AI 順稿、翻譯等功能",
-                    type: "Web API"
+                    type: "Web API",
+                    status: "stable",  // stable, testing, experimental
+                    category: "text"   // text, media, utility
                 },
                 {
                     name: "文字轉語音",
                     file: "tools/text-to-speech/text-to-speech.html",
                     icon: "🔊",
                     description: "將文字轉換為語音播放，支援多種語音選項",
-                    type: "Web API"
+                    type: "Web API",
+                    status: "stable",
+                    category: "text"
+                },
+                {
+                    name: "音樂工具集",
+                    file: "tools/music-tools/music-tools.html",
+                    icon: "🎵",
+                    description: "節拍器、簡易鋼琴、音高檢測器、BPM 檢測器等音樂工具",
+                    type: "Web API",
+                    status: "stable",
+                    category: "music"
                 }
             ],
             story: [
@@ -857,15 +1328,28 @@
 
         // 生成程式卡片
         function createProgramCard(program) {
-            const card = document.createElement('a');
-            card.href = program.file;
-            card.target = '_blank';
+            const card = document.createElement('div');
             card.className = 'program-card';
+            card.setAttribute('data-status', program.status || 'stable');
+            card.setAttribute('data-category', program.category || '');
+            
+            // 状态标签
+            let statusLabel = '';
+            if (program.status) {
+                const statusText = {
+                    'stable': '[完成]',
+                    'testing': '[測試中]',
+                    'experimental': '[不穩定]'
+                };
+                statusLabel = `<span class="tool-status-label ${program.status}">${statusText[program.status] || '[完成]'}</span>`;
+            }
             
             card.innerHTML = `
+                ${statusLabel}
                 <div class="program-icon">${program.icon}</div>
                 <div class="program-name">${program.name}</div>
                 <div class="program-description">${program.description}</div>
+                <a href="${program.file}" target="_blank" class="tool-link-btn">進入工具 →</a>
             `;
             
             return card;
@@ -950,16 +1434,129 @@
             document.getElementById('total-games').textContent = totalGames;
         }
 
+        // 渲染工具到对应状态区块
+        function renderTools() {
+            const stableContainer = document.getElementById('stable-tools');
+            const testingContainer = document.getElementById('testing-tools');
+            const experimentalContainer = document.getElementById('experimental-tools');
+
+            // 清空容器
+            stableContainer.innerHTML = '';
+            testingContainer.innerHTML = '';
+            experimentalContainer.innerHTML = '';
+
+            programs.tools.forEach(program => {
+                const card = createProgramCard(program);
+                const status = program.status || 'stable';
+
+                if (status === 'stable') {
+                    stableContainer.appendChild(card);
+                } else if (status === 'testing') {
+                    testingContainer.appendChild(card);
+                } else if (status === 'experimental') {
+                    experimentalContainer.appendChild(card);
+                } else {
+                    stableContainer.appendChild(card);
+                }
+            });
+
+            // 如果没有工具，显示空状态
+            if (stableContainer.children.length === 0) {
+                stableContainer.innerHTML = '<div class="empty-category">暫無穩定工具</div>';
+            }
+            if (testingContainer.children.length === 0) {
+                testingContainer.innerHTML = '<div class="empty-category">暫無測試中工具</div>';
+            }
+            if (experimentalContainer.children.length === 0) {
+                experimentalContainer.innerHTML = '<div class="empty-category">暫無實驗工具</div>';
+            }
+        }
+
+        // 工具筛选功能
+        function filterTools(status, event) {
+            // 更新按钮状态
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            if (event && event.target) {
+                event.target.classList.add('active');
+            } else {
+                // 如果没有event，通过data-filter属性找到对应按钮
+                document.querySelector(`.filter-btn[data-filter="${status}"]`)?.classList.add('active');
+            }
+
+            // 显示/隐藏对应区块
+            const sections = {
+                'all': ['stable-section', 'testing-section', 'experimental-section'],
+                'stable': ['stable-section'],
+                'testing': ['testing-section'],
+                'experimental': ['experimental-section']
+            };
+
+            // 隐藏所有区块
+            document.querySelectorAll('.status-section').forEach(section => {
+                section.style.display = 'none';
+            });
+
+            // 显示选中的区块
+            if (sections[status]) {
+                sections[status].forEach(sectionId => {
+                    const section = document.getElementById(sectionId);
+                    if (section) {
+                        section.style.display = 'block';
+                    }
+                });
+            }
+
+            // 滚动到工具区域
+            document.getElementById('tools').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // 按分类筛选工具
+        function filterByCategory(category) {
+            // 实现分类筛选逻辑（可选功能）
+            console.log('筛选分类:', category);
+        }
+
+        // 折叠菜单切换
+        function toggleAccordion(id) {
+            const content = document.getElementById(id);
+            const toggle = document.getElementById(`toggle-${id}`);
+            
+            if (content.classList.contains('collapsed')) {
+                content.classList.remove('collapsed');
+                if (toggle) toggle.classList.remove('collapsed');
+            } else {
+                content.classList.add('collapsed');
+                if (toggle) toggle.classList.add('collapsed');
+            }
+        }
+
+        // 滚动到指定区域
+        function scrollToSection(sectionId) {
+            const section = document.getElementById(sectionId);
+            if (section) {
+                section.scrollIntoView({ behavior: 'smooth' });
+                // 移动端关闭侧边栏
+                if (window.innerWidth <= 768) {
+                    document.getElementById('sidebar').classList.remove('show');
+                }
+            }
+        }
+
+        // 汉堡菜单切换
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            sidebar.classList.toggle('show');
+        }
+
         // 渲染程式列表
         function renderPrograms() {
             // 渲染遊戲分類
             renderGameCategories();
 
-            // 渲染工具
-            const toolsContainer = document.getElementById('tools-programs');
-            programs.tools.forEach(program => {
-                toolsContainer.appendChild(createProgramCard(program));
-            });
+            // 渲染工具（按状态分类）
+            renderTools();
 
             // 渲染故事
             const storyContainer = document.getElementById('story-programs');
@@ -971,6 +1568,33 @@
         // 初始化
         document.addEventListener('DOMContentLoaded', () => {
             renderPrograms();
+
+            // 汉堡菜单事件
+            const hamburgerBtn = document.getElementById('hamburger-btn');
+            if (hamburgerBtn) {
+                hamburgerBtn.addEventListener('click', toggleSidebar);
+            }
+
+            // 点击外部关闭侧边栏（移动端）
+            document.addEventListener('click', (e) => {
+                const sidebar = document.getElementById('sidebar');
+                const hamburger = document.getElementById('hamburger-btn');
+                
+                if (window.innerWidth <= 768 && 
+                    sidebar.classList.contains('show') &&
+                    !sidebar.contains(e.target) &&
+                    !hamburger.contains(e.target)) {
+                    sidebar.classList.remove('show');
+                }
+            });
+
+            // 窗口大小改变时调整
+            window.addEventListener('resize', () => {
+                const sidebar = document.getElementById('sidebar');
+                if (window.innerWidth > 768) {
+                    sidebar.classList.remove('show');
+                }
+            });
         });
     </script>
 </body>
