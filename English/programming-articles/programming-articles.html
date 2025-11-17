@@ -1,0 +1,2824 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="google" content="notranslate">
+  <meta http-equiv="Content-Language" content="en">
+  <title>Programming & AI Articles - English Learning</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Segoe UI", "Microsoft JhengHei", Arial, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 2rem 1rem;
+      color: #1a2a42;
+    }
+    .container {
+      max-width: 1000px;
+      margin: 0 auto;
+    }
+    header {
+      text-align: center;
+      margin-bottom: 2rem;
+      color: #fff;
+    }
+    h1 {
+      margin: 0 0 0.5rem;
+      font-size: 2.5rem;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+    }
+    .subtitle {
+      font-size: 1.1rem;
+      opacity: 0.95;
+    }
+    .card {
+      background: #fff;
+      border-radius: 20px;
+      padding: 2rem;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      margin-bottom: 1.5rem;
+    }
+    .article-selector {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 1rem;
+      margin-bottom: 2rem;
+      padding: 1rem;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 16px;
+      backdrop-filter: blur(10px);
+    }
+    .article-btn {
+      background: rgba(255, 255, 255, 0.95);
+      border: 2px solid rgba(255, 255, 255, 0.5);
+      border-radius: 12px;
+      padding: 1rem;
+      color: #667eea;
+      font-size: 1rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-align: center;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+    .article-btn:hover {
+      background: #fff;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+      border-color: #667eea;
+    }
+    .article-btn.active {
+      background: #667eea;
+      color: #fff;
+      font-weight: 600;
+      border-color: #667eea;
+      box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+    }
+    .article-title {
+      font-size: 1.8rem;
+      margin: 0 0 1.5rem;
+      color: #1a2a42;
+      padding-bottom: 1rem;
+      border-bottom: 3px solid #667eea;
+    }
+    .article-section {
+      margin-bottom: 2rem;
+    }
+    .english-text {
+      font-size: 1.1rem;
+      line-height: 1.8;
+      color: #2c3e50;
+      margin-bottom: 1rem;
+      text-align: justify;
+      padding: 1.5rem;
+      background: #f8f9fa;
+      border-radius: 12px;
+      border-left: 4px solid #667eea;
+    }
+    .english-text::before {
+      content: "💡 提示：將滑鼠移到單字上可查看中文，點擊單字可加入「我的單字」";
+      display: block;
+      font-size: 0.9rem;
+      color: #667eea;
+      margin-bottom: 1rem;
+      padding: 0.5rem;
+      background: #e7f3ff;
+      border-radius: 6px;
+      font-weight: 500;
+    }
+    .chinese-translation {
+      font-size: 1rem;
+      line-height: 1.8;
+      color: #495057;
+      padding: 1.5rem;
+      background: #fff3cd;
+      border-radius: 12px;
+      border-left: 4px solid #ffc107;
+      margin-top: 1rem;
+    }
+    .translation-label {
+      font-weight: 600;
+      color: #856404;
+      margin-bottom: 0.5rem;
+      display: block;
+    }
+    .audio-controls {
+      display: flex;
+      gap: 1rem;
+      align-items: center;
+      flex-wrap: wrap;
+      padding: 1rem;
+      background: #e9ecef;
+      border-radius: 12px;
+      margin-top: 1rem;
+    }
+    .speed-control {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: #fff;
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+    .speed-control label {
+      font-size: 0.9rem;
+      color: #333;
+      font-weight: 500;
+    }
+    .speed-control input[type="range"] {
+      width: 120px;
+      height: 6px;
+      border-radius: 3px;
+      background: #ddd;
+      outline: none;
+      cursor: pointer;
+    }
+    .speed-control input[type="range"]::-webkit-slider-thumb {
+      appearance: none;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: #667eea;
+      cursor: pointer;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    }
+    .speed-control input[type="range"]::-moz-range-thumb {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: #667eea;
+      cursor: pointer;
+      border: none;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    }
+    .speed-control #speedValue {
+      font-size: 0.9rem;
+      color: #667eea;
+      font-weight: 600;
+      min-width: 45px;
+    }
+    button {
+      border: none;
+      border-radius: 12px;
+      padding: 0.9rem 2rem;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    }
+    .play-btn {
+      background: #667eea;
+      color: #fff;
+    }
+    .play-btn:hover {
+      background: #5568d3;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+    }
+    .play-btn:active {
+      transform: translateY(0);
+    }
+    .pause-btn {
+      background: #f0932b;
+      color: #fff;
+    }
+    .pause-btn:hover {
+      background: #e0821a;
+    }
+    .stop-btn {
+      background: #eb4d4b;
+      color: #fff;
+    }
+    .stop-btn:hover {
+      background: #d63c3a;
+    }
+    .status {
+      color: #667eea;
+      font-weight: 600;
+      margin-left: auto;
+    }
+    .back-link {
+      display: inline-block;
+      margin-bottom: 1.5rem;
+      color: #fff;
+      text-decoration: none;
+      font-size: 1rem;
+      opacity: 0.9;
+      transition: opacity 0.2s;
+    }
+    .back-link:hover {
+      opacity: 1;
+      text-decoration: underline;
+    }
+    .word-count {
+      color: #666;
+      font-size: 0.95rem;
+    }
+    /* 可點擊單字樣式 */
+    .clickable-word {
+      cursor: pointer;
+      position: relative;
+      display: inline;
+      padding: 1px 2px;
+      margin: 0;
+      border-radius: 2px;
+      transition: all 0.2s ease;
+      border: 2px solid transparent;
+      white-space: normal;
+    }
+    .clickable-word:hover {
+      background-color: #667eea;
+      color: #fff;
+      transform: translateY(-1px);
+      box-shadow: 0 2px 4px rgba(102, 126, 234, 0.3);
+    }
+    .clickable-word.added {
+      border: 2px solid rgba(102, 126, 234, 0.4);
+      background-color: rgba(102, 126, 234, 0.1);
+    }
+    .clickable-word.added:hover {
+      background-color: rgba(102, 126, 234, 0.2);
+      border-color: rgba(102, 126, 234, 0.6);
+    }
+    /* Tooltip 樣式 */
+    .word-tooltip {
+      position: absolute;
+      background: #1a1a1a;
+      color: #ffffff;
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 500;
+      font-family: "Microsoft JhengHei", "微軟正黑體", "Segoe UI", Arial, sans-serif;
+      white-space: nowrap;
+      z-index: 1000;
+      pointer-events: none;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+      opacity: 0;
+      transition: opacity 0.2s;
+      top: 100%;
+      left: 50%;
+      transform: translateX(-50%) translateY(8px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      letter-spacing: 0.3px;
+      line-height: 1.4;
+    }
+    .clickable-word:hover .word-tooltip {
+      opacity: 1;
+    }
+    /* 我的單字區域 */
+    .my-words-section {
+      margin-top: 2rem;
+      padding-top: 2rem;
+      border-top: 3px solid #667eea;
+    }
+    .my-words-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+    }
+    .my-words-title {
+      font-size: 1.5rem;
+      color: #1a2a42;
+      font-weight: 600;
+    }
+    .clear-words-btn {
+      background: #eb4d4b;
+      color: #fff;
+      padding: 0.5rem 1rem;
+      font-size: 0.9rem;
+    }
+    .clear-words-btn:hover {
+      background: #d63c3a;
+    }
+    .words-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 1rem;
+    }
+    .word-card {
+      background: #f8f9fa;
+      border: 2px solid #e0e0e0;
+      border-radius: 12px;
+      padding: 1rem;
+      transition: all 0.2s ease;
+    }
+    .word-card:hover {
+      border-color: #667eea;
+      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+      transform: translateY(-2px);
+    }
+    .word-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.5rem;
+    }
+    .word-english {
+      font-size: 1.2rem;
+      font-weight: 600;
+      color: #667eea;
+    }
+    .word-delete {
+      background: #eb4d4b;
+      color: #fff;
+      border: none;
+      border-radius: 50%;
+      width: 24px;
+      height: 24px;
+      cursor: pointer;
+      font-size: 0.8rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0;
+    }
+    .word-delete:hover {
+      background: #d63c3a;
+    }
+    .word-chinese {
+      color: #495057;
+      margin-bottom: 0.3rem;
+    }
+    .word-pos {
+      font-size: 0.85rem;
+      color: #6c757d;
+      font-style: italic;
+    }
+    .empty-words {
+      text-align: center;
+      color: #999;
+      padding: 2rem;
+      font-style: italic;
+    }
+    @media (max-width: 768px) {
+      h1 {
+        font-size: 2rem;
+      }
+      .english-text, .chinese-translation {
+        font-size: 0.95rem;
+      }
+      .audio-controls {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      .status {
+        margin-left: 0;
+        margin-top: 0.5rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <a href="../index.html" class="back-link">← Back to English Games</a>
+    <header>
+      <h1>💻 Programming & AI Articles</h1>
+      <p class="subtitle">Learn English through Programming and AI Topics</p>
+    </header>
+
+    <div class="article-selector" id="articleSelector"></div>
+
+    <div class="card">
+      <div id="articleContainer">
+        <p style="text-align: center; color: #999; padding: 3rem;">
+          請選擇上方文章開始閱讀和聆聽。
+        </p>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="my-words-section">
+        <div class="my-words-header">
+          <h2 class="my-words-title">📚 我的單字</h2>
+          <button class="clear-words-btn" id="clearWordsBtn">清除全部</button>
+        </div>
+        <div class="words-list" id="wordsList">
+          <div class="empty-words">尚未添加任何單字。點擊文章中的單字即可加入！</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const articles = [
+      {
+        title: "What is Programming?",
+        english: `Programming is like giving instructions to a computer. When you write code, you tell the computer what to do step by step. It's similar to writing a recipe for cooking, but instead of telling a person how to make food, you're telling a computer how to solve problems.
+
+Computers are very smart, but they need clear instructions. They can't guess what you want them to do. This is why programming languages exist. Programming languages are special ways to communicate with computers. Some popular languages include Python, JavaScript, and Scratch.
+
+Learning to program helps you think logically. You learn to break big problems into smaller pieces. You also learn to be patient and careful, because one small mistake can make your program not work.
+
+Many people think programming is only for adults, but that's not true! Kids can learn programming too. There are fun tools like Scratch that use colorful blocks instead of typing code. Programming can be creative and fun, just like drawing or playing music.`,
+        chinese: `程式設計就像是給電腦下指令。當你寫程式碼時，你一步一步地告訴電腦該做什麼。這就像寫食譜一樣，但你不是告訴人如何做菜，而是告訴電腦如何解決問題。
+
+電腦非常聰明，但它們需要清楚的指令。它們無法猜測你想要它們做什麼。這就是為什麼程式語言存在的原因。程式語言是與電腦溝通的特殊方式。一些流行的語言包括 Python、JavaScript 和 Scratch。
+
+學習程式設計幫助你邏輯思考。你學會將大問題分解成小部分。你也學會耐心和仔細，因為一個小錯誤就可能讓你的程式無法運作。
+
+許多人認為程式設計只適合成年人，但這不是真的！孩子們也可以學習程式設計。有一些有趣的工具，像是 Scratch，使用彩色積木而不是輸入程式碼。程式設計可以是創意和有趣的，就像畫畫或演奏音樂一樣。`
+      },
+      {
+        title: "Understanding Artificial Intelligence",
+        english: `Artificial Intelligence, or AI, is a technology that makes computers think and learn like humans. The word "artificial" means something made by humans, not natural. So AI is intelligence created by people, not born naturally.
+
+AI can do many amazing things. For example, AI can recognize faces in photos. It can understand what you say when you talk to your phone. It can even play games like chess better than humans! Some AI programs can write stories or create pictures.
+
+How does AI learn? AI learns from examples. Just like you learn math by doing many math problems, AI learns by looking at thousands of examples. For instance, if you show an AI thousands of pictures of cats, it will learn what a cat looks like.
+
+AI is everywhere today. When you use Google to search, AI helps find the best results. When Netflix suggests movies you might like, that's AI too. Even your phone's camera uses AI to make your photos look better.
+
+However, AI is not perfect. It still needs humans to teach it and check its work. AI is a tool that helps us, but it doesn't replace human thinking and creativity.`,
+        chinese: `人工智慧，或稱 AI，是一種讓電腦像人類一樣思考和學習的技術。「人工」這個詞指的是由人類製造的東西，不是自然的。所以 AI 是人類創造的智慧，不是自然產生的。
+
+AI 可以做許多令人驚奇的事情。例如，AI 可以識別照片中的臉孔。它可以理解你對手機說話時的內容。它甚至可以下棋，而且比人類下得更好！一些 AI 程式可以寫故事或創造圖片。
+
+AI 如何學習？AI 從範例中學習。就像你透過做許多數學題來學習數學一樣，AI 透過查看數千個範例來學習。例如，如果你向 AI 展示數千張貓的照片，它就會學會貓的樣子。
+
+如今 AI 無處不在。當你使用 Google 搜尋時，AI 幫助找到最佳結果。當 Netflix 推薦你可能喜歡的電影時，那也是 AI。甚至你手機的相機也使用 AI 來讓你的照片看起來更好。
+
+然而，AI 並不完美。它仍然需要人類來教導它並檢查它的工作。AI 是一個幫助我們的工具，但它不會取代人類的思考和創造力。`
+      },
+      {
+        title: "How Computers Work",
+        english: `Computers are amazing machines that can do many things. But have you ever wondered how they work? Let me explain in simple terms.
+
+A computer has several important parts. The brain of a computer is called the CPU, which stands for Central Processing Unit. The CPU does all the thinking and calculations. It's like the brain in your head.
+
+Computers also have memory. There are two types: RAM and storage. RAM is like your desk where you put things you're working on right now. Storage is like a filing cabinet where you keep things for later. When you save a file, it goes to storage. When you open it, it moves to RAM so the computer can work with it.
+
+All information in a computer is stored as numbers. Everything - words, pictures, sounds - is converted into numbers that the computer understands. These numbers are made of only two digits: 0 and 1. This system is called binary.
+
+When you click on something or type on the keyboard, you're giving the computer input. The computer processes this input and gives you output, which might be showing something on the screen or playing a sound.
+
+Computers are very fast. They can do millions of calculations in just one second! That's why they can do things so quickly. But they're also very dumb - they only do exactly what you tell them to do. This is why programming is important - to tell computers what to do.`,
+        chinese: `電腦是能做許多事情的驚人機器。但你有沒有想過它們是如何運作的？讓我用簡單的方式解釋。
+
+電腦有幾個重要的部分。電腦的大腦叫做 CPU，也就是中央處理器。CPU 負責所有的思考和計算。它就像你頭腦中的大腦。
+
+電腦也有記憶體。有兩種類型：RAM 和儲存空間。RAM 就像你的書桌，你把你正在使用的東西放在上面。儲存空間就像檔案櫃，你把東西保存在那裡以便稍後使用。當你儲存檔案時，它會進入儲存空間。當你打開它時，它會移動到 RAM，這樣電腦就可以處理它。
+
+電腦中的所有資訊都以數字形式儲存。所有東西——文字、圖片、聲音——都被轉換成電腦能理解的數字。這些數字只由兩個數字組成：0 和 1。這個系統稱為二進位。
+
+當你點擊某個東西或在鍵盤上打字時，你正在給電腦輸入。電腦處理這個輸入並給你輸出，這可能是在螢幕上顯示某些東西或播放聲音。
+
+電腦非常快。它們可以在短短一秒內完成數百萬次計算！這就是為什麼它們能如此快速地做事。但它們也非常笨——它們只做你告訴它們要做的事情。這就是為什麼程式設計很重要——告訴電腦該做什麼。`
+      },
+      {
+        title: "The Internet and How It Connects Us",
+        english: `The Internet is like a huge web that connects computers all around the world. When you visit a website or send a message, your computer talks to other computers through this web.
+
+Think of the Internet like a postal system. When you send an email, it's broken into small pieces called packets. These packets travel through cables and wireless signals to reach their destination. Then they're put back together so the person can read your message.
+
+Websites are stored on special computers called servers. When you type a website address, your computer asks the server for the website. The server sends it back, and you see it on your screen. This happens very quickly, usually in less than a second!
+
+The Internet has changed how we live. We can learn anything online, talk to friends far away, and shop without leaving home. Students can do research for homework. People can work from anywhere. Families can video call each other even when they're in different countries.
+
+But we also need to be careful online. Not everything on the Internet is true. We should check information before believing it. We should also protect our personal information and be kind to others online, just like in real life.`,
+        chinese: `網際網路就像一個巨大的網，連接世界各地的電腦。當你訪問網站或發送訊息時，你的電腦透過這個網與其他電腦對話。
+
+把網際網路想像成郵政系統。當你發送電子郵件時，它被分解成稱為封包的小片段。這些封包透過電纜和無線訊號傳輸到目的地。然後它們被重新組合，這樣對方就能讀到你的訊息。
+
+網站儲存在稱為伺服器的特殊電腦上。當你輸入網站地址時，你的電腦向伺服器請求網站。伺服器將其發送回來，你就能在螢幕上看到它。這發生得非常快，通常不到一秒！
+
+網際網路改變了我們的生活方式。我們可以在線上學習任何東西，與遠方的朋友交談，不用離開家就能購物。學生可以為作業做研究。人們可以從任何地方工作。即使在不同國家，家人也可以互相視訊通話。
+
+但我們也需要在網路上小心。網際網路上並非一切都是真的。我們應該在相信之前檢查資訊。我們也應該保護我們的個人資訊，並在網路上善待他人，就像在現實生活中一樣。`
+      },
+      {
+        title: "Robots and Automation",
+        english: `Robots are machines that can do tasks automatically. The word "robot" comes from a Czech word meaning "forced labor." But robots today are much more than just workers - they're helpers, companions, and tools that make our lives easier.
+
+There are many types of robots. Some robots work in factories, building cars or putting together electronic devices. These robots are very precise - they can do the same task thousands of times without making mistakes. Other robots help doctors perform surgery with great accuracy.
+
+Some robots look like humans, but most don't. A robot vacuum cleaner is a robot, even though it doesn't look like a person. It uses sensors to navigate around your house and clean the floors automatically.
+
+Robots use programming to know what to do. A programmer writes code that tells the robot how to move, what to pick up, and where to go. Some advanced robots can even learn from their experiences and improve over time.
+
+Automation means making things work automatically without human help. For example, automatic doors open when you walk near them. Automatic lights turn on when it gets dark. These are simple forms of automation that we see every day.
+
+Robots and automation help us in many ways. They can do dangerous jobs that are unsafe for humans. They can work 24 hours a day without getting tired. They can do repetitive tasks that would be boring for people. But robots still need humans to design, program, and maintain them.`,
+        chinese: `機器人是能夠自動執行任務的機器。「機器人」這個詞來自捷克語，意思是「強制勞動」。但今天的機器人遠不止是工人——它們是助手、夥伴和讓我們生活更輕鬆的工具。
+
+有許多類型的機器人。一些機器人在工廠工作，製造汽車或組裝電子設備。這些機器人非常精確——它們可以執行相同的任務數千次而不犯錯誤。其他機器人幫助醫生以極高的準確度進行手術。
+
+有些機器人看起來像人類，但大多數不像。機器人吸塵器就是機器人，即使它看起來不像人。它使用感測器在你的房子裡導航並自動清潔地板。
+
+機器人使用程式設計來知道該做什麼。程式設計師編寫程式碼，告訴機器人如何移動、要拿起什麼以及去哪裡。一些先進的機器人甚至可以從經驗中學習並隨著時間改進。
+
+自動化意味著讓事物在沒有人類幫助的情況下自動運作。例如，自動門在你走近時會打開。自動燈在天黑時會亮起。這些是我們每天看到的簡單自動化形式。
+
+機器人和自動化在許多方面幫助我們。它們可以做對人類不安全的危險工作。它們可以一天 24 小時工作而不會疲倦。它們可以做對人們來說會很無聊的重複性任務。但機器人仍然需要人類來設計、程式設計和維護它們。`
+      },
+      {
+        title: "Coding Games and Learning",
+        english: `Learning to code can be fun, especially when you make games! Many students start learning programming by creating simple games. This makes learning enjoyable and helps you understand how code works.
+
+When you make a game, you learn many programming concepts. You learn about variables, which store information like the player's score. You learn about loops, which make things happen repeatedly, like enemies moving across the screen. You learn about conditions, which make decisions, like "if the player touches an enemy, the game ends."
+
+There are many tools to help beginners learn game programming. Scratch is a popular choice for kids. It uses colorful blocks that you drag and drop, so you don't need to type code. This makes it easier to understand what each piece does.
+
+As you get better, you can try more advanced tools. Python has a library called Pygame that's great for making games. JavaScript can be used to make games that run in web browsers. Unity is a powerful tool used by professional game developers.
+
+Making games teaches you problem-solving skills. When something doesn't work, you need to figure out why and fix it. This is called debugging. Debugging is an important skill that all programmers need.
+
+You don't need to be a math genius to code games. You just need to be curious, patient, and willing to learn. Start with simple games like "Guess the Number" or "Rock Paper Scissors." As you practice, you'll get better and can make more complex games.`,
+        chinese: `學習程式設計可以很有趣，特別是當你製作遊戲時！許多學生透過創建簡單的遊戲開始學習程式設計。這讓學習變得有趣，並幫助你理解程式碼如何運作。
+
+當你製作遊戲時，你會學到許多程式設計概念。你學習變數，它儲存像玩家分數這樣的資訊。你學習迴圈，它讓事情重複發生，比如敵人在螢幕上移動。你學習條件，它做決定，比如「如果玩家碰到敵人，遊戲結束」。
+
+有許多工具可以幫助初學者學習遊戲程式設計。Scratch 是孩子們的熱門選擇。它使用你可以拖放的彩色積木，所以你不需要輸入程式碼。這讓理解每個部分的作用變得更容易。
+
+當你變得更好時，你可以嘗試更高級的工具。Python 有一個名為 Pygame 的函式庫，非常適合製作遊戲。JavaScript 可以用來製作在網頁瀏覽器中運行的遊戲。Unity 是專業遊戲開發者使用的強大工具。
+
+製作遊戲教你解決問題的技能。當某些東西不起作用時，你需要找出原因並修復它。這稱為除錯。除錯是所有程式設計師都需要的重要技能。
+
+你不需要是數學天才才能編寫遊戲程式。你只需要好奇、耐心並願意學習。從像「猜數字」或「剪刀石頭布」這樣的簡單遊戲開始。當你練習時，你會變得更好，可以製作更複雜的遊戲。`
+      }
+    ];
+
+    // 詞典 - 常見單字的中文翻譯和詞性
+    const dictionary = {
+      'programming': { chinese: '程式設計', pos: 'n.' },
+      'instructions': { chinese: '指令', pos: 'n.' },
+      'computer': { chinese: '電腦', pos: 'n.' },
+      'code': { chinese: '程式碼', pos: 'n.' },
+      'step': { chinese: '步驟', pos: 'n.' },
+      'recipe': { chinese: '食譜', pos: 'n.' },
+      'cooking': { chinese: '烹飪', pos: 'n.' },
+      'solve': { chinese: '解決', pos: 'v.' },
+      'problems': { chinese: '問題', pos: 'n.' },
+      'smart': { chinese: '聰明的', pos: 'adj.' },
+      'clear': { chinese: '清楚的', pos: 'adj.' },
+      'guess': { chinese: '猜測', pos: 'v.' },
+      'languages': { chinese: '語言', pos: 'n.' },
+      'communicate': { chinese: '溝通', pos: 'v.' },
+      'popular': { chinese: '流行的', pos: 'adj.' },
+      'include': { chinese: '包括', pos: 'v.' },
+      'think': { chinese: '思考', pos: 'v.' },
+      'logically': { chinese: '邏輯地', pos: 'adv.' },
+      'break': { chinese: '分解', pos: 'v.' },
+      'patient': { chinese: '耐心的', pos: 'adj.' },
+      'careful': { chinese: '仔細的', pos: 'adj.' },
+      'mistake': { chinese: '錯誤', pos: 'n.' },
+      'adults': { chinese: '成年人', pos: 'n.' },
+      'kids': { chinese: '孩子', pos: 'n.' },
+      'learn': { chinese: '學習', pos: 'v.' },
+      'tools': { chinese: '工具', pos: 'n.' },
+      'colorful': { chinese: '彩色的', pos: 'adj.' },
+      'blocks': { chinese: '積木', pos: 'n.' },
+      'creative': { chinese: '創意的', pos: 'adj.' },
+      'artificial': { chinese: '人工的', pos: 'adj.' },
+      'intelligence': { chinese: '智慧', pos: 'n.' },
+      'technology': { chinese: '技術', pos: 'n.' },
+      'humans': { chinese: '人類', pos: 'n.' },
+      'natural': { chinese: '自然的', pos: 'adj.' },
+      'recognize': { chinese: '識別', pos: 'v.' },
+      'faces': { chinese: '臉孔', pos: 'n.' },
+      'photos': { chinese: '照片', pos: 'n.' },
+      'understand': { chinese: '理解', pos: 'v.' },
+      'phone': { chinese: '手機', pos: 'n.' },
+      'games': { chinese: '遊戲', pos: 'n.' },
+      'chess': { chinese: '西洋棋', pos: 'n.' },
+      'programs': { chinese: '程式', pos: 'n.' },
+      'stories': { chinese: '故事', pos: 'n.' },
+      'pictures': { chinese: '圖片', pos: 'n.' },
+      'examples': { chinese: '範例', pos: 'n.' },
+      'thousands': { chinese: '數千個', pos: 'n.' },
+      'everywhere': { chinese: '到處', pos: 'adv.' },
+      'search': { chinese: '搜尋', pos: 'v.' },
+      'results': { chinese: '結果', pos: 'n.' },
+      'suggests': { chinese: '建議', pos: 'v.' },
+      'movies': { chinese: '電影', pos: 'n.' },
+      'camera': { chinese: '相機', pos: 'n.' },
+      'perfect': { chinese: '完美的', pos: 'adj.' },
+      'teach': { chinese: '教導', pos: 'v.' },
+      'check': { chinese: '檢查', pos: 'v.' },
+      'replace': { chinese: '取代', pos: 'v.' },
+      'creativity': { chinese: '創造力', pos: 'n.' },
+      'amazing': { chinese: '驚人的', pos: 'adj.' },
+      'machines': { chinese: '機器', pos: 'n.' },
+      'wondered': { chinese: '想知道', pos: 'v.' },
+      'explain': { chinese: '解釋', pos: 'v.' },
+      'simple': { chinese: '簡單的', pos: 'adj.' },
+      'important': { chinese: '重要的', pos: 'adj.' },
+      'parts': { chinese: '部分', pos: 'n.' },
+      'brain': { chinese: '大腦', pos: 'n.' },
+      'called': { chinese: '稱為', pos: 'v.' },
+      'stands': { chinese: '代表', pos: 'v.' },
+      'calculations': { chinese: '計算', pos: 'n.' },
+      'memory': { chinese: '記憶體', pos: 'n.' },
+      'types': { chinese: '類型', pos: 'n.' },
+      'storage': { chinese: '儲存空間', pos: 'n.' },
+      'working': { chinese: '工作', pos: 'n.' },
+      'filing': { chinese: '檔案', pos: 'n.' },
+      'cabinet': { chinese: '櫃子', pos: 'n.' },
+      'save': { chinese: '儲存', pos: 'v.' },
+      'file': { chinese: '檔案', pos: 'n.' },
+      'information': { chinese: '資訊', pos: 'n.' },
+      'stored': { chinese: '儲存', pos: 'v.' },
+      'numbers': { chinese: '數字', pos: 'n.' },
+      'words': { chinese: '單字', pos: 'n.' },
+      'sounds': { chinese: '聲音', pos: 'n.' },
+      'converted': { chinese: '轉換', pos: 'v.' },
+      'digits': { chinese: '數字', pos: 'n.' },
+      'system': { chinese: '系統', pos: 'n.' },
+      'binary': { chinese: '二進位', pos: 'n.' },
+      'click': { chinese: '點擊', pos: 'v.' },
+      'keyboard': { chinese: '鍵盤', pos: 'n.' },
+      'input': { chinese: '輸入', pos: 'n.' },
+      'processes': { chinese: '處理', pos: 'v.' },
+      'output': { chinese: '輸出', pos: 'n.' },
+      'screen': { chinese: '螢幕', pos: 'n.' },
+      'fast': { chinese: '快速的', pos: 'adj.' },
+      'millions': { chinese: '數百萬', pos: 'n.' },
+      'second': { chinese: '秒', pos: 'n.' },
+      'quickly': { chinese: '快速地', pos: 'adv.' },
+      'dumb': { chinese: '笨的', pos: 'adj.' },
+      'exactly': { chinese: '確切地', pos: 'adv.' },
+      'internet': { chinese: '網際網路', pos: 'n.' },
+      'huge': { chinese: '巨大的', pos: 'adj.' },
+      'web': { chinese: '網', pos: 'n.' },
+      'connects': { chinese: '連接', pos: 'v.' },
+      'around': { chinese: '周圍', pos: 'prep.' },
+      'world': { chinese: '世界', pos: 'n.' },
+      'visit': { chinese: '訪問', pos: 'v.' },
+      'website': { chinese: '網站', pos: 'n.' },
+      'send': { chinese: '發送', pos: 'v.' },
+      'message': { chinese: '訊息', pos: 'n.' },
+      'talks': { chinese: '對話', pos: 'v.' },
+      'through': { chinese: '透過', pos: 'prep.' },
+      'postal': { chinese: '郵政的', pos: 'adj.' },
+      'email': { chinese: '電子郵件', pos: 'n.' },
+      'broken': { chinese: '分解', pos: 'v.' },
+      'pieces': { chinese: '片段', pos: 'n.' },
+      'packets': { chinese: '封包', pos: 'n.' },
+      'travel': { chinese: '傳輸', pos: 'v.' },
+      'cables': { chinese: '電纜', pos: 'n.' },
+      'wireless': { chinese: '無線的', pos: 'adj.' },
+      'signals': { chinese: '訊號', pos: 'n.' },
+      'reach': { chinese: '到達', pos: 'v.' },
+      'destination': { chinese: '目的地', pos: 'n.' },
+      'together': { chinese: '一起', pos: 'adv.' },
+      'read': { chinese: '讀取', pos: 'v.' },
+      'servers': { chinese: '伺服器', pos: 'n.' },
+      'address': { chinese: '地址', pos: 'n.' },
+      'asks': { chinese: '請求', pos: 'v.' },
+      'changed': { chinese: '改變', pos: 'v.' },
+      'live': { chinese: '生活', pos: 'v.' },
+      'online': { chinese: '線上', pos: 'adv.' },
+      'friends': { chinese: '朋友', pos: 'n.' },
+      'far': { chinese: '遠方', pos: 'adv.' },
+      'away': { chinese: '離開', pos: 'adv.' },
+      'shop': { chinese: '購物', pos: 'v.' },
+      'leaving': { chinese: '離開', pos: 'v.' },
+      'home': { chinese: '家', pos: 'n.' },
+      'students': { chinese: '學生', pos: 'n.' },
+      'research': { chinese: '研究', pos: 'n.' },
+      'homework': { chinese: '作業', pos: 'n.' },
+      'work': { chinese: '工作', pos: 'v.' },
+      'anywhere': { chinese: '任何地方', pos: 'adv.' },
+      'families': { chinese: '家庭', pos: 'n.' },
+      'video': { chinese: '視訊', pos: 'n.' },
+      'call': { chinese: '通話', pos: 'v.' },
+      'different': { chinese: '不同的', pos: 'adj.' },
+      'countries': { chinese: '國家', pos: 'n.' },
+      'careful': { chinese: '小心的', pos: 'adj.' },
+      'true': { chinese: '真實的', pos: 'adj.' },
+      'believe': { chinese: '相信', pos: 'v.' },
+      'protect': { chinese: '保護', pos: 'v.' },
+      'personal': { chinese: '個人的', pos: 'adj.' },
+      'kind': { chinese: '友善的', pos: 'adj.' },
+      'robots': { chinese: '機器人', pos: 'n.' },
+      'automation': { chinese: '自動化', pos: 'n.' },
+      'tasks': { chinese: '任務', pos: 'n.' },
+      'automatically': { chinese: '自動地', pos: 'adv.' },
+      'meaning': { chinese: '意思', pos: 'n.' },
+      'labor': { chinese: '勞動', pos: 'n.' },
+      'workers': { chinese: '工人', pos: 'n.' },
+      'helpers': { chinese: '助手', pos: 'n.' },
+      'companions': { chinese: '夥伴', pos: 'n.' },
+      'easier': { chinese: '更容易', pos: 'adj.' },
+      'factories': { chinese: '工廠', pos: 'n.' },
+      'building': { chinese: '建造', pos: 'v.' },
+      'cars': { chinese: '汽車', pos: 'n.' },
+      'putting': { chinese: '放置', pos: 'v.' },
+      'electronic': { chinese: '電子的', pos: 'adj.' },
+      'devices': { chinese: '設備', pos: 'n.' },
+      'precise': { chinese: '精確的', pos: 'adj.' },
+      'times': { chinese: '次數', pos: 'n.' },
+      'mistakes': { chinese: '錯誤', pos: 'n.' },
+      'doctors': { chinese: '醫生', pos: 'n.' },
+      'perform': { chinese: '執行', pos: 'v.' },
+      'surgery': { chinese: '手術', pos: 'n.' },
+      'accuracy': { chinese: '準確度', pos: 'n.' },
+      'look': { chinese: '看起來', pos: 'v.' },
+      'vacuum': { chinese: '真空', pos: 'n.' },
+      'cleaner': { chinese: '清潔器', pos: 'n.' },
+      'person': { chinese: '人', pos: 'n.' },
+      'uses': { chinese: '使用', pos: 'v.' },
+      'sensors': { chinese: '感測器', pos: 'n.' },
+      'navigate': { chinese: '導航', pos: 'v.' },
+      'house': { chinese: '房子', pos: 'n.' },
+      'floors': { chinese: '地板', pos: 'n.' },
+      'programmer': { chinese: '程式設計師', pos: 'n.' },
+      'writes': { chinese: '編寫', pos: 'v.' },
+      'tells': { chinese: '告訴', pos: 'v.' },
+      'move': { chinese: '移動', pos: 'v.' },
+      'pick': { chinese: '拿起', pos: 'v.' },
+      'advanced': { chinese: '先進的', pos: 'adj.' },
+      'experiences': { chinese: '經驗', pos: 'n.' },
+      'improve': { chinese: '改進', pos: 'v.' },
+      'time': { chinese: '時間', pos: 'n.' },
+      'means': { chinese: '意味著', pos: 'v.' },
+      'making': { chinese: '製作', pos: 'v.' },
+      'things': { chinese: '事物', pos: 'n.' },
+      'help': { chinese: '幫助', pos: 'n.' },
+      'doors': { chinese: '門', pos: 'n.' },
+      'open': { chinese: '打開', pos: 'v.' },
+      'walk': { chinese: '走路', pos: 'v.' },
+      'near': { chinese: '靠近', pos: 'prep.' },
+      'lights': { chinese: '燈', pos: 'n.' },
+      'turn': { chinese: '轉動', pos: 'v.' },
+      'dark': { chinese: '黑暗的', pos: 'adj.' },
+      'forms': { chinese: '形式', pos: 'n.' },
+      'dangerous': { chinese: '危險的', pos: 'adj.' },
+      'jobs': { chinese: '工作', pos: 'n.' },
+      'unsafe': { chinese: '不安全的', pos: 'adj.' },
+      'tired': { chinese: '疲倦的', pos: 'adj.' },
+      'repetitive': { chinese: '重複的', pos: 'adj.' },
+      'boring': { chinese: '無聊的', pos: 'adj.' },
+      'design': { chinese: '設計', pos: 'v.' },
+      'maintain': { chinese: '維護', pos: 'v.' },
+      'coding': { chinese: '編碼', pos: 'n.' },
+      'fun': { chinese: '有趣的', pos: 'adj.' },
+      'especially': { chinese: '特別', pos: 'adv.' },
+      'make': { chinese: '製作', pos: 'v.' },
+      'many': { chinese: '許多', pos: 'adj.' },
+      'start': { chinese: '開始', pos: 'v.' },
+      'creating': { chinese: '創建', pos: 'v.' },
+      'enjoyable': { chinese: '愉快的', pos: 'adj.' },
+      'concepts': { chinese: '概念', pos: 'n.' },
+      'variables': { chinese: '變數', pos: 'n.' },
+      'store': { chinese: '儲存', pos: 'v.' },
+      'player': { chinese: '玩家', pos: 'n.' },
+      'score': { chinese: '分數', pos: 'n.' },
+      'loops': { chinese: '迴圈', pos: 'n.' },
+      'happen': { chinese: '發生', pos: 'v.' },
+      'repeatedly': { chinese: '重複地', pos: 'adv.' },
+      'enemies': { chinese: '敵人', pos: 'n.' },
+      'moving': { chinese: '移動', pos: 'v.' },
+      'across': { chinese: '橫跨', pos: 'prep.' },
+      'conditions': { chinese: '條件', pos: 'n.' },
+      'decisions': { chinese: '決定', pos: 'n.' },
+      'touches': { chinese: '觸碰', pos: 'v.' },
+      'enemy': { chinese: '敵人', pos: 'n.' },
+      'ends': { chinese: '結束', pos: 'v.' },
+      'beginners': { chinese: '初學者', pos: 'n.' },
+      'choice': { chinese: '選擇', pos: 'n.' },
+      'drag': { chinese: '拖曳', pos: 'v.' },
+      'drop': { chinese: '放下', pos: 'v.' },
+      'type': { chinese: '輸入', pos: 'v.' },
+      'easier': { chinese: '更容易', pos: 'adj.' },
+      'better': { chinese: '更好', pos: 'adj.' },
+      'library': { chinese: '函式庫', pos: 'n.' },
+      'browsers': { chinese: '瀏覽器', pos: 'n.' },
+      'powerful': { chinese: '強大的', pos: 'adj.' },
+      'professional': { chinese: '專業的', pos: 'adj.' },
+      'developers': { chinese: '開發者', pos: 'n.' },
+      'problem-solving': { chinese: '解決問題', pos: 'n.' },
+      'skills': { chinese: '技能', pos: 'n.' },
+      'doesn': { chinese: '不', pos: 'v.' },
+      'figure': { chinese: '找出', pos: 'v.' },
+      'why': { chinese: '為什麼', pos: 'adv.' },
+      'fix': { chinese: '修復', pos: 'v.' },
+      'debugging': { chinese: '除錯', pos: 'n.' },
+      'math': { chinese: '數學', pos: 'n.' },
+      'genius': { chinese: '天才', pos: 'n.' },
+      'curious': { chinese: '好奇的', pos: 'adj.' },
+      'willing': { chinese: '願意', pos: 'adj.' },
+      'practice': { chinese: '練習', pos: 'n.' },
+      'complex': { chinese: '複雜的', pos: 'adj.' },
+      // 常見動詞和助動詞
+      'is': { chinese: '是', pos: 'v.' },
+      'are': { chinese: '是', pos: 'v.' },
+      'was': { chinese: '是', pos: 'v.' },
+      'were': { chinese: '是', pos: 'v.' },
+      'be': { chinese: '是', pos: 'v.' },
+      'been': { chinese: '是', pos: 'v.' },
+      'being': { chinese: '是', pos: 'v.' },
+      'have': { chinese: '有', pos: 'v.' },
+      'has': { chinese: '有', pos: 'v.' },
+      'had': { chinese: '有', pos: 'v.' },
+      'having': { chinese: '有', pos: 'v.' },
+      'do': { chinese: '做', pos: 'v.' },
+      'does': { chinese: '做', pos: 'v.' },
+      'did': { chinese: '做', pos: 'v.' },
+      'done': { chinese: '做', pos: 'v.' },
+      'will': { chinese: '將', pos: 'v.' },
+      'would': { chinese: '會', pos: 'v.' },
+      'can': { chinese: '能', pos: 'v.' },
+      'could': { chinese: '能', pos: 'v.' },
+      'should': { chinese: '應該', pos: 'v.' },
+      'may': { chinese: '可能', pos: 'v.' },
+      'might': { chinese: '可能', pos: 'v.' },
+      'must': { chinese: '必須', pos: 'v.' },
+      'get': { chinese: '得到', pos: 'v.' },
+      'got': { chinese: '得到', pos: 'v.' },
+      'getting': { chinese: '得到', pos: 'v.' },
+      'give': { chinese: '給', pos: 'v.' },
+      'giving': { chinese: '給', pos: 'v.' },
+      'gave': { chinese: '給', pos: 'v.' },
+      'given': { chinese: '給', pos: 'v.' },
+      'go': { chinese: '去', pos: 'v.' },
+      'goes': { chinese: '去', pos: 'v.' },
+      'went': { chinese: '去', pos: 'v.' },
+      'gone': { chinese: '去', pos: 'v.' },
+      'going': { chinese: '去', pos: 'v.' },
+      'come': { chinese: '來', pos: 'v.' },
+      'comes': { chinese: '來', pos: 'v.' },
+      'came': { chinese: '來', pos: 'v.' },
+      'coming': { chinese: '來', pos: 'v.' },
+      'see': { chinese: '看見', pos: 'v.' },
+      'sees': { chinese: '看見', pos: 'v.' },
+      'saw': { chinese: '看見', pos: 'v.' },
+      'seen': { chinese: '看見', pos: 'v.' },
+      'know': { chinese: '知道', pos: 'v.' },
+      'knows': { chinese: '知道', pos: 'v.' },
+      'knew': { chinese: '知道', pos: 'v.' },
+      'known': { chinese: '知道', pos: 'v.' },
+      'take': { chinese: '拿', pos: 'v.' },
+      'takes': { chinese: '拿', pos: 'v.' },
+      'took': { chinese: '拿', pos: 'v.' },
+      'taken': { chinese: '拿', pos: 'v.' },
+      'taking': { chinese: '拿', pos: 'v.' },
+      'say': { chinese: '說', pos: 'v.' },
+      'says': { chinese: '說', pos: 'v.' },
+      'said': { chinese: '說', pos: 'v.' },
+      'saying': { chinese: '說', pos: 'v.' },
+      'tell': { chinese: '告訴', pos: 'v.' },
+      'tells': { chinese: '告訴', pos: 'v.' },
+      'told': { chinese: '告訴', pos: 'v.' },
+      'telling': { chinese: '告訴', pos: 'v.' },
+      'find': { chinese: '找到', pos: 'v.' },
+      'finds': { chinese: '找到', pos: 'v.' },
+      'found': { chinese: '找到', pos: 'v.' },
+      'finding': { chinese: '找到', pos: 'v.' },
+      'use': { chinese: '使用', pos: 'v.' },
+      'used': { chinese: '使用', pos: 'v.' },
+      'using': { chinese: '使用', pos: 'v.' },
+      'try': { chinese: '嘗試', pos: 'v.' },
+      'tries': { chinese: '嘗試', pos: 'v.' },
+      'tried': { chinese: '嘗試', pos: 'v.' },
+      'trying': { chinese: '嘗試', pos: 'v.' },
+      'want': { chinese: '想要', pos: 'v.' },
+      'wants': { chinese: '想要', pos: 'v.' },
+      'wanted': { chinese: '想要', pos: 'v.' },
+      'wanting': { chinese: '想要', pos: 'v.' },
+      'need': { chinese: '需要', pos: 'v.' },
+      'needs': { chinese: '需要', pos: 'v.' },
+      'needed': { chinese: '需要', pos: 'v.' },
+      'needing': { chinese: '需要', pos: 'v.' },
+      'become': { chinese: '成為', pos: 'v.' },
+      'becomes': { chinese: '成為', pos: 'v.' },
+      'became': { chinese: '成為', pos: 'v.' },
+      'becoming': { chinese: '成為', pos: 'v.' },
+      'seem': { chinese: '似乎', pos: 'v.' },
+      'seems': { chinese: '似乎', pos: 'v.' },
+      'seemed': { chinese: '似乎', pos: 'v.' },
+      'seeming': { chinese: '似乎', pos: 'v.' },
+      'keep': { chinese: '保持', pos: 'v.' },
+      'keeps': { chinese: '保持', pos: 'v.' },
+      'kept': { chinese: '保持', pos: 'v.' },
+      'keeping': { chinese: '保持', pos: 'v.' },
+      'let': { chinese: '讓', pos: 'v.' },
+      'lets': { chinese: '讓', pos: 'v.' },
+      'let': { chinese: '讓', pos: 'v.' },
+      'letting': { chinese: '讓', pos: 'v.' },
+      'begin': { chinese: '開始', pos: 'v.' },
+      'begins': { chinese: '開始', pos: 'v.' },
+      'began': { chinese: '開始', pos: 'v.' },
+      'beginning': { chinese: '開始', pos: 'v.' },
+      'show': { chinese: '顯示', pos: 'v.' },
+      'shows': { chinese: '顯示', pos: 'v.' },
+      'showed': { chinese: '顯示', pos: 'v.' },
+      'shown': { chinese: '顯示', pos: 'v.' },
+      'show': { chinese: '顯示', pos: 'v.' },
+      'hear': { chinese: '聽到', pos: 'v.' },
+      'hears': { chinese: '聽到', pos: 'v.' },
+      'heard': { chinese: '聽到', pos: 'v.' },
+      'hearing': { chinese: '聽到', pos: 'v.' },
+      'play': { chinese: '玩', pos: 'v.' },
+      'plays': { chinese: '玩', pos: 'v.' },
+      'played': { chinese: '玩', pos: 'v.' },
+      'playing': { chinese: '玩', pos: 'v.' },
+      'run': { chinese: '跑', pos: 'v.' },
+      'runs': { chinese: '跑', pos: 'v.' },
+      'ran': { chinese: '跑', pos: 'v.' },
+      'running': { chinese: '跑', pos: 'v.' },
+      'move': { chinese: '移動', pos: 'v.' },
+      'moves': { chinese: '移動', pos: 'v.' },
+      'moved': { chinese: '移動', pos: 'v.' },
+      'moving': { chinese: '移動', pos: 'v.' },
+      'live': { chinese: '生活', pos: 'v.' },
+      'lives': { chinese: '生活', pos: 'v.' },
+      'lived': { chinese: '生活', pos: 'v.' },
+      'living': { chinese: '生活', pos: 'v.' },
+      'believe': { chinese: '相信', pos: 'v.' },
+      'believes': { chinese: '相信', pos: 'v.' },
+      'believed': { chinese: '相信', pos: 'v.' },
+      'believing': { chinese: '相信', pos: 'v.' },
+      'bring': { chinese: '帶來', pos: 'v.' },
+      'brings': { chinese: '帶來', pos: 'v.' },
+      'brought': { chinese: '帶來', pos: 'v.' },
+      'bringing': { chinese: '帶來', pos: 'v.' },
+      'happen': { chinese: '發生', pos: 'v.' },
+      'happens': { chinese: '發生', pos: 'v.' },
+      'happened': { chinese: '發生', pos: 'v.' },
+      'happening': { chinese: '發生', pos: 'v.' },
+      'write': { chinese: '寫', pos: 'v.' },
+      'writes': { chinese: '寫', pos: 'v.' },
+      'wrote': { chinese: '寫', pos: 'v.' },
+      'written': { chinese: '寫', pos: 'v.' },
+      'writing': { chinese: '寫', pos: 'v.' },
+      'provide': { chinese: '提供', pos: 'v.' },
+      'provides': { chinese: '提供', pos: 'v.' },
+      'provided': { chinese: '提供', pos: 'v.' },
+      'providing': { chinese: '提供', pos: 'v.' },
+      'sit': { chinese: '坐', pos: 'v.' },
+      'sits': { chinese: '坐', pos: 'v.' },
+      'sat': { chinese: '坐', pos: 'v.' },
+      'sitting': { chinese: '坐', pos: 'v.' },
+      'stand': { chinese: '站', pos: 'v.' },
+      'stands': { chinese: '站', pos: 'v.' },
+      'stood': { chinese: '站', pos: 'v.' },
+      'standing': { chinese: '站', pos: 'v.' },
+      'lose': { chinese: '失去', pos: 'v.' },
+      'loses': { chinese: '失去', pos: 'v.' },
+      'lost': { chinese: '失去', pos: 'v.' },
+      'losing': { chinese: '失去', pos: 'v.' },
+      'add': { chinese: '添加', pos: 'v.' },
+      'adds': { chinese: '添加', pos: 'v.' },
+      'added': { chinese: '添加', pos: 'v.' },
+      'adding': { chinese: '添加', pos: 'v.' },
+      'change': { chinese: '改變', pos: 'v.' },
+      'changes': { chinese: '改變', pos: 'v.' },
+      'changed': { chinese: '改變', pos: 'v.' },
+      'changing': { chinese: '改變', pos: 'v.' },
+      'follow': { chinese: '跟隨', pos: 'v.' },
+      'follows': { chinese: '跟隨', pos: 'v.' },
+      'followed': { chinese: '跟隨', pos: 'v.' },
+      'following': { chinese: '跟隨', pos: 'v.' },
+      'stop': { chinese: '停止', pos: 'v.' },
+      'stops': { chinese: '停止', pos: 'v.' },
+      'stopped': { chinese: '停止', pos: 'v.' },
+      'stopping': { chinese: '停止', pos: 'v.' },
+      'create': { chinese: '創造', pos: 'v.' },
+      'creates': { chinese: '創造', pos: 'v.' },
+      'created': { chinese: '創造', pos: 'v.' },
+      'creating': { chinese: '創造', pos: 'v.' },
+      'speak': { chinese: '說話', pos: 'v.' },
+      'speaks': { chinese: '說話', pos: 'v.' },
+      'spoke': { chinese: '說話', pos: 'v.' },
+      'spoken': { chinese: '說話', pos: 'v.' },
+      'speaking': { chinese: '說話', pos: 'v.' },
+      'read': { chinese: '讀', pos: 'v.' },
+      'reads': { chinese: '讀', pos: 'v.' },
+      'read': { chinese: '讀', pos: 'v.' },
+      'reading': { chinese: '讀', pos: 'v.' },
+      'spend': { chinese: '花費', pos: 'v.' },
+      'spends': { chinese: '花費', pos: 'v.' },
+      'spent': { chinese: '花費', pos: 'v.' },
+      'spending': { chinese: '花費', pos: 'v.' },
+      'grow': { chinese: '成長', pos: 'v.' },
+      'grows': { chinese: '成長', pos: 'v.' },
+      'grew': { chinese: '成長', pos: 'v.' },
+      'grown': { chinese: '成長', pos: 'v.' },
+      'growing': { chinese: '成長', pos: 'v.' },
+      'open': { chinese: '打開', pos: 'v.' },
+      'opens': { chinese: '打開', pos: 'v.' },
+      'opened': { chinese: '打開', pos: 'v.' },
+      'opening': { chinese: '打開', pos: 'v.' },
+      'close': { chinese: '關閉', pos: 'v.' },
+      'closes': { chinese: '關閉', pos: 'v.' },
+      'closed': { chinese: '關閉', pos: 'v.' },
+      'closing': { chinese: '關閉', pos: 'v.' },
+      'build': { chinese: '建造', pos: 'v.' },
+      'builds': { chinese: '建造', pos: 'v.' },
+      'built': { chinese: '建造', pos: 'v.' },
+      'building': { chinese: '建造', pos: 'v.' },
+      'cut': { chinese: '切', pos: 'v.' },
+      'cuts': { chinese: '切', pos: 'v.' },
+      'cut': { chinese: '切', pos: 'v.' },
+      'cutting': { chinese: '切', pos: 'v.' },
+      'fall': { chinese: '落下', pos: 'v.' },
+      'falls': { chinese: '落下', pos: 'v.' },
+      'fell': { chinese: '落下', pos: 'v.' },
+      'fallen': { chinese: '落下', pos: 'v.' },
+      'falling': { chinese: '落下', pos: 'v.' },
+      'reach': { chinese: '到達', pos: 'v.' },
+      'reaches': { chinese: '到達', pos: 'v.' },
+      'reached': { chinese: '到達', pos: 'v.' },
+      'reaching': { chinese: '到達', pos: 'v.' },
+      'kill': { chinese: '殺', pos: 'v.' },
+      'kills': { chinese: '殺', pos: 'v.' },
+      'killed': { chinese: '殺', pos: 'v.' },
+      'killing': { chinese: '殺', pos: 'v.' },
+      'remain': { chinese: '保持', pos: 'v.' },
+      'remains': { chinese: '保持', pos: 'v.' },
+      'remained': { chinese: '保持', pos: 'v.' },
+      'remaining': { chinese: '保持', pos: 'v.' },
+      'suggest': { chinese: '建議', pos: 'v.' },
+      'suggests': { chinese: '建議', pos: 'v.' },
+      'suggested': { chinese: '建議', pos: 'v.' },
+      'suggesting': { chinese: '建議', pos: 'v.' },
+      'raise': { chinese: '提高', pos: 'v.' },
+      'raises': { chinese: '提高', pos: 'v.' },
+      'raised': { chinese: '提高', pos: 'v.' },
+      'raising': { chinese: '提高', pos: 'v.' },
+      'pass': { chinese: '通過', pos: 'v.' },
+      'passes': { chinese: '通過', pos: 'v.' },
+      'passed': { chinese: '通過', pos: 'v.' },
+      'passing': { chinese: '通過', pos: 'v.' },
+      'sell': { chinese: '賣', pos: 'v.' },
+      'sells': { chinese: '賣', pos: 'v.' },
+      'sold': { chinese: '賣', pos: 'v.' },
+      'selling': { chinese: '賣', pos: 'v.' },
+      'decide': { chinese: '決定', pos: 'v.' },
+      'decides': { chinese: '決定', pos: 'v.' },
+      'decided': { chinese: '決定', pos: 'v.' },
+      'deciding': { chinese: '決定', pos: 'v.' },
+      'return': { chinese: '返回', pos: 'v.' },
+      'returns': { chinese: '返回', pos: 'v.' },
+      'returned': { chinese: '返回', pos: 'v.' },
+      'returning': { chinese: '返回', pos: 'v.' },
+      'include': { chinese: '包括', pos: 'v.' },
+      'includes': { chinese: '包括', pos: 'v.' },
+      'included': { chinese: '包括', pos: 'v.' },
+      'including': { chinese: '包括', pos: 'v.' },
+      'continue': { chinese: '繼續', pos: 'v.' },
+      'continues': { chinese: '繼續', pos: 'v.' },
+      'continued': { chinese: '繼續', pos: 'v.' },
+      'continuing': { chinese: '繼續', pos: 'v.' },
+      'set': { chinese: '設置', pos: 'v.' },
+      'sets': { chinese: '設置', pos: 'v.' },
+      'set': { chinese: '設置', pos: 'v.' },
+      'setting': { chinese: '設置', pos: 'v.' },
+      'learn': { chinese: '學習', pos: 'v.' },
+      'learns': { chinese: '學習', pos: 'v.' },
+      'learned': { chinese: '學習', pos: 'v.' },
+      'learnt': { chinese: '學習', pos: 'v.' },
+      'learning': { chinese: '學習', pos: 'v.' },
+      'allow': { chinese: '允許', pos: 'v.' },
+      'allows': { chinese: '允許', pos: 'v.' },
+      'allowed': { chinese: '允許', pos: 'v.' },
+      'allowing': { chinese: '允許', pos: 'v.' },
+      'lead': { chinese: '領導', pos: 'v.' },
+      'leads': { chinese: '領導', pos: 'v.' },
+      'led': { chinese: '領導', pos: 'v.' },
+      'leading': { chinese: '領導', pos: 'v.' },
+      'understand': { chinese: '理解', pos: 'v.' },
+      'understands': { chinese: '理解', pos: 'v.' },
+      'understood': { chinese: '理解', pos: 'v.' },
+      'understanding': { chinese: '理解', pos: 'v.' },
+      'watch': { chinese: '觀看', pos: 'v.' },
+      'watches': { chinese: '觀看', pos: 'v.' },
+      'watched': { chinese: '觀看', pos: 'v.' },
+      'watching': { chinese: '觀看', pos: 'v.' },
+      'follow': { chinese: '跟隨', pos: 'v.' },
+      'follows': { chinese: '跟隨', pos: 'v.' },
+      'followed': { chinese: '跟隨', pos: 'v.' },
+      'following': { chinese: '跟隨', pos: 'v.' },
+      'stop': { chinese: '停止', pos: 'v.' },
+      'stops': { chinese: '停止', pos: 'v.' },
+      'stopped': { chinese: '停止', pos: 'v.' },
+      'stopping': { chinese: '停止', pos: 'v.' },
+      'create': { chinese: '創造', pos: 'v.' },
+      'creates': { chinese: '創造', pos: 'v.' },
+      'created': { chinese: '創造', pos: 'v.' },
+      'creating': { chinese: '創造', pos: 'v.' },
+      'speak': { chinese: '說話', pos: 'v.' },
+      'speaks': { chinese: '說話', pos: 'v.' },
+      'spoke': { chinese: '說話', pos: 'v.' },
+      'spoken': { chinese: '說話', pos: 'v.' },
+      'speaking': { chinese: '說話', pos: 'v.' },
+      'read': { chinese: '讀', pos: 'v.' },
+      'reads': { chinese: '讀', pos: 'v.' },
+      'read': { chinese: '讀', pos: 'v.' },
+      'reading': { chinese: '讀', pos: 'v.' },
+      'spend': { chinese: '花費', pos: 'v.' },
+      'spends': { chinese: '花費', pos: 'v.' },
+      'spent': { chinese: '花費', pos: 'v.' },
+      'spending': { chinese: '花費', pos: 'v.' },
+      'grow': { chinese: '成長', pos: 'v.' },
+      'grows': { chinese: '成長', pos: 'v.' },
+      'grew': { chinese: '成長', pos: 'v.' },
+      'grown': { chinese: '成長', pos: 'v.' },
+      'growing': { chinese: '成長', pos: 'v.' },
+      'open': { chinese: '打開', pos: 'v.' },
+      'opens': { chinese: '打開', pos: 'v.' },
+      'opened': { chinese: '打開', pos: 'v.' },
+      'opening': { chinese: '打開', pos: 'v.' },
+      'close': { chinese: '關閉', pos: 'v.' },
+      'closes': { chinese: '關閉', pos: 'v.' },
+      'closed': { chinese: '關閉', pos: 'v.' },
+      'closing': { chinese: '關閉', pos: 'v.' },
+      'build': { chinese: '建造', pos: 'v.' },
+      'builds': { chinese: '建造', pos: 'v.' },
+      'built': { chinese: '建造', pos: 'v.' },
+      'building': { chinese: '建造', pos: 'v.' },
+      'cut': { chinese: '切', pos: 'v.' },
+      'cuts': { chinese: '切', pos: 'v.' },
+      'cut': { chinese: '切', pos: 'v.' },
+      'cutting': { chinese: '切', pos: 'v.' },
+      'fall': { chinese: '落下', pos: 'v.' },
+      'falls': { chinese: '落下', pos: 'v.' },
+      'fell': { chinese: '落下', pos: 'v.' },
+      'fallen': { chinese: '落下', pos: 'v.' },
+      'falling': { chinese: '落下', pos: 'v.' },
+      'reach': { chinese: '到達', pos: 'v.' },
+      'reaches': { chinese: '到達', pos: 'v.' },
+      'reached': { chinese: '到達', pos: 'v.' },
+      'reaching': { chinese: '到達', pos: 'v.' },
+      'kill': { chinese: '殺', pos: 'v.' },
+      'kills': { chinese: '殺', pos: 'v.' },
+      'killed': { chinese: '殺', pos: 'v.' },
+      'killing': { chinese: '殺', pos: 'v.' },
+      'remain': { chinese: '保持', pos: 'v.' },
+      'remains': { chinese: '保持', pos: 'v.' },
+      'remained': { chinese: '保持', pos: 'v.' },
+      'remaining': { chinese: '保持', pos: 'v.' },
+      'suggest': { chinese: '建議', pos: 'v.' },
+      'suggests': { chinese: '建議', pos: 'v.' },
+      'suggested': { chinese: '建議', pos: 'v.' },
+      'suggesting': { chinese: '建議', pos: 'v.' },
+      'raise': { chinese: '提高', pos: 'v.' },
+      'raises': { chinese: '提高', pos: 'v.' },
+      'raised': { chinese: '提高', pos: 'v.' },
+      'raising': { chinese: '提高', pos: 'v.' },
+      'pass': { chinese: '通過', pos: 'v.' },
+      'passes': { chinese: '通過', pos: 'v.' },
+      'passed': { chinese: '通過', pos: 'v.' },
+      'passing': { chinese: '通過', pos: 'v.' },
+      'sell': { chinese: '賣', pos: 'v.' },
+      'sells': { chinese: '賣', pos: 'v.' },
+      'sold': { chinese: '賣', pos: 'v.' },
+      'selling': { chinese: '賣', pos: 'v.' },
+      'decide': { chinese: '決定', pos: 'v.' },
+      'decides': { chinese: '決定', pos: 'v.' },
+      'decided': { chinese: '決定', pos: 'v.' },
+      'deciding': { chinese: '決定', pos: 'v.' },
+      'return': { chinese: '返回', pos: 'v.' },
+      'returns': { chinese: '返回', pos: 'v.' },
+      'returned': { chinese: '返回', pos: 'v.' },
+      'returning': { chinese: '返回', pos: 'v.' },
+      'include': { chinese: '包括', pos: 'v.' },
+      'includes': { chinese: '包括', pos: 'v.' },
+      'included': { chinese: '包括', pos: 'v.' },
+      'including': { chinese: '包括', pos: 'v.' },
+      'continue': { chinese: '繼續', pos: 'v.' },
+      'continues': { chinese: '繼續', pos: 'v.' },
+      'continued': { chinese: '繼續', pos: 'v.' },
+      'continuing': { chinese: '繼續', pos: 'v.' },
+      'set': { chinese: '設置', pos: 'v.' },
+      'sets': { chinese: '設置', pos: 'v.' },
+      'set': { chinese: '設置', pos: 'v.' },
+      'setting': { chinese: '設置', pos: 'v.' },
+      'learn': { chinese: '學習', pos: 'v.' },
+      'learns': { chinese: '學習', pos: 'v.' },
+      'learned': { chinese: '學習', pos: 'v.' },
+      'learnt': { chinese: '學習', pos: 'v.' },
+      'learning': { chinese: '學習', pos: 'v.' },
+      'allow': { chinese: '允許', pos: 'v.' },
+      'allows': { chinese: '允許', pos: 'v.' },
+      'allowed': { chinese: '允許', pos: 'v.' },
+      'allowing': { chinese: '允許', pos: 'v.' },
+      'lead': { chinese: '領導', pos: 'v.' },
+      'leads': { chinese: '領導', pos: 'v.' },
+      'led': { chinese: '領導', pos: 'v.' },
+      'leading': { chinese: '領導', pos: 'v.' },
+      'understand': { chinese: '理解', pos: 'v.' },
+      'understands': { chinese: '理解', pos: 'v.' },
+      'understood': { chinese: '理解', pos: 'v.' },
+      'understanding': { chinese: '理解', pos: 'v.' },
+      'watch': { chinese: '觀看', pos: 'v.' },
+      'watches': { chinese: '觀看', pos: 'v.' },
+      'watched': { chinese: '觀看', pos: 'v.' },
+      'watching': { chinese: '觀看', pos: 'v.' },
+      'win': { chinese: '贏', pos: 'v.' },
+      'wins': { chinese: '贏', pos: 'v.' },
+      'won': { chinese: '贏', pos: 'v.' },
+      'winning': { chinese: '贏', pos: 'v.' },
+      'offer': { chinese: '提供', pos: 'v.' },
+      'offers': { chinese: '提供', pos: 'v.' },
+      'offered': { chinese: '提供', pos: 'v.' },
+      'offering': { chinese: '提供', pos: 'v.' },
+      'remember': { chinese: '記得', pos: 'v.' },
+      'remembers': { chinese: '記得', pos: 'v.' },
+      'remembered': { chinese: '記得', pos: 'v.' },
+      'remembering': { chinese: '記得', pos: 'v.' },
+      'love': { chinese: '愛', pos: 'v.' },
+      'loves': { chinese: '愛', pos: 'v.' },
+      'loved': { chinese: '愛', pos: 'v.' },
+      'loving': { chinese: '愛', pos: 'v.' },
+      'consider': { chinese: '考慮', pos: 'v.' },
+      'considers': { chinese: '考慮', pos: 'v.' },
+      'considered': { chinese: '考慮', pos: 'v.' },
+      'considering': { chinese: '考慮', pos: 'v.' },
+      'appear': { chinese: '出現', pos: 'v.' },
+      'appears': { chinese: '出現', pos: 'v.' },
+      'appeared': { chinese: '出現', pos: 'v.' },
+      'appearing': { chinese: '出現', pos: 'v.' },
+      'buy': { chinese: '買', pos: 'v.' },
+      'buys': { chinese: '買', pos: 'v.' },
+      'bought': { chinese: '買', pos: 'v.' },
+      'buying': { chinese: '買', pos: 'v.' },
+      'wait': { chinese: '等待', pos: 'v.' },
+      'waits': { chinese: '等待', pos: 'v.' },
+      'waited': { chinese: '等待', pos: 'v.' },
+      'waiting': { chinese: '等待', pos: 'v.' },
+      'serve': { chinese: '服務', pos: 'v.' },
+      'serves': { chinese: '服務', pos: 'v.' },
+      'served': { chinese: '服務', pos: 'v.' },
+      'serving': { chinese: '服務', pos: 'v.' },
+      'die': { chinese: '死', pos: 'v.' },
+      'dies': { chinese: '死', pos: 'v.' },
+      'died': { chinese: '死', pos: 'v.' },
+      'dying': { chinese: '死', pos: 'v.' },
+      'send': { chinese: '發送', pos: 'v.' },
+      'sends': { chinese: '發送', pos: 'v.' },
+      'sent': { chinese: '發送', pos: 'v.' },
+      'sending': { chinese: '發送', pos: 'v.' },
+      'expect': { chinese: '期待', pos: 'v.' },
+      'expects': { chinese: '期待', pos: 'v.' },
+      'expected': { chinese: '期待', pos: 'v.' },
+      'expecting': { chinese: '期待', pos: 'v.' },
+      'build': { chinese: '建造', pos: 'v.' },
+      'builds': { chinese: '建造', pos: 'v.' },
+      'built': { chinese: '建造', pos: 'v.' },
+      'building': { chinese: '建造', pos: 'v.' },
+      'stay': { chinese: '停留', pos: 'v.' },
+      'stays': { chinese: '停留', pos: 'v.' },
+      'stayed': { chinese: '停留', pos: 'v.' },
+      'staying': { chinese: '停留', pos: 'v.' },
+      'fall': { chinese: '落下', pos: 'v.' },
+      'falls': { chinese: '落下', pos: 'v.' },
+      'fell': { chinese: '落下', pos: 'v.' },
+      'fallen': { chinese: '落下', pos: 'v.' },
+      'falling': { chinese: '落下', pos: 'v.' },
+      'cut': { chinese: '切', pos: 'v.' },
+      'cuts': { chinese: '切', pos: 'v.' },
+      'cut': { chinese: '切', pos: 'v.' },
+      'cutting': { chinese: '切', pos: 'v.' },
+      'reach': { chinese: '到達', pos: 'v.' },
+      'reaches': { chinese: '到達', pos: 'v.' },
+      'reached': { chinese: '到達', pos: 'v.' },
+      'reaching': { chinese: '到達', pos: 'v.' },
+      'kill': { chinese: '殺', pos: 'v.' },
+      'kills': { chinese: '殺', pos: 'v.' },
+      'killed': { chinese: '殺', pos: 'v.' },
+      'killing': { chinese: '殺', pos: 'v.' },
+      'remain': { chinese: '保持', pos: 'v.' },
+      'remains': { chinese: '保持', pos: 'v.' },
+      'remained': { chinese: '保持', pos: 'v.' },
+      'remaining': { chinese: '保持', pos: 'v.' },
+      'suggest': { chinese: '建議', pos: 'v.' },
+      'suggests': { chinese: '建議', pos: 'v.' },
+      'suggested': { chinese: '建議', pos: 'v.' },
+      'suggesting': { chinese: '建議', pos: 'v.' },
+      'raise': { chinese: '提高', pos: 'v.' },
+      'raises': { chinese: '提高', pos: 'v.' },
+      'raised': { chinese: '提高', pos: 'v.' },
+      'raising': { chinese: '提高', pos: 'v.' },
+      'pass': { chinese: '通過', pos: 'v.' },
+      'passes': { chinese: '通過', pos: 'v.' },
+      'passed': { chinese: '通過', pos: 'v.' },
+      'passing': { chinese: '通過', pos: 'v.' },
+      'sell': { chinese: '賣', pos: 'v.' },
+      'sells': { chinese: '賣', pos: 'v.' },
+      'sold': { chinese: '賣', pos: 'v.' },
+      'selling': { chinese: '賣', pos: 'v.' },
+      'decide': { chinese: '決定', pos: 'v.' },
+      'decides': { chinese: '決定', pos: 'v.' },
+      'decided': { chinese: '決定', pos: 'v.' },
+      'deciding': { chinese: '決定', pos: 'v.' },
+      'return': { chinese: '返回', pos: 'v.' },
+      'returns': { chinese: '返回', pos: 'v.' },
+      'returned': { chinese: '返回', pos: 'v.' },
+      'returning': { chinese: '返回', pos: 'v.' },
+      'include': { chinese: '包括', pos: 'v.' },
+      'includes': { chinese: '包括', pos: 'v.' },
+      'included': { chinese: '包括', pos: 'v.' },
+      'including': { chinese: '包括', pos: 'v.' },
+      'continue': { chinese: '繼續', pos: 'v.' },
+      'continues': { chinese: '繼續', pos: 'v.' },
+      'continued': { chinese: '繼續', pos: 'v.' },
+      'continuing': { chinese: '繼續', pos: 'v.' },
+      'set': { chinese: '設置', pos: 'v.' },
+      'sets': { chinese: '設置', pos: 'v.' },
+      'set': { chinese: '設置', pos: 'v.' },
+      'setting': { chinese: '設置', pos: 'v.' },
+      'learn': { chinese: '學習', pos: 'v.' },
+      'learns': { chinese: '學習', pos: 'v.' },
+      'learned': { chinese: '學習', pos: 'v.' },
+      'learnt': { chinese: '學習', pos: 'v.' },
+      'learning': { chinese: '學習', pos: 'v.' },
+      'allow': { chinese: '允許', pos: 'v.' },
+      'allows': { chinese: '允許', pos: 'v.' },
+      'allowed': { chinese: '允許', pos: 'v.' },
+      'allowing': { chinese: '允許', pos: 'v.' },
+      'lead': { chinese: '領導', pos: 'v.' },
+      'leads': { chinese: '領導', pos: 'v.' },
+      'led': { chinese: '領導', pos: 'v.' },
+      'leading': { chinese: '領導', pos: 'v.' },
+      'understand': { chinese: '理解', pos: 'v.' },
+      'understands': { chinese: '理解', pos: 'v.' },
+      'understood': { chinese: '理解', pos: 'v.' },
+      'understanding': { chinese: '理解', pos: 'v.' },
+      'watch': { chinese: '觀看', pos: 'v.' },
+      'watches': { chinese: '觀看', pos: 'v.' },
+      'watched': { chinese: '觀看', pos: 'v.' },
+      'watching': { chinese: '觀看', pos: 'v.' },
+      'win': { chinese: '贏', pos: 'v.' },
+      'wins': { chinese: '贏', pos: 'v.' },
+      'won': { chinese: '贏', pos: 'v.' },
+      'winning': { chinese: '贏', pos: 'v.' },
+      'offer': { chinese: '提供', pos: 'v.' },
+      'offers': { chinese: '提供', pos: 'v.' },
+      'offered': { chinese: '提供', pos: 'v.' },
+      'offering': { chinese: '提供', pos: 'v.' },
+      'remember': { chinese: '記得', pos: 'v.' },
+      'remembers': { chinese: '記得', pos: 'v.' },
+      'remembered': { chinese: '記得', pos: 'v.' },
+      'remembering': { chinese: '記得', pos: 'v.' },
+      'love': { chinese: '愛', pos: 'v.' },
+      'loves': { chinese: '愛', pos: 'v.' },
+      'loved': { chinese: '愛', pos: 'v.' },
+      'loving': { chinese: '愛', pos: 'v.' },
+      'consider': { chinese: '考慮', pos: 'v.' },
+      'considers': { chinese: '考慮', pos: 'v.' },
+      'considered': { chinese: '考慮', pos: 'v.' },
+      'considering': { chinese: '考慮', pos: 'v.' },
+      'appear': { chinese: '出現', pos: 'v.' },
+      'appears': { chinese: '出現', pos: 'v.' },
+      'appeared': { chinese: '出現', pos: 'v.' },
+      'appearing': { chinese: '出現', pos: 'v.' },
+      'buy': { chinese: '買', pos: 'v.' },
+      'buys': { chinese: '買', pos: 'v.' },
+      'bought': { chinese: '買', pos: 'v.' },
+      'buying': { chinese: '買', pos: 'v.' },
+      'wait': { chinese: '等待', pos: 'v.' },
+      'waits': { chinese: '等待', pos: 'v.' },
+      'waited': { chinese: '等待', pos: 'v.' },
+      'waiting': { chinese: '等待', pos: 'v.' },
+      'serve': { chinese: '服務', pos: 'v.' },
+      'serves': { chinese: '服務', pos: 'v.' },
+      'served': { chinese: '服務', pos: 'v.' },
+      'serving': { chinese: '服務', pos: 'v.' },
+      'die': { chinese: '死', pos: 'v.' },
+      'dies': { chinese: '死', pos: 'v.' },
+      'died': { chinese: '死', pos: 'v.' },
+      'dying': { chinese: '死', pos: 'v.' },
+      'send': { chinese: '發送', pos: 'v.' },
+      'sends': { chinese: '發送', pos: 'v.' },
+      'sent': { chinese: '發送', pos: 'v.' },
+      'sending': { chinese: '發送', pos: 'v.' },
+      'expect': { chinese: '期待', pos: 'v.' },
+      'expects': { chinese: '期待', pos: 'v.' },
+      'expected': { chinese: '期待', pos: 'v.' },
+      'expecting': { chinese: '期待', pos: 'v.' },
+      'build': { chinese: '建造', pos: 'v.' },
+      'builds': { chinese: '建造', pos: 'v.' },
+      'built': { chinese: '建造', pos: 'v.' },
+      'building': { chinese: '建造', pos: 'v.' },
+      'stay': { chinese: '停留', pos: 'v.' },
+      'stays': { chinese: '停留', pos: 'v.' },
+      'stayed': { chinese: '停留', pos: 'v.' },
+      'staying': { chinese: '停留', pos: 'v.' },
+      'send': { chinese: '發送', pos: 'v.' },
+      'sends': { chinese: '發送', pos: 'v.' },
+      'sent': { chinese: '發送', pos: 'v.' },
+      'sending': { chinese: '發送', pos: 'v.' },
+      'expect': { chinese: '期待', pos: 'v.' },
+      'expects': { chinese: '期待', pos: 'v.' },
+      'expected': { chinese: '期待', pos: 'v.' },
+      'expecting': { chinese: '期待', pos: 'v.' },
+      'build': { chinese: '建造', pos: 'v.' },
+      'builds': { chinese: '建造', pos: 'v.' },
+      'built': { chinese: '建造', pos: 'v.' },
+      'building': { chinese: '建造', pos: 'v.' },
+      'stay': { chinese: '停留', pos: 'v.' },
+      'stays': { chinese: '停留', pos: 'v.' },
+      'stayed': { chinese: '停留', pos: 'v.' },
+      'staying': { chinese: '停留', pos: 'v.' },
+      'send': { chinese: '發送', pos: 'v.' },
+      'sends': { chinese: '發送', pos: 'v.' },
+      'sent': { chinese: '發送', pos: 'v.' },
+      'sending': { chinese: '發送', pos: 'v.' },
+      'expect': { chinese: '期待', pos: 'v.' },
+      'expects': { chinese: '期待', pos: 'v.' },
+      'expected': { chinese: '期待', pos: 'v.' },
+      'expecting': { chinese: '期待', pos: 'v.' },
+      'build': { chinese: '建造', pos: 'v.' },
+      'builds': { chinese: '建造', pos: 'v.' },
+      'built': { chinese: '建造', pos: 'v.' },
+      'building': { chinese: '建造', pos: 'v.' },
+      'stay': { chinese: '停留', pos: 'v.' },
+      'stays': { chinese: '停留', pos: 'v.' },
+      'stayed': { chinese: '停留', pos: 'v.' },
+      'staying': { chinese: '停留', pos: 'v.' },
+      // 常見代詞和限定詞
+      'you': { chinese: '你', pos: 'pron.' },
+      'your': { chinese: '你的', pos: 'pron.' },
+      'they': { chinese: '他們', pos: 'pron.' },
+      'them': { chinese: '他們', pos: 'pron.' },
+      'their': { chinese: '他們的', pos: 'pron.' },
+      'it': { chinese: '它', pos: 'pron.' },
+      'its': { chinese: '它的', pos: 'pron.' },
+      'this': { chinese: '這個', pos: 'pron.' },
+      'that': { chinese: '那個', pos: 'pron.' },
+      'these': { chinese: '這些', pos: 'pron.' },
+      'those': { chinese: '那些', pos: 'pron.' },
+      'i': { chinese: '我', pos: 'pron.' },
+      'me': { chinese: '我', pos: 'pron.' },
+      'my': { chinese: '我的', pos: 'pron.' },
+      'we': { chinese: '我們', pos: 'pron.' },
+      'us': { chinese: '我們', pos: 'pron.' },
+      'our': { chinese: '我們的', pos: 'pron.' },
+      'he': { chinese: '他', pos: 'pron.' },
+      'him': { chinese: '他', pos: 'pron.' },
+      'his': { chinese: '他的', pos: 'pron.' },
+      'she': { chinese: '她', pos: 'pron.' },
+      'her': { chinese: '她的', pos: 'pron.' },
+      // 常見介詞
+      'like': { chinese: '像', pos: 'prep.' },
+      'similar': { chinese: '相似的', pos: 'adj.' },
+      'instead': { chinese: '代替', pos: 'adv.' },
+      'when': { chinese: '當', pos: 'adv.' },
+      'what': { chinese: '什麼', pos: 'pron.' },
+      'how': { chinese: '如何', pos: 'adv.' },
+      'where': { chinese: '哪裡', pos: 'adv.' },
+      'why': { chinese: '為什麼', pos: 'adv.' },
+      'which': { chinese: '哪個', pos: 'pron.' },
+      'who': { chinese: '誰', pos: 'pron.' },
+      'to': { chinese: '到', pos: 'prep.' },
+      'from': { chinese: '從', pos: 'prep.' },
+      'with': { chinese: '和', pos: 'prep.' },
+      'without': { chinese: '沒有', pos: 'prep.' },
+      'by': { chinese: '由', pos: 'prep.' },
+      'for': { chinese: '為了', pos: 'prep.' },
+      'of': { chinese: '的', pos: 'prep.' },
+      'in': { chinese: '在...裡面', pos: 'prep.' },
+      'on': { chinese: '在...上面', pos: 'prep.' },
+      'at': { chinese: '在', pos: 'prep.' },
+      'about': { chinese: '關於', pos: 'prep.' },
+      'into': { chinese: '進入', pos: 'prep.' },
+      'onto': { chinese: '到...上面', pos: 'prep.' },
+      'up': { chinese: '向上', pos: 'adv.' },
+      'down': { chinese: '向下', pos: 'adv.' },
+      'out': { chinese: '外面', pos: 'adv.' },
+      'off': { chinese: '離開', pos: 'adv.' },
+      'over': { chinese: '在...上方', pos: 'prep.' },
+      'under': { chinese: '在...下方', pos: 'prep.' },
+      'between': { chinese: '在...之間', pos: 'prep.' },
+      'among': { chinese: '在...之中', pos: 'prep.' },
+      // 常見連接詞
+      'and': { chinese: '和', pos: 'conj.' },
+      'or': { chinese: '或', pos: 'conj.' },
+      'but': { chinese: '但是', pos: 'conj.' },
+      'so': { chinese: '所以', pos: 'conj.' },
+      'because': { chinese: '因為', pos: 'conj.' },
+      'if': { chinese: '如果', pos: 'conj.' },
+      'then': { chinese: '然後', pos: 'adv.' },
+      'than': { chinese: '比', pos: 'conj.' },
+      'as': { chinese: '如同', pos: 'conj.' },
+      'while': { chinese: '當...時', pos: 'conj.' },
+      'though': { chinese: '雖然', pos: 'conj.' },
+      'although': { chinese: '雖然', pos: 'conj.' },
+      'however': { chinese: '然而', pos: 'adv.' },
+      'therefore': { chinese: '因此', pos: 'adv.' },
+      // 常見副詞
+      'very': { chinese: '非常', pos: 'adv.' },
+      'quite': { chinese: '相當', pos: 'adv.' },
+      'too': { chinese: '也', pos: 'adv.' },
+      'also': { chinese: '也', pos: 'adv.' },
+      'even': { chinese: '甚至', pos: 'adv.' },
+      'just': { chinese: '只是', pos: 'adv.' },
+      'only': { chinese: '只有', pos: 'adv.' },
+      'still': { chinese: '仍然', pos: 'adv.' },
+      'already': { chinese: '已經', pos: 'adv.' },
+      'yet': { chinese: '還', pos: 'adv.' },
+      'again': { chinese: '再次', pos: 'adv.' },
+      'once': { chinese: '一次', pos: 'adv.' },
+      'twice': { chinese: '兩次', pos: 'adv.' },
+      'always': { chinese: '總是', pos: 'adv.' },
+      'never': { chinese: '從不', pos: 'adv.' },
+      'sometimes': { chinese: '有時', pos: 'adv.' },
+      'often': { chinese: '經常', pos: 'adv.' },
+      'usually': { chinese: '通常', pos: 'adv.' },
+      'rarely': { chinese: '很少', pos: 'adv.' },
+      'seldom': { chinese: '很少', pos: 'adv.' },
+      'maybe': { chinese: '也許', pos: 'adv.' },
+      'perhaps': { chinese: '也許', pos: 'adv.' },
+      'probably': { chinese: '可能', pos: 'adv.' },
+      'certainly': { chinese: '當然', pos: 'adv.' },
+      'definitely': { chinese: '肯定', pos: 'adv.' },
+      'absolutely': { chinese: '絕對', pos: 'adv.' },
+      'really': { chinese: '真的', pos: 'adv.' },
+      'actually': { chinese: '實際上', pos: 'adv.' },
+      'finally': { chinese: '最後', pos: 'adv.' },
+      'eventually': { chinese: '最終', pos: 'adv.' },
+      'immediately': { chinese: '立即', pos: 'adv.' },
+      'suddenly': { chinese: '突然', pos: 'adv.' },
+      'recently': { chinese: '最近', pos: 'adv.' },
+      'soon': { chinese: '很快', pos: 'adv.' },
+      'later': { chinese: '稍後', pos: 'adv.' },
+      'earlier': { chinese: '更早', pos: 'adv.' },
+      'now': { chinese: '現在', pos: 'adv.' },
+      'today': { chinese: '今天', pos: 'adv.' },
+      'yesterday': { chinese: '昨天', pos: 'adv.' },
+      'tomorrow': { chinese: '明天', pos: 'adv.' },
+      'tonight': { chinese: '今晚', pos: 'adv.' },
+      'here': { chinese: '這裡', pos: 'adv.' },
+      'there': { chinese: '那裡', pos: 'adv.' },
+      'everywhere': { chinese: '到處', pos: 'adv.' },
+      'somewhere': { chinese: '某處', pos: 'adv.' },
+      'anywhere': { chinese: '任何地方', pos: 'adv.' },
+      'nowhere': { chinese: '無處', pos: 'adv.' },
+      // 常見形容詞
+      'big': { chinese: '大的', pos: 'adj.' },
+      'small': { chinese: '小的', pos: 'adj.' },
+      'large': { chinese: '大的', pos: 'adj.' },
+      'little': { chinese: '小的', pos: 'adj.' },
+      'tiny': { chinese: '微小的', pos: 'adj.' },
+      'long': { chinese: '長的', pos: 'adj.' },
+      'short': { chinese: '短的', pos: 'adj.' },
+      'tall': { chinese: '高的', pos: 'adj.' },
+      'high': { chinese: '高的', pos: 'adj.' },
+      'low': { chinese: '低的', pos: 'adj.' },
+      'wide': { chinese: '寬的', pos: 'adj.' },
+      'narrow': { chinese: '窄的', pos: 'adj.' },
+      'thick': { chinese: '厚的', pos: 'adj.' },
+      'thin': { chinese: '薄的', pos: 'adj.' },
+      'heavy': { chinese: '重的', pos: 'adj.' },
+      'light': { chinese: '輕的', pos: 'adj.' },
+      'new': { chinese: '新的', pos: 'adj.' },
+      'old': { chinese: '舊的', pos: 'adj.' },
+      'young': { chinese: '年輕的', pos: 'adj.' },
+      'ancient': { chinese: '古老的', pos: 'adj.' },
+      'modern': { chinese: '現代的', pos: 'adj.' },
+      'recent': { chinese: '最近的', pos: 'adj.' },
+      'past': { chinese: '過去的', pos: 'adj.' },
+      'present': { chinese: '現在的', pos: 'adj.' },
+      'future': { chinese: '未來的', pos: 'adj.' },
+      'good': { chinese: '好的', pos: 'adj.' },
+      'bad': { chinese: '壞的', pos: 'adj.' },
+      'nice': { chinese: '好的', pos: 'adj.' },
+      'great': { chinese: '偉大的', pos: 'adj.' },
+      'wonderful': { chinese: '美妙的', pos: 'adj.' },
+      'excellent': { chinese: '優秀的', pos: 'adj.' },
+      'terrible': { chinese: '糟糕的', pos: 'adj.' },
+      'awful': { chinese: '可怕的', pos: 'adj.' },
+      'horrible': { chinese: '恐怖的', pos: 'adj.' },
+      'fine': { chinese: '好的', pos: 'adj.' },
+      'okay': { chinese: '好的', pos: 'adj.' },
+      'alright': { chinese: '好的', pos: 'adj.' },
+      'easy': { chinese: '容易的', pos: 'adj.' },
+      'hard': { chinese: '困難的', pos: 'adj.' },
+      'difficult': { chinese: '困難的', pos: 'adj.' },
+      'complicated': { chinese: '複雜的', pos: 'adj.' },
+      'right': { chinese: '正確的', pos: 'adj.' },
+      'wrong': { chinese: '錯誤的', pos: 'adj.' },
+      'correct': { chinese: '正確的', pos: 'adj.' },
+      'incorrect': { chinese: '不正確的', pos: 'adj.' },
+      'true': { chinese: '真實的', pos: 'adj.' },
+      'false': { chinese: '錯誤的', pos: 'adj.' },
+      'real': { chinese: '真實的', pos: 'adj.' },
+      'fake': { chinese: '假的', pos: 'adj.' },
+      'same': { chinese: '相同的', pos: 'adj.' },
+      'different': { chinese: '不同的', pos: 'adj.' },
+      'similar': { chinese: '相似的', pos: 'adj.' },
+      'equal': { chinese: '相等的', pos: 'adj.' },
+      'unequal': { chinese: '不相等的', pos: 'adj.' },
+      'full': { chinese: '滿的', pos: 'adj.' },
+      'empty': { chinese: '空的', pos: 'adj.' },
+      'complete': { chinese: '完整的', pos: 'adj.' },
+      'incomplete': { chinese: '不完整的', pos: 'adj.' },
+      'whole': { chinese: '整個的', pos: 'adj.' },
+      'partial': { chinese: '部分的', pos: 'adj.' },
+      'entire': { chinese: '全部的', pos: 'adj.' },
+      'total': { chinese: '總的', pos: 'adj.' },
+      'all': { chinese: '所有的', pos: 'adj.' },
+      'every': { chinese: '每個', pos: 'adj.' },
+      'each': { chinese: '每個', pos: 'adj.' },
+      'both': { chinese: '兩者', pos: 'adj.' },
+      'either': { chinese: '任一', pos: 'adj.' },
+      'neither': { chinese: '兩者都不', pos: 'adj.' },
+      'some': { chinese: '一些', pos: 'adj.' },
+      'any': { chinese: '任何', pos: 'adj.' },
+      'no': { chinese: '沒有', pos: 'adj.' },
+      'not': { chinese: '不', pos: 'adv.' },
+      'more': { chinese: '更多', pos: 'adj.' },
+      'most': { chinese: '最多', pos: 'adj.' },
+      'less': { chinese: '更少', pos: 'adj.' },
+      'least': { chinese: '最少', pos: 'adj.' },
+      'much': { chinese: '很多', pos: 'adj.' },
+      'many': { chinese: '許多', pos: 'adj.' },
+      'few': { chinese: '很少', pos: 'adj.' },
+      'little': { chinese: '很少', pos: 'adj.' },
+      'several': { chinese: '幾個', pos: 'adj.' },
+      'enough': { chinese: '足夠', pos: 'adj.' },
+      'too': { chinese: '太', pos: 'adv.' },
+      'such': { chinese: '這樣的', pos: 'adj.' },
+      'own': { chinese: '自己的', pos: 'adj.' },
+      'other': { chinese: '其他的', pos: 'adj.' },
+      'another': { chinese: '另一個', pos: 'adj.' },
+      'next': { chinese: '下一個', pos: 'adj.' },
+      'previous': { chinese: '前一個', pos: 'adj.' },
+      'last': { chinese: '最後的', pos: 'adj.' },
+      'first': { chinese: '第一個', pos: 'adj.' },
+      'second': { chinese: '第二個', pos: 'adj.' },
+      'third': { chinese: '第三個', pos: 'adj.' },
+      'fourth': { chinese: '第四個', pos: 'adj.' },
+      'fifth': { chinese: '第五個', pos: 'adj.' },
+      'one': { chinese: '一', pos: 'num.' },
+      'two': { chinese: '二', pos: 'num.' },
+      'three': { chinese: '三', pos: 'num.' },
+      'four': { chinese: '四', pos: 'num.' },
+      'five': { chinese: '五', pos: 'num.' },
+      'six': { chinese: '六', pos: 'num.' },
+      'seven': { chinese: '七', pos: 'num.' },
+      'eight': { chinese: '八', pos: 'num.' },
+      'nine': { chinese: '九', pos: 'num.' },
+      'ten': { chinese: '十', pos: 'num.' },
+      'hundred': { chinese: '百', pos: 'num.' },
+      'thousand': { chinese: '千', pos: 'num.' },
+      'million': { chinese: '百萬', pos: 'num.' },
+      'billion': { chinese: '十億', pos: 'num.' },
+      'zero': { chinese: '零', pos: 'num.' },
+      'a': { chinese: '一個', pos: 'art.' },
+      'an': { chinese: '一個', pos: 'art.' },
+      'the': { chinese: '這個', pos: 'art.' },
+      // 補充文章中出現但缺少的單字
+      'exist': { chinese: '存在', pos: 'v.' },
+      'exists': { chinese: '存在', pos: 'v.' },
+      'existed': { chinese: '存在', pos: 'v.' },
+      'existing': { chinese: '存在的', pos: 'adj.' },
+      'way': { chinese: '方式', pos: 'n.' },
+      'ways': { chinese: '方式', pos: 'n.' },
+      'special': { chinese: '特殊的', pos: 'adj.' },
+      'piece': { chinese: '片段', pos: 'n.' },
+      'pieces': { chinese: '片段', pos: 'n.' },
+      'smaller': { chinese: '更小的', pos: 'adj.' },
+      'program': { chinese: '程式', pos: 'n.' },
+      'programs': { chinese: '程式', pos: 'n.' },
+      'python': { chinese: 'Python', pos: 'n.' },
+      'javascript': { chinese: 'JavaScript', pos: 'n.' },
+      'scratch': { chinese: 'Scratch', pos: 'n.' },
+      'music': { chinese: '音樂', pos: 'n.' },
+      'drawing': { chinese: '畫畫', pos: 'n.' },
+      'cat': { chinese: '貓', pos: 'n.' },
+      'cats': { chinese: '貓', pos: 'n.' },
+      'looks': { chinese: '看起來', pos: 'v.' },
+      'cpu': { chinese: 'CPU', pos: 'n.' },
+      'ram': { chinese: 'RAM', pos: 'n.' },
+      'central': { chinese: '中央的', pos: 'adj.' },
+      'processing': { chinese: '處理', pos: 'n.' },
+      'unit': { chinese: '單元', pos: 'n.' },
+      'desk': { chinese: '書桌', pos: 'n.' },
+      'put': { chinese: '放置', pos: 'v.' },
+      'puts': { chinese: '放置', pos: 'v.' },
+      'keep': { chinese: '保持', pos: 'v.' },
+      'keeps': { chinese: '保持', pos: 'v.' },
+      'kept': { chinese: '保持', pos: 'v.' },
+      'keeping': { chinese: '保持', pos: 'v.' },
+      'later': { chinese: '稍後', pos: 'adv.' },
+      'type': { chinese: '類型', pos: 'n.' },
+      'types': { chinese: '類型', pos: 'n.' },
+      'typing': { chinese: '打字', pos: 'n.' },
+      'czech': { chinese: '捷克的', pos: 'adj.' },
+      'forced': { chinese: '強制的', pos: 'adj.' },
+      'today': { chinese: '今天', pos: 'adv.' },
+      'today': { chinese: '今天', pos: 'n.' },
+      'still': { chinese: '仍然', pos: 'adv.' },
+      'still': { chinese: '仍然', pos: 'adj.' },
+      'replace': { chinese: '取代', pos: 'v.' },
+      'replaces': { chinese: '取代', pos: 'v.' },
+      'replaced': { chinese: '取代', pos: 'v.' },
+      'replacing': { chinese: '取代', pos: 'v.' },
+      'thinking': { chinese: '思考', pos: 'n.' },
+      'creativity': { chinese: '創造力', pos: 'n.' },
+      'ever': { chinese: '曾經', pos: 'adv.' },
+      'wondered': { chinese: '想知道', pos: 'v.' },
+      'wonder': { chinese: '想知道', pos: 'v.' },
+      'wonders': { chinese: '想知道', pos: 'v.' },
+      'wondering': { chinese: '想知道', pos: 'v.' },
+      'terms': { chinese: '術語', pos: 'n.' },
+      'term': { chinese: '術語', pos: 'n.' },
+      'several': { chinese: '幾個', pos: 'adj.' },
+      'important': { chinese: '重要的', pos: 'adj.' },
+      'part': { chinese: '部分', pos: 'n.' },
+      'parts': { chinese: '部分', pos: 'n.' },
+      'brain': { chinese: '大腦', pos: 'n.' },
+      'brains': { chinese: '大腦', pos: 'n.' },
+      'stand': { chinese: '代表', pos: 'v.' },
+      'stands': { chinese: '代表', pos: 'v.' },
+      'stood': { chinese: '代表', pos: 'v.' },
+      'standing': { chinese: '代表', pos: 'v.' },
+      'for': { chinese: '為了', pos: 'prep.' },
+      'for': { chinese: '因為', pos: 'conj.' },
+      'type': { chinese: '類型', pos: 'n.' },
+      'types': { chinese: '類型', pos: 'n.' },
+      'typing': { chinese: '打字', pos: 'n.' },
+      'working': { chinese: '工作', pos: 'n.' },
+      'working': { chinese: '工作的', pos: 'adj.' },
+      'filing': { chinese: '檔案', pos: 'n.' },
+      'cabinet': { chinese: '櫃子', pos: 'n.' },
+      'cabinets': { chinese: '櫃子', pos: 'n.' },
+      'save': { chinese: '儲存', pos: 'v.' },
+      'saves': { chinese: '儲存', pos: 'v.' },
+      'saved': { chinese: '儲存', pos: 'v.' },
+      'saving': { chinese: '儲存', pos: 'v.' },
+      'file': { chinese: '檔案', pos: 'n.' },
+      'files': { chinese: '檔案', pos: 'n.' },
+      'open': { chinese: '打開', pos: 'v.' },
+      'opens': { chinese: '打開', pos: 'v.' },
+      'opened': { chinese: '打開', pos: 'v.' },
+      'opening': { chinese: '打開', pos: 'v.' },
+      'moves': { chinese: '移動', pos: 'v.' },
+      'moved': { chinese: '移動', pos: 'v.' },
+      'moving': { chinese: '移動', pos: 'v.' },
+      'work': { chinese: '工作', pos: 'v.' },
+      'works': { chinese: '工作', pos: 'v.' },
+      'worked': { chinese: '工作', pos: 'v.' },
+      'working': { chinese: '工作', pos: 'v.' },
+      'work': { chinese: '工作', pos: 'n.' },
+      'works': { chinese: '工作', pos: 'n.' },
+      'everything': { chinese: '一切', pos: 'pron.' },
+      'words': { chinese: '單字', pos: 'n.' },
+      'word': { chinese: '單字', pos: 'n.' },
+      'pictures': { chinese: '圖片', pos: 'n.' },
+      'picture': { chinese: '圖片', pos: 'n.' },
+      'sounds': { chinese: '聲音', pos: 'n.' },
+      'sound': { chinese: '聲音', pos: 'n.' },
+      'converted': { chinese: '轉換', pos: 'v.' },
+      'convert': { chinese: '轉換', pos: 'v.' },
+      'converts': { chinese: '轉換', pos: 'v.' },
+      'converting': { chinese: '轉換', pos: 'v.' },
+      'understands': { chinese: '理解', pos: 'v.' },
+      'understood': { chinese: '理解', pos: 'v.' },
+      'understanding': { chinese: '理解', pos: 'v.' },
+      'digits': { chinese: '數字', pos: 'n.' },
+      'digit': { chinese: '數字', pos: 'n.' },
+      'system': { chinese: '系統', pos: 'n.' },
+      'systems': { chinese: '系統', pos: 'n.' },
+      'binary': { chinese: '二進位', pos: 'n.' },
+      'something': { chinese: '某物', pos: 'pron.' },
+      'keyboard': { chinese: '鍵盤', pos: 'n.' },
+      'keyboards': { chinese: '鍵盤', pos: 'n.' },
+      'input': { chinese: '輸入', pos: 'n.' },
+      'inputs': { chinese: '輸入', pos: 'n.' },
+      'processes': { chinese: '處理', pos: 'v.' },
+      'process': { chinese: '處理', pos: 'v.' },
+      'processed': { chinese: '處理', pos: 'v.' },
+      'processing': { chinese: '處理', pos: 'v.' },
+      'output': { chinese: '輸出', pos: 'n.' },
+      'outputs': { chinese: '輸出', pos: 'n.' },
+      'might': { chinese: '可能', pos: 'v.' },
+      'showing': { chinese: '顯示', pos: 'v.' },
+      'showing': { chinese: '顯示', pos: 'n.' },
+      'screen': { chinese: '螢幕', pos: 'n.' },
+      'screens': { chinese: '螢幕', pos: 'n.' },
+      'playing': { chinese: '播放', pos: 'v.' },
+      'playing': { chinese: '播放', pos: 'n.' },
+      'sound': { chinese: '聲音', pos: 'n.' },
+      'sounds': { chinese: '聲音', pos: 'n.' },
+      'millions': { chinese: '數百萬', pos: 'n.' },
+      'million': { chinese: '百萬', pos: 'n.' },
+      'just': { chinese: '只是', pos: 'adv.' },
+      'just': { chinese: '剛剛', pos: 'adv.' },
+      'second': { chinese: '秒', pos: 'n.' },
+      'seconds': { chinese: '秒', pos: 'n.' },
+      'second': { chinese: '第二', pos: 'adj.' },
+      'quickly': { chinese: '快速地', pos: 'adv.' },
+      'quick': { chinese: '快速的', pos: 'adj.' },
+      'dumb': { chinese: '笨的', pos: 'adj.' },
+      'exactly': { chinese: '確切地', pos: 'adv.' },
+      'exact': { chinese: '確切的', pos: 'adj.' },
+      'important': { chinese: '重要的', pos: 'adj.' },
+      'tell': { chinese: '告訴', pos: 'v.' },
+      'tells': { chinese: '告訴', pos: 'v.' },
+      'told': { chinese: '告訴', pos: 'v.' },
+      'telling': { chinese: '告訴', pos: 'v.' },
+      'computers': { chinese: '電腦', pos: 'n.' },
+      'computer': { chinese: '電腦', pos: 'n.' },
+      'what': { chinese: '什麼', pos: 'pron.' },
+      'do': { chinese: '做', pos: 'v.' },
+      'does': { chinese: '做', pos: 'v.' },
+      'did': { chinese: '做', pos: 'v.' },
+      'done': { chinese: '做', pos: 'v.' },
+      'huge': { chinese: '巨大的', pos: 'adj.' },
+      'web': { chinese: '網', pos: 'n.' },
+      'webs': { chinese: '網', pos: 'n.' },
+      'connects': { chinese: '連接', pos: 'v.' },
+      'connect': { chinese: '連接', pos: 'v.' },
+      'connected': { chinese: '連接', pos: 'v.' },
+      'connecting': { chinese: '連接', pos: 'v.' },
+      'around': { chinese: '周圍', pos: 'prep.' },
+      'around': { chinese: '周圍', pos: 'adv.' },
+      'world': { chinese: '世界', pos: 'n.' },
+      'worlds': { chinese: '世界', pos: 'n.' },
+      'visit': { chinese: '訪問', pos: 'v.' },
+      'visits': { chinese: '訪問', pos: 'v.' },
+      'visited': { chinese: '訪問', pos: 'v.' },
+      'visiting': { chinese: '訪問', pos: 'v.' },
+      'website': { chinese: '網站', pos: 'n.' },
+      'websites': { chinese: '網站', pos: 'n.' },
+      'send': { chinese: '發送', pos: 'v.' },
+      'sends': { chinese: '發送', pos: 'v.' },
+      'sent': { chinese: '發送', pos: 'v.' },
+      'sending': { chinese: '發送', pos: 'v.' },
+      'message': { chinese: '訊息', pos: 'n.' },
+      'messages': { chinese: '訊息', pos: 'n.' },
+      'talks': { chinese: '對話', pos: 'v.' },
+      'talk': { chinese: '對話', pos: 'v.' },
+      'talked': { chinese: '對話', pos: 'v.' },
+      'talking': { chinese: '對話', pos: 'v.' },
+      'talk': { chinese: '對話', pos: 'n.' },
+      'talks': { chinese: '對話', pos: 'n.' },
+      'through': { chinese: '透過', pos: 'prep.' },
+      'through': { chinese: '透過', pos: 'adv.' },
+      'postal': { chinese: '郵政的', pos: 'adj.' },
+      'email': { chinese: '電子郵件', pos: 'n.' },
+      'emails': { chinese: '電子郵件', pos: 'n.' },
+      'broken': { chinese: '分解', pos: 'v.' },
+      'break': { chinese: '分解', pos: 'v.' },
+      'breaks': { chinese: '分解', pos: 'v.' },
+      'breaking': { chinese: '分解', pos: 'v.' },
+      'pieces': { chinese: '片段', pos: 'n.' },
+      'piece': { chinese: '片段', pos: 'n.' },
+      'packets': { chinese: '封包', pos: 'n.' },
+      'packet': { chinese: '封包', pos: 'n.' },
+      'travel': { chinese: '傳輸', pos: 'v.' },
+      'travels': { chinese: '傳輸', pos: 'v.' },
+      'traveled': { chinese: '傳輸', pos: 'v.' },
+      'travelled': { chinese: '傳輸', pos: 'v.' },
+      'traveling': { chinese: '傳輸', pos: 'v.' },
+      'travelling': { chinese: '傳輸', pos: 'v.' },
+      'cables': { chinese: '電纜', pos: 'n.' },
+      'cable': { chinese: '電纜', pos: 'n.' },
+      'wireless': { chinese: '無線的', pos: 'adj.' },
+      'signals': { chinese: '訊號', pos: 'n.' },
+      'signal': { chinese: '訊號', pos: 'n.' },
+      'reach': { chinese: '到達', pos: 'v.' },
+      'reaches': { chinese: '到達', pos: 'v.' },
+      'reached': { chinese: '到達', pos: 'v.' },
+      'reaching': { chinese: '到達', pos: 'v.' },
+      'destination': { chinese: '目的地', pos: 'n.' },
+      'destinations': { chinese: '目的地', pos: 'n.' },
+      'together': { chinese: '一起', pos: 'adv.' },
+      'read': { chinese: '讀取', pos: 'v.' },
+      'reads': { chinese: '讀取', pos: 'v.' },
+      'read': { chinese: '讀取', pos: 'v.' },
+      'reading': { chinese: '讀取', pos: 'v.' },
+      'reading': { chinese: '閱讀', pos: 'n.' },
+      'servers': { chinese: '伺服器', pos: 'n.' },
+      'server': { chinese: '伺服器', pos: 'n.' },
+      'address': { chinese: '地址', pos: 'n.' },
+      'addresses': { chinese: '地址', pos: 'n.' },
+      'asks': { chinese: '請求', pos: 'v.' },
+      'ask': { chinese: '請求', pos: 'v.' },
+      'asked': { chinese: '請求', pos: 'v.' },
+      'asking': { chinese: '請求', pos: 'v.' },
+      'changed': { chinese: '改變', pos: 'v.' },
+      'change': { chinese: '改變', pos: 'v.' },
+      'changes': { chinese: '改變', pos: 'v.' },
+      'changing': { chinese: '改變', pos: 'v.' },
+      'change': { chinese: '改變', pos: 'n.' },
+      'changes': { chinese: '改變', pos: 'n.' },
+      'live': { chinese: '生活', pos: 'v.' },
+      'lives': { chinese: '生活', pos: 'v.' },
+      'lived': { chinese: '生活', pos: 'v.' },
+      'living': { chinese: '生活', pos: 'v.' },
+      'live': { chinese: '現場的', pos: 'adj.' },
+      'online': { chinese: '線上', pos: 'adv.' },
+      'online': { chinese: '線上的', pos: 'adj.' },
+      'friends': { chinese: '朋友', pos: 'n.' },
+      'friend': { chinese: '朋友', pos: 'n.' },
+      'far': { chinese: '遠方', pos: 'adv.' },
+      'far': { chinese: '遠的', pos: 'adj.' },
+      'away': { chinese: '離開', pos: 'adv.' },
+      'shop': { chinese: '購物', pos: 'v.' },
+      'shops': { chinese: '購物', pos: 'v.' },
+      'shopped': { chinese: '購物', pos: 'v.' },
+      'shopping': { chinese: '購物', pos: 'v.' },
+      'shop': { chinese: '商店', pos: 'n.' },
+      'shops': { chinese: '商店', pos: 'n.' },
+      'leaving': { chinese: '離開', pos: 'v.' },
+      'leave': { chinese: '離開', pos: 'v.' },
+      'leaves': { chinese: '離開', pos: 'v.' },
+      'left': { chinese: '離開', pos: 'v.' },
+      'home': { chinese: '家', pos: 'n.' },
+      'homes': { chinese: '家', pos: 'n.' },
+      'home': { chinese: '家', pos: 'adv.' },
+      'students': { chinese: '學生', pos: 'n.' },
+      'student': { chinese: '學生', pos: 'n.' },
+      'research': { chinese: '研究', pos: 'n.' },
+      'researches': { chinese: '研究', pos: 'n.' },
+      'research': { chinese: '研究', pos: 'v.' },
+      'researches': { chinese: '研究', pos: 'v.' },
+      'researched': { chinese: '研究', pos: 'v.' },
+      'researching': { chinese: '研究', pos: 'v.' },
+      'homework': { chinese: '作業', pos: 'n.' },
+      'anywhere': { chinese: '任何地方', pos: 'adv.' },
+      'families': { chinese: '家庭', pos: 'n.' },
+      'family': { chinese: '家庭', pos: 'n.' },
+      'video': { chinese: '視訊', pos: 'n.' },
+      'videos': { chinese: '視訊', pos: 'n.' },
+      'call': { chinese: '通話', pos: 'v.' },
+      'calls': { chinese: '通話', pos: 'v.' },
+      'called': { chinese: '通話', pos: 'v.' },
+      'calling': { chinese: '通話', pos: 'v.' },
+      'call': { chinese: '通話', pos: 'n.' },
+      'calls': { chinese: '通話', pos: 'n.' },
+      'different': { chinese: '不同的', pos: 'adj.' },
+      'countries': { chinese: '國家', pos: 'n.' },
+      'country': { chinese: '國家', pos: 'n.' },
+      'careful': { chinese: '小心的', pos: 'adj.' },
+      'true': { chinese: '真實的', pos: 'adj.' },
+      'believe': { chinese: '相信', pos: 'v.' },
+      'believes': { chinese: '相信', pos: 'v.' },
+      'believed': { chinese: '相信', pos: 'v.' },
+      'believing': { chinese: '相信', pos: 'v.' },
+      'protect': { chinese: '保護', pos: 'v.' },
+      'protects': { chinese: '保護', pos: 'v.' },
+      'protected': { chinese: '保護', pos: 'v.' },
+      'protecting': { chinese: '保護', pos: 'v.' },
+      'personal': { chinese: '個人的', pos: 'adj.' },
+      'kind': { chinese: '友善的', pos: 'adj.' },
+      'kind': { chinese: '種類', pos: 'n.' },
+      'kinds': { chinese: '種類', pos: 'n.' },
+      'robots': { chinese: '機器人', pos: 'n.' },
+      'robot': { chinese: '機器人', pos: 'n.' },
+      'automation': { chinese: '自動化', pos: 'n.' },
+      'tasks': { chinese: '任務', pos: 'n.' },
+      'task': { chinese: '任務', pos: 'n.' },
+      'automatically': { chinese: '自動地', pos: 'adv.' },
+      'automatic': { chinese: '自動的', pos: 'adj.' },
+      'meaning': { chinese: '意思', pos: 'n.' },
+      'meanings': { chinese: '意思', pos: 'n.' },
+      'labor': { chinese: '勞動', pos: 'n.' },
+      'labors': { chinese: '勞動', pos: 'n.' },
+      'workers': { chinese: '工人', pos: 'n.' },
+      'worker': { chinese: '工人', pos: 'n.' },
+      'helpers': { chinese: '助手', pos: 'n.' },
+      'helper': { chinese: '助手', pos: 'n.' },
+      'companions': { chinese: '夥伴', pos: 'n.' },
+      'companion': { chinese: '夥伴', pos: 'n.' },
+      'easier': { chinese: '更容易', pos: 'adj.' },
+      'easy': { chinese: '容易的', pos: 'adj.' },
+      'factories': { chinese: '工廠', pos: 'n.' },
+      'factory': { chinese: '工廠', pos: 'n.' },
+      'building': { chinese: '建造', pos: 'v.' },
+      'build': { chinese: '建造', pos: 'v.' },
+      'builds': { chinese: '建造', pos: 'v.' },
+      'built': { chinese: '建造', pos: 'v.' },
+      'building': { chinese: '建築物', pos: 'n.' },
+      'buildings': { chinese: '建築物', pos: 'n.' },
+      'cars': { chinese: '汽車', pos: 'n.' },
+      'car': { chinese: '汽車', pos: 'n.' },
+      'putting': { chinese: '放置', pos: 'v.' },
+      'put': { chinese: '放置', pos: 'v.' },
+      'puts': { chinese: '放置', pos: 'v.' },
+      'electronic': { chinese: '電子的', pos: 'adj.' },
+      'devices': { chinese: '設備', pos: 'n.' },
+      'device': { chinese: '設備', pos: 'n.' },
+      'precise': { chinese: '精確的', pos: 'adj.' },
+      'times': { chinese: '次數', pos: 'n.' },
+      'time': { chinese: '時間', pos: 'n.' },
+      'times': { chinese: '時間', pos: 'n.' },
+      'mistakes': { chinese: '錯誤', pos: 'n.' },
+      'mistake': { chinese: '錯誤', pos: 'n.' },
+      'doctors': { chinese: '醫生', pos: 'n.' },
+      'doctor': { chinese: '醫生', pos: 'n.' },
+      'perform': { chinese: '執行', pos: 'v.' },
+      'performs': { chinese: '執行', pos: 'v.' },
+      'performed': { chinese: '執行', pos: 'v.' },
+      'performing': { chinese: '執行', pos: 'v.' },
+      'surgery': { chinese: '手術', pos: 'n.' },
+      'surgeries': { chinese: '手術', pos: 'n.' },
+      'accuracy': { chinese: '準確度', pos: 'n.' },
+      'look': { chinese: '看起來', pos: 'v.' },
+      'looks': { chinese: '看起來', pos: 'v.' },
+      'looked': { chinese: '看起來', pos: 'v.' },
+      'looking': { chinese: '看起來', pos: 'v.' },
+      'look': { chinese: '看', pos: 'n.' },
+      'looks': { chinese: '看', pos: 'n.' },
+      'vacuum': { chinese: '真空', pos: 'n.' },
+      'vacuums': { chinese: '真空', pos: 'n.' },
+      'cleaner': { chinese: '清潔器', pos: 'n.' },
+      'cleaners': { chinese: '清潔器', pos: 'n.' },
+      'person': { chinese: '人', pos: 'n.' },
+      'people': { chinese: '人們', pos: 'n.' },
+      'persons': { chinese: '人', pos: 'n.' },
+      'uses': { chinese: '使用', pos: 'v.' },
+      'use': { chinese: '使用', pos: 'v.' },
+      'used': { chinese: '使用', pos: 'v.' },
+      'using': { chinese: '使用', pos: 'v.' },
+      'use': { chinese: '使用', pos: 'n.' },
+      'uses': { chinese: '使用', pos: 'n.' },
+      'sensors': { chinese: '感測器', pos: 'n.' },
+      'sensor': { chinese: '感測器', pos: 'n.' },
+      'navigate': { chinese: '導航', pos: 'v.' },
+      'navigates': { chinese: '導航', pos: 'v.' },
+      'navigated': { chinese: '導航', pos: 'v.' },
+      'navigating': { chinese: '導航', pos: 'v.' },
+      'house': { chinese: '房子', pos: 'n.' },
+      'houses': { chinese: '房子', pos: 'n.' },
+      'floors': { chinese: '地板', pos: 'n.' },
+      'floor': { chinese: '地板', pos: 'n.' },
+      'programmer': { chinese: '程式設計師', pos: 'n.' },
+      'programmers': { chinese: '程式設計師', pos: 'n.' },
+      'writes': { chinese: '編寫', pos: 'v.' },
+      'write': { chinese: '編寫', pos: 'v.' },
+      'wrote': { chinese: '編寫', pos: 'v.' },
+      'written': { chinese: '編寫', pos: 'v.' },
+      'writing': { chinese: '編寫', pos: 'v.' },
+      'writing': { chinese: '寫作', pos: 'n.' },
+      'tells': { chinese: '告訴', pos: 'v.' },
+      'tell': { chinese: '告訴', pos: 'v.' },
+      'told': { chinese: '告訴', pos: 'v.' },
+      'telling': { chinese: '告訴', pos: 'v.' },
+      'move': { chinese: '移動', pos: 'v.' },
+      'moves': { chinese: '移動', pos: 'v.' },
+      'moved': { chinese: '移動', pos: 'v.' },
+      'moving': { chinese: '移動', pos: 'v.' },
+      'move': { chinese: '移動', pos: 'n.' },
+      'moves': { chinese: '移動', pos: 'n.' },
+      'pick': { chinese: '拿起', pos: 'v.' },
+      'picks': { chinese: '拿起', pos: 'v.' },
+      'picked': { chinese: '拿起', pos: 'v.' },
+      'picking': { chinese: '拿起', pos: 'v.' },
+      'up': { chinese: '向上', pos: 'adv.' },
+      'up': { chinese: '向上', pos: 'prep.' },
+      'advanced': { chinese: '先進的', pos: 'adj.' },
+      'advance': { chinese: '前進', pos: 'v.' },
+      'advances': { chinese: '前進', pos: 'v.' },
+      'advanced': { chinese: '前進', pos: 'v.' },
+      'advancing': { chinese: '前進', pos: 'v.' },
+      'experiences': { chinese: '經驗', pos: 'n.' },
+      'experience': { chinese: '經驗', pos: 'n.' },
+      'experience': { chinese: '經驗', pos: 'v.' },
+      'experiences': { chinese: '經驗', pos: 'v.' },
+      'experienced': { chinese: '經驗', pos: 'v.' },
+      'experiencing': { chinese: '經驗', pos: 'v.' },
+      'improve': { chinese: '改進', pos: 'v.' },
+      'improves': { chinese: '改進', pos: 'v.' },
+      'improved': { chinese: '改進', pos: 'v.' },
+      'improving': { chinese: '改進', pos: 'v.' },
+      'time': { chinese: '時間', pos: 'n.' },
+      'times': { chinese: '時間', pos: 'n.' },
+      'means': { chinese: '意味著', pos: 'v.' },
+      'mean': { chinese: '意味著', pos: 'v.' },
+      'meant': { chinese: '意味著', pos: 'v.' },
+      'meaning': { chinese: '意味著', pos: 'v.' },
+      'mean': { chinese: '平均的', pos: 'adj.' },
+      'means': { chinese: '方式', pos: 'n.' },
+      'making': { chinese: '製作', pos: 'v.' },
+      'make': { chinese: '製作', pos: 'v.' },
+      'makes': { chinese: '製作', pos: 'v.' },
+      'made': { chinese: '製作', pos: 'v.' },
+      'things': { chinese: '事物', pos: 'n.' },
+      'thing': { chinese: '事物', pos: 'n.' },
+      'help': { chinese: '幫助', pos: 'n.' },
+      'helps': { chinese: '幫助', pos: 'n.' },
+      'help': { chinese: '幫助', pos: 'v.' },
+      'helps': { chinese: '幫助', pos: 'v.' },
+      'helped': { chinese: '幫助', pos: 'v.' },
+      'helping': { chinese: '幫助', pos: 'v.' },
+      'doors': { chinese: '門', pos: 'n.' },
+      'door': { chinese: '門', pos: 'n.' },
+      'open': { chinese: '打開', pos: 'v.' },
+      'opens': { chinese: '打開', pos: 'v.' },
+      'opened': { chinese: '打開', pos: 'v.' },
+      'opening': { chinese: '打開', pos: 'v.' },
+      'open': { chinese: '打開的', pos: 'adj.' },
+      'walk': { chinese: '走路', pos: 'v.' },
+      'walks': { chinese: '走路', pos: 'v.' },
+      'walked': { chinese: '走路', pos: 'v.' },
+      'walking': { chinese: '走路', pos: 'v.' },
+      'walk': { chinese: '走路', pos: 'n.' },
+      'walks': { chinese: '走路', pos: 'n.' },
+      'near': { chinese: '靠近', pos: 'prep.' },
+      'near': { chinese: '靠近', pos: 'adv.' },
+      'near': { chinese: '靠近的', pos: 'adj.' },
+      'lights': { chinese: '燈', pos: 'n.' },
+      'light': { chinese: '燈', pos: 'n.' },
+      'light': { chinese: '光', pos: 'n.' },
+      'lights': { chinese: '光', pos: 'n.' },
+      'turn': { chinese: '轉動', pos: 'v.' },
+      'turns': { chinese: '轉動', pos: 'v.' },
+      'turned': { chinese: '轉動', pos: 'v.' },
+      'turning': { chinese: '轉動', pos: 'v.' },
+      'turn': { chinese: '轉動', pos: 'n.' },
+      'turns': { chinese: '轉動', pos: 'n.' },
+      'dark': { chinese: '黑暗的', pos: 'adj.' },
+      'dark': { chinese: '黑暗', pos: 'n.' },
+      'forms': { chinese: '形式', pos: 'n.' },
+      'form': { chinese: '形式', pos: 'n.' },
+      'form': { chinese: '形成', pos: 'v.' },
+      'forms': { chinese: '形成', pos: 'v.' },
+      'formed': { chinese: '形成', pos: 'v.' },
+      'forming': { chinese: '形成', pos: 'v.' },
+      'dangerous': { chinese: '危險的', pos: 'adj.' },
+      'danger': { chinese: '危險', pos: 'n.' },
+      'dangers': { chinese: '危險', pos: 'n.' },
+      'jobs': { chinese: '工作', pos: 'n.' },
+      'job': { chinese: '工作', pos: 'n.' },
+      'unsafe': { chinese: '不安全的', pos: 'adj.' },
+      'safe': { chinese: '安全的', pos: 'adj.' },
+      'tired': { chinese: '疲倦的', pos: 'adj.' },
+      'tire': { chinese: '疲倦', pos: 'v.' },
+      'tires': { chinese: '疲倦', pos: 'v.' },
+      'tired': { chinese: '疲倦', pos: 'v.' },
+      'tiring': { chinese: '疲倦', pos: 'v.' },
+      'repetitive': { chinese: '重複的', pos: 'adj.' },
+      'repeat': { chinese: '重複', pos: 'v.' },
+      'repeats': { chinese: '重複', pos: 'v.' },
+      'repeated': { chinese: '重複', pos: 'v.' },
+      'repeating': { chinese: '重複', pos: 'v.' },
+      'boring': { chinese: '無聊的', pos: 'adj.' },
+      'bore': { chinese: '無聊', pos: 'v.' },
+      'bores': { chinese: '無聊', pos: 'v.' },
+      'bored': { chinese: '無聊', pos: 'v.' },
+      'boring': { chinese: '無聊', pos: 'v.' },
+      'design': { chinese: '設計', pos: 'v.' },
+      'designs': { chinese: '設計', pos: 'v.' },
+      'designed': { chinese: '設計', pos: 'v.' },
+      'designing': { chinese: '設計', pos: 'v.' },
+      'design': { chinese: '設計', pos: 'n.' },
+      'designs': { chinese: '設計', pos: 'n.' },
+      'maintain': { chinese: '維護', pos: 'v.' },
+      'maintains': { chinese: '維護', pos: 'v.' },
+      'maintained': { chinese: '維護', pos: 'v.' },
+      'maintaining': { chinese: '維護', pos: 'v.' },
+      'coding': { chinese: '編碼', pos: 'n.' },
+      'code': { chinese: '編碼', pos: 'v.' },
+      'codes': { chinese: '編碼', pos: 'v.' },
+      'coded': { chinese: '編碼', pos: 'v.' },
+      'coding': { chinese: '編碼', pos: 'v.' },
+      'fun': { chinese: '有趣的', pos: 'adj.' },
+      'fun': { chinese: '有趣', pos: 'n.' },
+      'especially': { chinese: '特別', pos: 'adv.' },
+      'special': { chinese: '特別的', pos: 'adj.' },
+      'make': { chinese: '製作', pos: 'v.' },
+      'makes': { chinese: '製作', pos: 'v.' },
+      'made': { chinese: '製作', pos: 'v.' },
+      'making': { chinese: '製作', pos: 'v.' },
+      'many': { chinese: '許多', pos: 'adj.' },
+      'start': { chinese: '開始', pos: 'v.' },
+      'starts': { chinese: '開始', pos: 'v.' },
+      'started': { chinese: '開始', pos: 'v.' },
+      'starting': { chinese: '開始', pos: 'v.' },
+      'start': { chinese: '開始', pos: 'n.' },
+      'starts': { chinese: '開始', pos: 'n.' },
+      'creating': { chinese: '創建', pos: 'v.' },
+      'create': { chinese: '創建', pos: 'v.' },
+      'creates': { chinese: '創建', pos: 'v.' },
+      'created': { chinese: '創建', pos: 'v.' },
+      'simple': { chinese: '簡單的', pos: 'adj.' },
+      'simpler': { chinese: '更簡單的', pos: 'adj.' },
+      'simplest': { chinese: '最簡單的', pos: 'adj.' },
+      'enjoyable': { chinese: '愉快的', pos: 'adj.' },
+      'enjoy': { chinese: '享受', pos: 'v.' },
+      'enjoys': { chinese: '享受', pos: 'v.' },
+      'enjoyed': { chinese: '享受', pos: 'v.' },
+      'enjoying': { chinese: '享受', pos: 'v.' },
+      'concepts': { chinese: '概念', pos: 'n.' },
+      'concept': { chinese: '概念', pos: 'n.' },
+      'variables': { chinese: '變數', pos: 'n.' },
+      'variable': { chinese: '變數', pos: 'n.' },
+      'store': { chinese: '儲存', pos: 'v.' },
+      'stores': { chinese: '儲存', pos: 'v.' },
+      'stored': { chinese: '儲存', pos: 'v.' },
+      'storing': { chinese: '儲存', pos: 'v.' },
+      'store': { chinese: '商店', pos: 'n.' },
+      'stores': { chinese: '商店', pos: 'n.' },
+      'player': { chinese: '玩家', pos: 'n.' },
+      'players': { chinese: '玩家', pos: 'n.' },
+      'score': { chinese: '分數', pos: 'n.' },
+      'scores': { chinese: '分數', pos: 'n.' },
+      'score': { chinese: '得分', pos: 'v.' },
+      'scores': { chinese: '得分', pos: 'v.' },
+      'scored': { chinese: '得分', pos: 'v.' },
+      'scoring': { chinese: '得分', pos: 'v.' },
+      'loops': { chinese: '迴圈', pos: 'n.' },
+      'loop': { chinese: '迴圈', pos: 'n.' },
+      'loop': { chinese: '迴圈', pos: 'v.' },
+      'loops': { chinese: '迴圈', pos: 'v.' },
+      'looped': { chinese: '迴圈', pos: 'v.' },
+      'looping': { chinese: '迴圈', pos: 'v.' },
+      'happen': { chinese: '發生', pos: 'v.' },
+      'happens': { chinese: '發生', pos: 'v.' },
+      'happened': { chinese: '發生', pos: 'v.' },
+      'happening': { chinese: '發生', pos: 'v.' },
+      'happening': { chinese: '事件', pos: 'n.' },
+      'happenings': { chinese: '事件', pos: 'n.' },
+      'repeatedly': { chinese: '重複地', pos: 'adv.' },
+      'repeated': { chinese: '重複的', pos: 'adj.' },
+      'enemies': { chinese: '敵人', pos: 'n.' },
+      'enemy': { chinese: '敵人', pos: 'n.' },
+      'moving': { chinese: '移動', pos: 'v.' },
+      'move': { chinese: '移動', pos: 'v.' },
+      'moves': { chinese: '移動', pos: 'v.' },
+      'moved': { chinese: '移動', pos: 'v.' },
+      'moving': { chinese: '移動的', pos: 'adj.' },
+      'across': { chinese: '橫跨', pos: 'prep.' },
+      'across': { chinese: '橫跨', pos: 'adv.' },
+      'conditions': { chinese: '條件', pos: 'n.' },
+      'condition': { chinese: '條件', pos: 'n.' },
+      'decisions': { chinese: '決定', pos: 'n.' },
+      'decision': { chinese: '決定', pos: 'n.' },
+      'touches': { chinese: '觸碰', pos: 'v.' },
+      'touch': { chinese: '觸碰', pos: 'v.' },
+      'touched': { chinese: '觸碰', pos: 'v.' },
+      'touching': { chinese: '觸碰', pos: 'v.' },
+      'touch': { chinese: '觸碰', pos: 'n.' },
+      'touches': { chinese: '觸碰', pos: 'n.' },
+      'enemy': { chinese: '敵人', pos: 'n.' },
+      'enemies': { chinese: '敵人', pos: 'n.' },
+      'ends': { chinese: '結束', pos: 'v.' },
+      'end': { chinese: '結束', pos: 'v.' },
+      'ended': { chinese: '結束', pos: 'v.' },
+      'ending': { chinese: '結束', pos: 'v.' },
+      'end': { chinese: '結束', pos: 'n.' },
+      'ends': { chinese: '結束', pos: 'n.' },
+      'beginners': { chinese: '初學者', pos: 'n.' },
+      'beginner': { chinese: '初學者', pos: 'n.' },
+      'choice': { chinese: '選擇', pos: 'n.' },
+      'choices': { chinese: '選擇', pos: 'n.' },
+      'choose': { chinese: '選擇', pos: 'v.' },
+      'chooses': { chinese: '選擇', pos: 'v.' },
+      'chose': { chinese: '選擇', pos: 'v.' },
+      'chosen': { chinese: '選擇', pos: 'v.' },
+      'choosing': { chinese: '選擇', pos: 'v.' },
+      'drag': { chinese: '拖曳', pos: 'v.' },
+      'drags': { chinese: '拖曳', pos: 'v.' },
+      'dragged': { chinese: '拖曳', pos: 'v.' },
+      'dragging': { chinese: '拖曳', pos: 'v.' },
+      'drop': { chinese: '放下', pos: 'v.' },
+      'drops': { chinese: '放下', pos: 'v.' },
+      'dropped': { chinese: '放下', pos: 'v.' },
+      'dropping': { chinese: '放下', pos: 'v.' },
+      'drop': { chinese: '放下', pos: 'n.' },
+      'drops': { chinese: '放下', pos: 'n.' },
+      'type': { chinese: '輸入', pos: 'v.' },
+      'types': { chinese: '輸入', pos: 'v.' },
+      'typed': { chinese: '輸入', pos: 'v.' },
+      'typing': { chinese: '輸入', pos: 'v.' },
+      'easier': { chinese: '更容易', pos: 'adj.' },
+      'easy': { chinese: '容易的', pos: 'adj.' },
+      'easier': { chinese: '更容易', pos: 'adj.' },
+      'easiest': { chinese: '最容易的', pos: 'adj.' },
+      'better': { chinese: '更好', pos: 'adj.' },
+      'good': { chinese: '好的', pos: 'adj.' },
+      'better': { chinese: '更好', pos: 'adj.' },
+      'best': { chinese: '最好', pos: 'adj.' },
+      'library': { chinese: '函式庫', pos: 'n.' },
+      'libraries': { chinese: '函式庫', pos: 'n.' },
+      'browsers': { chinese: '瀏覽器', pos: 'n.' },
+      'browser': { chinese: '瀏覽器', pos: 'n.' },
+      'powerful': { chinese: '強大的', pos: 'adj.' },
+      'power': { chinese: '力量', pos: 'n.' },
+      'powers': { chinese: '力量', pos: 'n.' },
+      'professional': { chinese: '專業的', pos: 'adj.' },
+      'profession': { chinese: '專業', pos: 'n.' },
+      'professions': { chinese: '專業', pos: 'n.' },
+      'developers': { chinese: '開發者', pos: 'n.' },
+      'developer': { chinese: '開發者', pos: 'n.' },
+      'develop': { chinese: '開發', pos: 'v.' },
+      'develops': { chinese: '開發', pos: 'v.' },
+      'developed': { chinese: '開發', pos: 'v.' },
+      'developing': { chinese: '開發', pos: 'v.' },
+      'problem-solving': { chinese: '解決問題', pos: 'n.' },
+      'problem': { chinese: '問題', pos: 'n.' },
+      'problems': { chinese: '問題', pos: 'n.' },
+      'solve': { chinese: '解決', pos: 'v.' },
+      'solves': { chinese: '解決', pos: 'v.' },
+      'solved': { chinese: '解決', pos: 'v.' },
+      'solving': { chinese: '解決', pos: 'v.' },
+      'skills': { chinese: '技能', pos: 'n.' },
+      'skill': { chinese: '技能', pos: 'n.' },
+      'doesn': { chinese: '不', pos: 'v.' },
+      'does': { chinese: '做', pos: 'v.' },
+      'doesn\'t': { chinese: '不', pos: 'v.' },
+      'figure': { chinese: '找出', pos: 'v.' },
+      'figures': { chinese: '找出', pos: 'v.' },
+      'figured': { chinese: '找出', pos: 'v.' },
+      'figuring': { chinese: '找出', pos: 'v.' },
+      'figure': { chinese: '圖形', pos: 'n.' },
+      'figures': { chinese: '圖形', pos: 'n.' },
+      'why': { chinese: '為什麼', pos: 'adv.' },
+      'fix': { chinese: '修復', pos: 'v.' },
+      'fixes': { chinese: '修復', pos: 'v.' },
+      'fixed': { chinese: '修復', pos: 'v.' },
+      'fixing': { chinese: '修復', pos: 'v.' },
+      'fix': { chinese: '修復', pos: 'n.' },
+      'fixes': { chinese: '修復', pos: 'n.' },
+      'debugging': { chinese: '除錯', pos: 'n.' },
+      'debug': { chinese: '除錯', pos: 'v.' },
+      'debugs': { chinese: '除錯', pos: 'v.' },
+      'debugged': { chinese: '除錯', pos: 'v.' },
+      'debugging': { chinese: '除錯', pos: 'v.' },
+      'math': { chinese: '數學', pos: 'n.' },
+      'mathematics': { chinese: '數學', pos: 'n.' },
+      'genius': { chinese: '天才', pos: 'n.' },
+      'geniuses': { chinese: '天才', pos: 'n.' },
+      'curious': { chinese: '好奇的', pos: 'adj.' },
+      'curiosity': { chinese: '好奇心', pos: 'n.' },
+      'willing': { chinese: '願意', pos: 'adj.' },
+      'will': { chinese: '願意', pos: 'v.' },
+      'wills': { chinese: '願意', pos: 'v.' },
+      'willed': { chinese: '願意', pos: 'v.' },
+      'willing': { chinese: '願意', pos: 'v.' },
+      'practice': { chinese: '練習', pos: 'n.' },
+      'practices': { chinese: '練習', pos: 'n.' },
+      'practice': { chinese: '練習', pos: 'v.' },
+      'practices': { chinese: '練習', pos: 'v.' },
+      'practiced': { chinese: '練習', pos: 'v.' },
+      'practicing': { chinese: '練習', pos: 'v.' },
+      'complex': { chinese: '複雜的', pos: 'adj.' },
+      'complex': { chinese: '複雜', pos: 'n.' },
+      'complexes': { chinese: '複雜', pos: 'n.' },
+      'guess': { chinese: '猜測', pos: 'v.' },
+      'guesses': { chinese: '猜測', pos: 'v.' },
+      'guessed': { chinese: '猜測', pos: 'v.' },
+      'guessing': { chinese: '猜測', pos: 'v.' },
+      'guess': { chinese: '猜測', pos: 'n.' },
+      'guesses': { chinese: '猜測', pos: 'n.' },
+      'rock': { chinese: '石頭', pos: 'n.' },
+      'rocks': { chinese: '石頭', pos: 'n.' },
+      'paper': { chinese: '紙', pos: 'n.' },
+      'papers': { chinese: '紙', pos: 'n.' },
+      'scissors': { chinese: '剪刀', pos: 'n.' },
+      'number': { chinese: '數字', pos: 'n.' },
+      'numbers': { chinese: '數字', pos: 'n.' },
+      'number': { chinese: '編號', pos: 'v.' },
+      'numbers': { chinese: '編號', pos: 'v.' },
+      'numbered': { chinese: '編號', pos: 'v.' },
+      'numbering': { chinese: '編號', pos: 'v.' },
+      // 常見縮寫
+      'isn\'t': { chinese: '不是', pos: 'v.' },
+      'aren\'t': { chinese: '不是', pos: 'v.' },
+      'wasn\'t': { chinese: '不是', pos: 'v.' },
+      'weren\'t': { chinese: '不是', pos: 'v.' },
+      'don\'t': { chinese: '不', pos: 'v.' },
+      'doesn\'t': { chinese: '不', pos: 'v.' },
+      'didn\'t': { chinese: '不', pos: 'v.' },
+      'won\'t': { chinese: '不會', pos: 'v.' },
+      'wouldn\'t': { chinese: '不會', pos: 'v.' },
+      'can\'t': { chinese: '不能', pos: 'v.' },
+      'couldn\'t': { chinese: '不能', pos: 'v.' },
+      'shouldn\'t': { chinese: '不應該', pos: 'v.' },
+      'mustn\'t': { chinese: '不許', pos: 'v.' },
+      'hasn\'t': { chinese: '沒有', pos: 'v.' },
+      'haven\'t': { chinese: '沒有', pos: 'v.' },
+      'hadn\'t': { chinese: '沒有', pos: 'v.' },
+      'it\'s': { chinese: '它是', pos: 'v.' },
+      'that\'s': { chinese: '那是', pos: 'v.' },
+      'there\'s': { chinese: '有', pos: 'v.' },
+      'here\'s': { chinese: '這裡是', pos: 'v.' },
+      'what\'s': { chinese: '什麼是', pos: 'v.' },
+      'who\'s': { chinese: '誰是', pos: 'v.' },
+      'where\'s': { chinese: '哪裡是', pos: 'v.' },
+      'how\'s': { chinese: '如何是', pos: 'v.' },
+      'when\'s': { chinese: '何時是', pos: 'v.' },
+      'why\'s': { chinese: '為什麼是', pos: 'v.' },
+      'i\'m': { chinese: '我是', pos: 'v.' },
+      'you\'re': { chinese: '你是', pos: 'v.' },
+      'he\'s': { chinese: '他是', pos: 'v.' },
+      'she\'s': { chinese: '她是', pos: 'v.' },
+      'we\'re': { chinese: '我們是', pos: 'v.' },
+      'they\'re': { chinese: '他們是', pos: 'v.' },
+      'i\'ve': { chinese: '我已經', pos: 'v.' },
+      'you\'ve': { chinese: '你已經', pos: 'v.' },
+      'we\'ve': { chinese: '我們已經', pos: 'v.' },
+      'they\'ve': { chinese: '他們已經', pos: 'v.' },
+      'i\'ll': { chinese: '我將', pos: 'v.' },
+      'you\'ll': { chinese: '你將', pos: 'v.' },
+      'he\'ll': { chinese: '他將', pos: 'v.' },
+      'she\'ll': { chinese: '她將', pos: 'v.' },
+      'we\'ll': { chinese: '我們將', pos: 'v.' },
+      'they\'ll': { chinese: '他們將', pos: 'v.' },
+      'i\'d': { chinese: '我會', pos: 'v.' },
+      'you\'d': { chinese: '你會', pos: 'v.' },
+      'he\'d': { chinese: '他會', pos: 'v.' },
+      'she\'d': { chinese: '她會', pos: 'v.' },
+      'we\'d': { chinese: '我們會', pos: 'v.' },
+      'they\'d': { chinese: '他們會', pos: 'v.' },
+      'let\'s': { chinese: '讓我們', pos: 'v.' }
+    };
+
+    // 單字管理
+    let myWords = JSON.parse(localStorage.getItem('myWords') || '[]');
+    const wordsList = document.getElementById('wordsList');
+    const clearWordsBtn = document.getElementById('clearWordsBtn');
+
+    // 載入並顯示單字列表
+    function loadWords() {
+      renderWordsList();
+    }
+
+    // 渲染單字列表
+    function renderWordsList() {
+      if (!wordsList) return;
+      
+      if (myWords.length === 0) {
+        wordsList.innerHTML = '<div class="empty-words">尚未添加任何單字。點擊文章中的單字即可加入！</div>';
+        return;
+      }
+
+      wordsList.innerHTML = myWords.map((word, index) => {
+        const escapedEnglish = word.english.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        const escapedChinese = word.chinese.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        const escapedPos = (word.pos || '未知').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        return `
+        <div class="word-card">
+          <div class="word-card-header">
+            <span class="word-english" translate="no">${escapedEnglish}</span>
+            <button class="word-delete" onclick="removeWord(${index})">×</button>
+          </div>
+          <div class="word-chinese">${escapedChinese}</div>
+          <div class="word-pos">${escapedPos}</div>
+        </div>
+      `;
+      }).join('');
+    }
+
+    // 切換單字（添加或移除）
+    function toggleWord(word) {
+      const cleanWord = word.toLowerCase().replace(/[.,!?;:()"]/g, '');
+      if (!cleanWord || cleanWord.length < 2) return false;
+      
+      // 檢查是否已存在
+      const existingIndex = myWords.findIndex(w => w.english.toLowerCase() === cleanWord);
+      
+      if (existingIndex >= 0) {
+        // 如果已存在，移除它
+        myWords.splice(existingIndex, 1);
+        localStorage.setItem('myWords', JSON.stringify(myWords));
+        renderWordsList();
+        return false; // 返回 false 表示已移除
+      } else {
+        // 如果不存在，添加它
+        const wordInfo = dictionary[cleanWord];
+        if (wordInfo) {
+          myWords.push({
+            english: cleanWord,
+            chinese: wordInfo.chinese,
+            pos: wordInfo.pos
+          });
+        } else {
+          // 如果詞典中沒有，仍然添加但顯示未知
+          myWords.push({
+            english: cleanWord,
+            chinese: '（需查詢）',
+            pos: '未知'
+          });
+        }
+        localStorage.setItem('myWords', JSON.stringify(myWords));
+        renderWordsList();
+        return true; // 返回 true 表示已添加
+      }
+    }
+
+    // 移除單字
+    window.removeWord = function(index) {
+      myWords.splice(index, 1);
+      localStorage.setItem('myWords', JSON.stringify(myWords));
+      renderWordsList();
+    };
+
+    // 清除所有單字
+    if (clearWordsBtn) {
+      clearWordsBtn.addEventListener('click', () => {
+        if (confirm('確定要清除所有單字嗎？')) {
+          myWords = [];
+          localStorage.setItem('myWords', JSON.stringify(myWords));
+          renderWordsList();
+        }
+      });
+    }
+
+    // 將英文文章轉換為可點擊單字
+    function makeWordsClickable(text) {
+      // 使用正則表達式匹配單字和空白
+      const tokens = [];
+      const regex = /(\S+|\s+)/g;
+      let match;
+      
+      while ((match = regex.exec(text)) !== null) {
+        tokens.push(match[0]);
+      }
+      
+      return tokens.map(token => {
+        // 如果是空白（包括空格、換行等）
+        if (/^\s+$/.test(token)) {
+          return token === '\n' ? '<br>' : token;
+        }
+        
+        // 處理單字（可能包含標點符號）
+        const cleanWord = token.toLowerCase().replace(/[.,!?;:()"']/g, '');
+        
+        // 如果清理後沒有內容，直接返回原token
+        if (!cleanWord || cleanWord.length < 1) {
+          return token;
+        }
+
+        const wordInfo = dictionary[cleanWord];
+        const isAdded = myWords.some(w => w.english.toLowerCase() === cleanWord);
+        const tooltipText = wordInfo ? wordInfo.chinese : '（無翻譯）';
+        
+        // 轉義HTML特殊字符
+        const escapedToken = token.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        const escapedCleanWord = cleanWord.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+        const escapedTooltip = tooltipText.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+        
+        return `<span class="clickable-word ${isAdded ? 'added' : ''}" 
+                     data-word="${escapedCleanWord}" 
+                     onclick="handleWordClick('${escapedCleanWord}')"
+                     translate="no"
+                     title="點擊加入/移除單字本">${escapedToken}<span class="word-tooltip">${escapedTooltip}</span></span>`;
+      }).join('');
+    }
+
+    // 處理單字點擊（切換添加/移除）
+    window.handleWordClick = function(word) {
+      toggleWord(word);
+      // 重新渲染文章以更新已添加標記
+      if (currentArticle) {
+        const index = articles.findIndex(a => a.title === currentArticle.title);
+        if (index >= 0) {
+          showArticle(index);
+        }
+      }
+    };
+
+    const articleSelector = document.getElementById('articleSelector');
+    const articleContainer = document.getElementById('articleContainer');
+    let currentArticle = null;
+    let synth = window.speechSynthesis || null;
+    let currentUtterance = null;
+    let isPlaying = false;
+    let speechRate = parseFloat(localStorage.getItem('speechRate') || '0.85');
+    let femaleVoice = null;
+
+    // Load voices when available
+    function loadVoices() {
+      if (synth) {
+        const voices = synth.getVoices();
+        // Try to find a female voice
+        femaleVoice = voices.find(voice => 
+          voice.lang.startsWith('en') && (
+            voice.name.toLowerCase().includes('female') ||
+            voice.name.toLowerCase().includes('zira') ||
+            voice.name.toLowerCase().includes('samantha') ||
+            voice.name.toLowerCase().includes('karen') ||
+            voice.name.toLowerCase().includes('susan') ||
+            voice.name.toLowerCase().includes('victoria') ||
+            voice.name.toLowerCase().includes('sarah') ||
+            voice.name.toLowerCase().includes('hazel') ||
+            voice.name.toLowerCase().includes('linda')
+          )
+        ) || voices.find(voice => voice.lang.startsWith('en-US')) || voices[0];
+      }
+    }
+
+    // Load voices immediately if available
+    if (synth) {
+      loadVoices();
+      // Also listen for voiceschanged event (some browsers load voices asynchronously)
+      synth.onvoiceschanged = loadVoices;
+    }
+
+    // Check if elements exist
+    if (!articleSelector || !articleContainer) {
+      console.error('Required elements not found');
+    } else {
+      // Create article selector buttons
+      articles.forEach((article, index) => {
+        const btn = document.createElement('button');
+        btn.className = 'article-btn';
+        btn.textContent = article.title;
+        btn.addEventListener('click', () => showArticle(index));
+        articleSelector.appendChild(btn);
+      });
+    }
+
+    function showArticle(index) {
+      if (index < 0 || index >= articles.length) return;
+      if (!articleContainer) return;
+      
+      currentArticle = articles[index];
+      
+      // Stop any ongoing speech first
+      if (synth) {
+        synth.cancel();
+        isPlaying = false;
+      }
+      
+      // Update active button
+      document.querySelectorAll('.article-btn').forEach((btn, i) => {
+        btn.classList.toggle('active', i === index);
+      });
+
+      // Display article
+      const wordCount = currentArticle.english.split(/\s+/).length;
+      const clickableText = makeWordsClickable(currentArticle.english);
+      articleContainer.innerHTML = `
+        <h2 class="article-title" translate="no">${currentArticle.title}</h2>
+        <div class="article-section">
+          <div class="english-text" translate="no">${clickableText}</div>
+          <div class="chinese-translation">
+            <span class="translation-label">中文翻譯：</span>
+            ${currentArticle.chinese.replace(/\n/g, '<br>')}
+          </div>
+          <div class="audio-controls">
+            <button class="play-btn" id="playBtn">
+              <span>▶</span> 播放英文語音
+            </button>
+            <button class="pause-btn" id="pauseBtn" style="display: none;">
+              <span>⏸</span> 暫停
+            </button>
+            <button class="stop-btn" id="stopBtn" style="display: none;">
+              <span>⏹</span> 停止
+            </button>
+            <div class="speed-control">
+              <label for="speedSlider">語速：</label>
+              <input type="range" id="speedSlider" min="0.5" max="2" step="0.1" value="0.85">
+              <span id="speedValue">0.85x</span>
+            </div>
+            <div class="word-count">單字數: ${wordCount}</div>
+            <div class="status" id="status"></div>
+          </div>
+        </div>
+      `;
+
+      // Add event listeners
+      const playBtn = document.getElementById('playBtn');
+      const pauseBtn = document.getElementById('pauseBtn');
+      const stopBtn = document.getElementById('stopBtn');
+      const speedSlider = document.getElementById('speedSlider');
+      const speedValue = document.getElementById('speedValue');
+      
+      if (playBtn) playBtn.addEventListener('click', playArticle);
+      if (pauseBtn) pauseBtn.addEventListener('click', pauseSpeech);
+      if (stopBtn) stopBtn.addEventListener('click', stopSpeech);
+      
+      // Speed control
+      if (speedSlider && speedValue) {
+        speedSlider.value = speechRate;
+        speedValue.textContent = speechRate.toFixed(1) + 'x';
+        speedSlider.addEventListener('input', (e) => {
+          speechRate = parseFloat(e.target.value);
+          speedValue.textContent = speechRate.toFixed(1) + 'x';
+          localStorage.setItem('speechRate', speechRate.toString());
+        });
+      }
+    }
+
+    function playArticle() {
+      if (!currentArticle || !synth) {
+        document.getElementById('status').textContent = '此瀏覽器不支援語音功能。';
+        return;
+      }
+
+      if (isPlaying && synth.speaking) {
+        // Resume if paused
+        synth.resume();
+        document.getElementById('playBtn').style.display = 'none';
+        document.getElementById('pauseBtn').style.display = 'flex';
+        document.getElementById('status').textContent = '播放中...';
+        return;
+      }
+
+      // Stop any ongoing speech first
+      synth.cancel();
+
+      // Ensure voices are loaded
+      loadVoices();
+
+      const utterance = new SpeechSynthesisUtterance(currentArticle.english);
+      utterance.lang = 'en-US';
+      utterance.rate = speechRate;
+      utterance.pitch = 1.1; // Slightly higher pitch for more feminine sound
+      utterance.volume = 1;
+      if (femaleVoice) {
+        utterance.voice = femaleVoice;
+      }
+
+      utterance.onstart = () => {
+        isPlaying = true;
+        document.getElementById('playBtn').style.display = 'none';
+        document.getElementById('pauseBtn').style.display = 'flex';
+        document.getElementById('stopBtn').style.display = 'flex';
+        document.getElementById('status').textContent = '播放中...';
+      };
+
+      utterance.onend = () => {
+        isPlaying = false;
+        document.getElementById('playBtn').style.display = 'flex';
+        document.getElementById('pauseBtn').style.display = 'none';
+        document.getElementById('stopBtn').style.display = 'none';
+        document.getElementById('status').textContent = '播放完成';
+      };
+
+      utterance.onerror = () => {
+        isPlaying = false;
+        document.getElementById('playBtn').style.display = 'flex';
+        document.getElementById('pauseBtn').style.display = 'none';
+        document.getElementById('stopBtn').style.display = 'none';
+        document.getElementById('status').textContent = '發生錯誤';
+      };
+
+      currentUtterance = utterance;
+      synth.speak(utterance);
+    }
+
+    function pauseSpeech() {
+      if (synth && synth.speaking && !synth.paused) {
+        synth.pause();
+        document.getElementById('playBtn').style.display = 'flex';
+        document.getElementById('pauseBtn').style.display = 'none';
+        document.getElementById('status').textContent = '已暫停';
+      }
+    }
+
+    function stopSpeech() {
+      if (synth) {
+        synth.cancel();
+        isPlaying = false;
+        const playBtn = document.getElementById('playBtn');
+        const pauseBtn = document.getElementById('pauseBtn');
+        const stopBtn = document.getElementById('stopBtn');
+        const status = document.getElementById('status');
+        if (playBtn) playBtn.style.display = 'flex';
+        if (pauseBtn) pauseBtn.style.display = 'none';
+        if (stopBtn) stopBtn.style.display = 'none';
+        if (status) status.textContent = '';
+      }
+    }
+
+    // 初始化：載入單字列表
+    loadWords();
+
+    // Show first article by default when page loads
+    window.addEventListener('DOMContentLoaded', () => {
+      if (articles.length > 0) {
+        showArticle(0);
+      }
+    });
+    
+    // Also try immediately in case DOMContentLoaded already fired
+    if (document.readyState === 'loading') {
+      // DOM is still loading, wait for DOMContentLoaded
+    } else {
+      // DOM is already loaded
+      if (articles.length > 0) {
+        showArticle(0);
+      }
+    }
+  </script>
+</body>
+</html>
+
