@@ -265,7 +265,7 @@
 
         .programs-grid {
             display: grid;
-            grid-template-columns: repeat(5, minmax(0, 1fr));
+            grid-template-columns: repeat(6, minmax(0, 1fr));
             gap: 15px;
         }
 
@@ -1176,16 +1176,30 @@
                     },
                     {
                         name: "KNN分類演算法",
-                        file: "game/experimental/knn-tutorial.html",
+                        file: "game/experimental/knn-tutorial/index.html",
                         icon: "📚",
-                        description: "KNN分類演算法",
+                        description: "視覺化步驟引導，互動式了解KNN分類流程",
                         type: "Canvas"
+                    },
+                    {
+                        name: "KNN 過度擬合模擬器",
+                        file: "KNNOverfitting/KNNOverfitting.html",
+                        icon: "🧠",
+                        description: "調整 K 值觀察決策邊界與過度擬合區域的即時可視化",
+                        type: "Canvas"
+                    },
+                    {
+                        name: "決策樹視覺化教學",
+                        file: "game/experimental/decision-tree-tutorial/index.html",
+                        icon: "🌳",
+                        description: "色彩編碼節點與互動情境，深入理解決策樹的分割與預測流程",
+                        type: "HTML5"
                     },
                     {
                         name: "互動式決策樹",
                         file: "game/decision-tree/decision-tree.html",
-                        icon: "🌳",
-                        description: "互動式決策樹視覺化工具",
+                        icon: "🧭",
+                        description: "期末考情境決策樹，可收合節點、懸浮提示並支援 JSON 匯入",
                         type: "HTML5"
                     }
                 ]
