@@ -650,29 +650,6 @@
                     </div>
                 </div>
 
-                <!-- 🚧 開發與測試區 -->
-                <div class="status-section testing" id="testing-section">
-                    <div class="status-section-header">
-                        <span class="status-icon">🚧</span>
-                        <span class="status-title">開發與測試中</span>
-                        <span class="status-badge testing">[測試中]</span>
-                    </div>
-                    <div class="programs-grid" id="testing-tools">
-                        <!-- 測試工具將由 JavaScript 動態生成 -->
-                    </div>
-                </div>
-
-                <!-- 🧪 實驗區與許願池 -->
-                <div class="status-section experimental" id="experimental-section">
-                    <div class="status-section-header">
-                        <span class="status-icon">🧪</span>
-                        <span class="status-title">實驗區與許願池</span>
-                        <span class="status-badge experimental">[不穩定]</span>
-                    </div>
-                    <div class="programs-grid" id="experimental-tools">
-                        <!-- 實驗工具將由 JavaScript 動態生成 -->
-                    </div>
-                </div>
             </div>
 
             <!-- 故事類別 -->
@@ -1429,38 +1406,21 @@
         // 渲染工具到对应状态区块
         function renderTools() {
             const stableContainer = document.getElementById('stable-tools');
-            const testingContainer = document.getElementById('testing-tools');
-            const experimentalContainer = document.getElementById('experimental-tools');
 
             // 清空容器
             stableContainer.innerHTML = '';
-            testingContainer.innerHTML = '';
-            experimentalContainer.innerHTML = '';
 
             programs.tools.forEach(program => {
                 const card = createProgramCard(program);
                 const status = program.status || 'stable';
 
-                if (status === 'stable') {
-                    stableContainer.appendChild(card);
-                } else if (status === 'testing') {
-                    testingContainer.appendChild(card);
-                } else if (status === 'experimental') {
-                    experimentalContainer.appendChild(card);
-                } else {
-                    stableContainer.appendChild(card);
-                }
+                // 所有工具都顯示在穩定區塊
+                stableContainer.appendChild(card);
             });
 
             // 如果没有工具，显示空状态
             if (stableContainer.children.length === 0) {
                 stableContainer.innerHTML = '<div class="empty-category">暫無穩定工具</div>';
-            }
-            if (testingContainer.children.length === 0) {
-                testingContainer.innerHTML = '<div class="empty-category">暫無測試中工具</div>';
-            }
-            if (experimentalContainer.children.length === 0) {
-                experimentalContainer.innerHTML = '<div class="empty-category">暫無實驗工具</div>';
             }
         }
 
