@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>決策樹視覺化教學</title>
+  <style>
+    :root {
+      --bg-color: #f5f7fb;
+      --accent-blue: #2d9cdb;
+      --accent-green: #27ae60;
+      --accent-yellow: #f2c94c;
+      --accent-orange: #f2994a;
+      --accent-red: #eb5757;
+      --card-bg: #ffffff;
+      --text-color: #1f2933;
+      --muted-text: #6b7280;
+      --border-radius: 16px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: "Segoe UI", "Noto Sans TC", "PingFang TC", sans-serif;
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      line-height: 1.6;
+    }
+
+    header {
+      background: linear-gradient(135deg, rgba(45, 156, 219, 0.92), rgba(39, 174, 96, 0.9));
+      color: #ffffff;
+      padding: 64px 24px;
+      text-align: center;
+    }
+
+    header h1 {
+      font-size: 2.8rem;
+      margin-bottom: 16px;
+      letter-spacing: 0.05em;
+    }
+
+    header p {
+      max-width: 640px;
+      margin: 0 auto;
+      font-size: 1.15rem;
+      opacity: 0.9;
+    }
+
+    main {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 40px 24px 80px;
+    }
+
+    section {
+      margin-bottom: 56px;
+    }
+
+    section h2 {
+      font-size: 2rem;
+      margin-bottom: 12px;
+      display: inline-block;
+      padding: 6px 18px;
+      border-radius: 999px;
+      background-color: rgba(45, 156, 219, 0.15);
+      color: var(--accent-blue);
+    }
+
+    section p.lead {
+      font-size: 1.1rem;
+      margin-bottom: 28px;
+      color: var(--muted-text);
+    }
+
+    .node-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 24px;
+    }
+
+    .node-card {
+      background-color: var(--card-bg);
+      border-radius: var(--border-radius);
+      padding: 24px;
+      box-shadow: 0 16px 40px rgba(31, 41, 51, 0.08);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .node-card::after {
+      content: "";
+      position: absolute;
+      top: -60px;
+      right: -60px;
+      width: 140px;
+      height: 140px;
+      border-radius: 50%;
+      opacity: 0.25;
+      transform: rotate(25deg);
+      z-index: 0;
+    }
+
+    .node-card h3 {
+      font-size: 1.4rem;
+      margin-bottom: 12px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .node-card p {
+      position: relative;
+      z-index: 1;
+    }
+
+    .node-card.root {
+      border-left: 6px solid var(--accent-yellow);
+    }
+    .node-card.root::after {
+      background-color: var(--accent-yellow);
+    }
+
+    .node-card.internal {
+      border-left: 6px solid var(--accent-blue);
+    }
+    .node-card.internal::after {
+      background-color: var(--accent-blue);
+    }
+
+    .node-card.leaf {
+      border-left: 6px solid var(--accent-green);
+    }
+    .node-card.leaf::after {
+      background-color: var(--accent-green);
+    }
+
+    .principle-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 24px;
+    }
+
+    .principle-card {
+      padding: 28px;
+      background-color: var(--card-bg);
+      border-radius: var(--border-radius);
+      border: 1px solid rgba(31, 41, 51, 0.08);
+    }
+
+    .principle-card h3 {
+      color: var(--accent-green);
+      margin-bottom: 16px;
+    }
+
+    ol.process-steps {
+      counter-reset: step-counter;
+      list-style: none;
+      padding: 0;
+      margin: 28px 0 0;
+      display: grid;
+      gap: 20px;
+    }
+
+    ol.process-steps li {
+      background-color: #ffffff;
+      border-radius: var(--border-radius);
+      padding: 22px 20px 22px 72px;
+      position: relative;
+      box-shadow: 0 10px 30px rgba(31, 41, 51, 0.07);
+    }
+
+    ol.process-steps li::before {
+      counter-increment: step-counter;
+      content: counter(step-counter);
+      position: absolute;
+      left: 20px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background-color: var(--accent-blue);
+      color: #ffffff;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 12px 24px rgba(45, 156, 219, 0.35);
+    }
+
+    .simulation-area {
+      display: grid;
+      grid-template-columns: minmax(260px, 1fr) minmax(280px, 1.2fr);
+      gap: 32px;
+      align-items: stretch;
+    }
+
+    .simulation-controls {
+      padding: 28px;
+      background-color: var(--card-bg);
+      border-radius: var(--border-radius);
+      border: 1px solid rgba(31, 41, 51, 0.08);
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .simulation-controls h3 {
+      color: var(--accent-blue);
+      margin: 0;
+    }
+
+    .control-card {
+      border-radius: 12px;
+      padding: 18px;
+      background-color: rgba(45, 156, 219, 0.07);
+      border: 1px solid rgba(45, 156, 219, 0.1);
+    }
+
+    .control-card:last-of-type {
+      background-color: rgba(39, 174, 96, 0.07);
+      border-color: rgba(39, 174, 96, 0.1);
+    }
+
+    .control-card strong {
+      display: block;
+      margin-bottom: 8px;
+    }
+
+    .visual-placeholder {
+      border: 3px dashed rgba(31, 41, 51, 0.3);
+      border-radius: var(--border-radius);
+      background: repeating-linear-gradient(
+        -45deg,
+        rgba(45, 156, 219, 0.06),
+        rgba(45, 156, 219, 0.06) 14px,
+        rgba(39, 174, 96, 0.05) 14px,
+        rgba(39, 174, 96, 0.05) 28px
+      );
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 26px;
+      text-align: center;
+      min-height: 320px;
+      position: relative;
+    }
+
+    .visual-placeholder span {
+      color: var(--muted-text);
+      font-size: 1.05rem;
+      max-width: 320px;
+    }
+
+    .visual-content {
+      position: absolute;
+      inset: 20px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 14px;
+      opacity: 0;
+      transition: opacity 0.4s ease;
+    }
+
+    .visual-content.active {
+      opacity: 1;
+    }
+
+    .visual-node {
+      padding: 14px 18px;
+      border-radius: 12px;
+      font-weight: 600;
+      color: #ffffff;
+      max-width: 320px;
+      margin: 0 auto;
+    }
+
+    .visual-node.root {
+      background-color: var(--accent-orange);
+    }
+
+    .visual-node.internal {
+      background-color: var(--accent-blue);
+    }
+
+    .visual-node.leaf-red {
+      background-color: var(--accent-red);
+    }
+
+    .visual-node.leaf-green {
+      background-color: var(--accent-green);
+    }
+
+    .visual-branch {
+      text-align: center;
+      font-size: 0.95rem;
+      color: var(--muted-text);
+    }
+
+    .control-buttons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .control-buttons button {
+      flex: 1 1 120px;
+      padding: 12px 16px;
+      border: none;
+      border-radius: 999px;
+      cursor: pointer;
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: #ffffff;
+      background: linear-gradient(135deg, var(--accent-blue), var(--accent-green));
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .control-buttons button:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 12px 24px rgba(45, 156, 219, 0.3);
+    }
+
+    .control-buttons button.secondary {
+      background: linear-gradient(135deg, #7f8c8d, #95a5a6);
+    }
+
+    footer {
+      text-align: center;
+      padding: 24px;
+      color: var(--muted-text);
+      font-size: 0.9rem;
+    }
+
+    @media (max-width: 920px) {
+      header {
+        padding: 56px 18px;
+      }
+
+      .simulation-area {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 600px) {
+      header h1 {
+        font-size: 2.2rem;
+      }
+
+      .control-buttons button {
+        flex: 1 1 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>決策樹：從資料分割到預測的可視化旅程</h1>
+    <p>透過色彩鮮明的節點與互動式模擬，本頁面將帶你理解決策樹的核心概念：如何衡量不純度、如何決定最佳分割，以及如何一步步長出一棵可解釋的模型。</p>
+  </header>
+
+  <main>
+    <section id="tree-components">
+      <h2>1. 決策樹的組成</h2>
+      <p class="lead">決策樹由不同層級的節點組成，從根節點開始，經過一連串判斷到達葉節點，每個節點都承擔著不同的任務。</p>
+      <div class="node-grid">
+        <article class="node-card root">
+          <h3>樹根（Root Node）</h3>
+          <p>樹的起點，代表最初的資料集合。它會根據最佳的屬性進行第一次分割，為整棵樹設定決策的基準。</p>
+        </article>
+        <article class="node-card internal">
+          <h3>內部節點（Internal Node）</h3>
+          <p>承接上層節點的分割結果，透過新的條件持續縮小搜尋範圍，直到資料足夠純或達到停止條件。</p>
+        </article>
+        <article class="node-card leaf">
+          <h3>葉節點（Leaf Node）</h3>
+          <p>決策的終點，輸出對應的分類或回歸預測結果，通常包含最終的標籤或平均值。</p>
+        </article>
+      </div>
+    </section>
+
+    <section id="core-principles">
+      <h2>2. 核心原理</h2>
+      <p class="lead">決策樹依賴「衡量不純度」與「選擇最佳分割」，讓資料趨向純淨並提升預測的準確度。</p>
+      <div class="principle-grid">
+        <article class="principle-card">
+          <h3>不純度（Impurity）</h3>
+          <p>衡量節點內資料的混亂程度。常見指標包含：</p>
+          <ul>
+            <li><strong>Gini 指數：</strong>表示分類錯誤的機率。數值越小，節點越純。</li>
+            <li><strong>資訊增益：</strong>比較分割前後的不確定度差異，用以挑選最佳切割特徵。</li>
+          </ul>
+        </article>
+        <article class="principle-card">
+          <h3>分割（Splitting）</h3>
+          <p>透過挑選特徵與閾值，把資料分成更純的子集合。最佳分割會帶來最大的 impurity 下降，並為下一層節點建立更清晰的決策邏輯。</p>
+        </article>
+        <article class="principle-card">
+          <h3>停止條件（Stopping Criteria）</h3>
+          <p>防止樹過度生長，常見準則包含：節點資料量太小、不純度下降幅度過小或達到最大深度等。</p>
+        </article>
+      </div>
+
+      <ol class="process-steps">
+        <li>
+          <strong>衡量不純度：</strong>計算目前節點的 Gini 指數或資訊熵，掌握資料混亂程度。
+        </li>
+        <li>
+          <strong>挑選最佳分割：</strong>遍歷候選特徵與閾值，找出可最大幅度降低不純度的組合。
+        </li>
+        <li>
+          <strong>遞迴建立子節點：</strong>對左右子集合重複上述步驟，直到達到停止條件。
+        </li>
+      </ol>
+    </section>
+
+    <section id="visual-simulation">
+      <h2>3. 視覺化模擬區</h2>
+      <p class="lead">透過簡易互動，感受決策樹如何逐步分割資料並生成節點。虛線區域可替換為實際的互動式圖表與動畫。</p>
+
+      <div class="simulation-area">
+        <div class="simulation-controls">
+          <h3>互動式資料切割步驟</h3>
+          <div class="control-card">
+            <strong>選擇特徵</strong>
+            <p>挑選一項用來分割的變數，像是「花瓣長度」或「年齡」。</p>
+          </div>
+          <div class="control-card">
+            <strong>設定閾值</strong>
+            <p>為特徵決定臨界點，例如「花瓣長度 &lt; 2.5 公分」。</p>
+          </div>
+          <div class="control-card">
+            <strong>評估結果</strong>
+            <p>計算分割後的不純度，確認是否需要繼續遞迴切割或停止。</p>
+          </div>
+          <div class="control-buttons">
+            <button type="button" data-scene="root">顯示根節點</button>
+            <button type="button" data-scene="split">展示分割</button>
+            <button type="button" data-scene="leaves">查看葉節點</button>
+            <button type="button" class="secondary" data-scene="reset">重置</button>
+          </div>
+        </div>
+
+        <div class="visual-placeholder">
+          <span>互動式資料切割與樹狀圖動畫佔位區域。請在此替換為真實的視覺化模組。</span>
+          <div class="visual-content" id="visual-content-root">
+            <div class="visual-node root">根節點：全部資料</div>
+            <p class="visual-branch">挑選最佳特徵，準備第一次分割</p>
+          </div>
+          <div class="visual-content" id="visual-content-split">
+            <div class="visual-node root">根節點：花瓣長度</div>
+            <p class="visual-branch">條件：花瓣長度 &lt; 2.5？</p>
+            <div class="visual-node internal">內部節點：左側資料</div>
+            <p class="visual-branch">再次評估不純度 → 繼續分割</p>
+          </div>
+          <div class="visual-content" id="visual-content-leaves">
+            <div class="visual-node root">根節點：花瓣長度</div>
+            <p class="visual-branch">閾值：2.5 公分</p>
+            <div class="visual-node leaf-green">葉節點 A：Setosa</div>
+            <div class="visual-node leaf-red">葉節點 B：Versicolor</div>
+            <p class="visual-branch">完成預測，輸出分類結果</p>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    決策樹視覺化教學展示頁面（示意版）｜可根據課程需求接入更完整的互動元件與資料集。
+  </footer>
+
+  <script>
+    (function () {
+      const buttons = document.querySelectorAll(".control-buttons button");
+      const scenes = {
+        root: document.getElementById("visual-content-root"),
+        split: document.getElementById("visual-content-split"),
+        leaves: document.getElementById("visual-content-leaves")
+      };
+
+      function resetScenes() {
+        Object.values(scenes).forEach(scene => scene.classList.remove("active"));
+      }
+
+      buttons.forEach(button => {
+        button.addEventListener("click", () => {
+          const targetScene = button.getAttribute("data-scene");
+
+          resetScenes();
+          if (targetScene !== "reset" && scenes[targetScene]) {
+            scenes[targetScene].classList.add("active");
+          }
+        });
+      });
+    })();
+  </script>
+</body>
+</html>
+
+
+

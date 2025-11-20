@@ -1,0 +1,654 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>KNN Overfitting Boundary Annotator</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: "Segoe UI", "Inter", sans-serif;
+      background: linear-gradient(120deg, #091540, #1a2257 40%, #0b132b 100%);
+      color: #f5f8ff;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .app-shell {
+      width: 1180px;
+      background: rgba(9, 15, 41, 0.88);
+      border: 1px solid rgba(110, 140, 255, 0.25);
+      border-radius: 18px;
+      box-shadow: 0 28px 65px rgba(5, 12, 38, 0.55);
+      display: grid;
+      grid-template-columns: 340px 1fr;
+      overflow: hidden;
+      backdrop-filter: blur(24px);
+    }
+
+    .side-panel {
+      padding: 28px 32px;
+      background: linear-gradient(180deg, rgba(25, 38, 92, 0.72), rgba(16, 28, 68, 0.55));
+      border-right: 1px solid rgba(103, 132, 255, 0.16);
+    }
+
+    .side-panel h1 {
+      margin-top: 0;
+      font-size: 26px;
+      letter-spacing: 0.03em;
+    }
+
+    .side-panel p {
+      margin: 0 0 14px;
+      line-height: 1.55;
+      font-size: 14px;
+      color: rgba(218, 230, 255, 0.88);
+    }
+
+    .panel-section {
+      margin-top: 28px;
+    }
+
+    .slider-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .slider-row input[type="range"] {
+      flex: 1;
+    }
+
+    input[type="range"] {
+      -webkit-appearance: none;
+      width: 100%;
+      height: 6px;
+      border-radius: 30px;
+      background: rgba(88, 115, 213, 0.35);
+      outline: none;
+    }
+
+    input[type=range]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: #9ed5ff;
+      border: 2px solid #ffffff;
+      cursor: pointer;
+      box-shadow: 0 0 0 6px rgba(158, 213, 255, 0.18);
+    }
+
+    input[type=range]::-moz-range-thumb {
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: #9ed5ff;
+      border: 2px solid #ffffff;
+      cursor: pointer;
+      box-shadow: 0 0 0 6px rgba(158, 213, 255, 0.18);
+    }
+
+    .k-value {
+      font-size: 18px;
+      font-weight: 600;
+      color: #ffdd77;
+      text-shadow: 0 0 6px rgba(255, 205, 96, 0.45);
+    }
+
+    .legend {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+      margin-top: 18px;
+      font-size: 13px;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 10px;
+      border-radius: 10px;
+      background: rgba(42, 56, 118, 0.38);
+      border: 1px solid rgba(135, 165, 255, 0.18);
+    }
+
+    .marker {
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      position: relative;
+    }
+
+    .marker.square {
+      border-radius: 3px;
+    }
+
+    .marker.noise::after {
+      content: "";
+      position: absolute;
+      inset: -4px;
+      border: 2px dashed rgba(255, 223, 102, 0.9);
+      border-radius: inherit;
+    }
+
+    .canvas-panel {
+      position: relative;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      background: linear-gradient(200deg, rgba(7, 11, 30, 0.85), rgba(12, 19, 40, 0.92));
+    }
+
+    canvas {
+      border-radius: 14px;
+      border: 1px solid rgba(135, 165, 255, 0.2);
+      box-shadow: 0 16px 40px rgba(5, 10, 28, 0.4);
+      background: #06091d;
+      cursor: crosshair;
+    }
+
+    .caption-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 13px;
+      color: rgba(210, 220, 255, 0.78);
+    }
+
+    .prediction {
+      font-weight: 600;
+      color: #7affb1;
+    }
+
+    .note {
+      font-size: 12px;
+      color: rgba(185, 199, 255, 0.7);
+    }
+
+    .highlight-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      padding: 4px 8px;
+      border-radius: 999px;
+      background: rgba(255, 226, 119, 0.15);
+      border: 1px solid rgba(255, 226, 119, 0.45);
+      color: #ffe277;
+    }
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="side-panel">
+      <h1>KNN Overfitting Boundary Annotator</h1>
+      <p>
+        Move the K slider to see how the decision boundary reacts to noisy training data. Tiny K values hug every point,
+        including outliers, while larger K values smooth the boundary and generalize better.
+      </p>
+
+      <div class="panel-section">
+        <div class="slider-row">
+          <label for="kSlider">K value</label>
+          <input id="kSlider" type="range" min="1" max="15" step="1" value="3" />
+        </div>
+        <p class="k-value">Current K = <span id="kValue">3</span></p>
+        <p class="note">
+          Small K -> hyper-sensitive to noise. Large K -> smoother boundary and higher bias. Watch for the yellow highlight
+          to spot regions that flip when the reference K=15 vote is used instead.
+        </p>
+      </div>
+
+      <div class="panel-section">
+        <div class="legend">
+          <div class="legend-item">
+            <span class="marker" style="background:#69aaf8;"></span>
+            <span>Class A (blue circle)</span>
+          </div>
+          <div class="legend-item">
+            <span class="marker square" style="background:#ff6c6c;"></span>
+            <span>Class B (red square)</span>
+          </div>
+          <div class="legend-item">
+            <span class="marker noise" style="background:#ff6c6c;"></span>
+            <span>Injected noise / outlier</span>
+          </div>
+          <div class="legend-item">
+            <span class="marker" style="background:#7affb1;"></span>
+            <span>Test point prediction</span>
+          </div>
+        </div>
+        <p class="note" style="margin-top:18px;">
+          Click the canvas to drop a green test point. The simulator links to its K nearest neighbours, shows the predicted
+          class, and reveals how fragile the decision is inside highlighted overfit pockets.
+        </p>
+      </div>
+
+      <div class="panel-section">
+        <div class="highlight-chip">
+          <span>!</span>
+          <span>Yellow highlight = potential overfitting zone</span>
+        </div>
+      </div>
+    </aside>
+
+    <section class="canvas-panel">
+      <canvas id="knnCanvas" width="800" height="600"></canvas>
+      <div class="caption-row">
+        <span id="predictionInfo" class="prediction">Click the canvas to test the model.</span>
+        <span class="note">Decision surface recomputed at every pixel whenever K changes.</span>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    (function () {
+      const canvas = document.getElementById('knnCanvas');
+      const ctx = canvas.getContext('2d');
+      const kSlider = document.getElementById('kSlider');
+      const kValueEl = document.getElementById('kValue');
+      const predictionInfo = document.getElementById('predictionInfo');
+
+      const width = canvas.width;
+      const height = canvas.height;
+      const baselineK = 15;
+      const maxNeighbors = baselineK;
+
+      const highlightCanvas = document.createElement('canvas');
+      highlightCanvas.width = width;
+      highlightCanvas.height = height;
+      const highlightCtx = highlightCanvas.getContext('2d');
+
+      const trainingPoints = generateDataset();
+      const noisePoints = trainingPoints.filter((p) => p.isNoise);
+
+      let currentK = parseInt(kSlider.value, 10);
+      let testPoint = null;
+
+      const neighborDists = new Array(maxNeighbors);
+      const neighborLabels = new Array(maxNeighbors);
+
+      function randomGaussian(mean, stdDev) {
+        let u = 0;
+        let v = 0;
+        while (u === 0) u = Math.random();
+        while (v === 0) v = Math.random();
+        const num = Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v);
+        return mean + num * stdDev;
+      }
+
+      function clamp(value, min, max) {
+        return Math.max(min, Math.min(max, value));
+      }
+
+      function generateDataset() {
+        const points = [];
+        const configs = [
+          { count: 26, meanX: 260, meanY: 310, std: 85, label: 'A' },
+          { count: 26, meanX: 560, meanY: 320, std: 90, label: 'B' },
+        ];
+
+        configs.forEach((cfg) => {
+          for (let i = 0; i < cfg.count; i++) {
+            const x = clamp(randomGaussian(cfg.meanX, cfg.std), 20, width - 20);
+            const y = clamp(randomGaussian(cfg.meanY, cfg.std), 20, height - 20);
+            points.push({ x, y, label: cfg.label, isNoise: false });
+          }
+        });
+
+        const injectedNoise = [
+          { x: randomGaussian(255, 26), y: randomGaussian(320, 26), label: 'B' },
+          { x: randomGaussian(560, 26), y: randomGaussian(320, 26), label: 'A' },
+          { x: randomGaussian(380, 160), y: randomGaussian(170, 40), label: 'B' },
+        ];
+
+        injectedNoise.forEach((pt) => {
+          points.push({
+            x: clamp(pt.x, 20, width - 20),
+            y: clamp(pt.y, 20, height - 20),
+            label: pt.label,
+            isNoise: true,
+          });
+        });
+
+        return points;
+      }
+
+      function vote(neighborLabelsArray, k) {
+        let votesA = 0;
+        let votesB = 0;
+        for (let i = 0; i < k; i++) {
+          if (neighborLabelsArray[i] === 1) {
+            votesA++;
+          } else {
+            votesB++;
+          }
+        }
+        if (votesA === votesB) {
+          return neighborLabelsArray[0] === 1 ? 1 : 2;
+        }
+        return votesA > votesB ? 1 : 2;
+      }
+
+      function evaluatePoint(x, y, needBaseline) {
+        for (let i = 0; i < maxNeighbors; i++) {
+          neighborDists[i] = Infinity;
+          neighborLabels[i] = 0;
+        }
+
+        for (let idx = 0; idx < trainingPoints.length; idx++) {
+          const pt = trainingPoints[idx];
+          const dx = pt.x - x;
+          const dy = pt.y - y;
+          const dist2 = dx * dx + dy * dy;
+
+          if (dist2 < neighborDists[maxNeighbors - 1]) {
+            let insertPos = maxNeighbors - 1;
+            while (insertPos > 0 && dist2 < neighborDists[insertPos - 1]) {
+              neighborDists[insertPos] = neighborDists[insertPos - 1];
+              neighborLabels[insertPos] = neighborLabels[insertPos - 1];
+              insertPos--;
+            }
+            neighborDists[insertPos] = dist2;
+            neighborLabels[insertPos] = pt.label === 'A' ? 1 : 2;
+          }
+        }
+
+        const predicted = vote(neighborLabels, currentK);
+        let baselinePrediction = null;
+        if (needBaseline) {
+          baselinePrediction = vote(neighborLabels, baselineK);
+        }
+
+        return { predicted, baselinePrediction };
+      }
+
+      function findNeighbors(point, k) {
+        const dists = new Array(maxNeighbors);
+        const labels = new Array(maxNeighbors);
+        const indices = new Array(maxNeighbors);
+
+        for (let i = 0; i < maxNeighbors; i++) {
+          dists[i] = Infinity;
+          labels[i] = 0;
+          indices[i] = -1;
+        }
+
+        for (let idx = 0; idx < trainingPoints.length; idx++) {
+          const pt = trainingPoints[idx];
+          const dx = pt.x - point.x;
+          const dy = pt.y - point.y;
+          const dist2 = dx * dx + dy * dy;
+
+          if (dist2 < dists[maxNeighbors - 1]) {
+            let insertPos = maxNeighbors - 1;
+            while (insertPos > 0 && dist2 < dists[insertPos - 1]) {
+              dists[insertPos] = dists[insertPos - 1];
+              labels[insertPos] = labels[insertPos - 1];
+              indices[insertPos] = indices[insertPos - 1];
+              insertPos--;
+            }
+            dists[insertPos] = dist2;
+            labels[insertPos] = trainingPoints[idx].label === 'A' ? 1 : 2;
+            indices[insertPos] = idx;
+          }
+        }
+
+        const prediction = vote(labels, k);
+        return {
+          prediction,
+          neighborIndices: indices.slice(0, k),
+        };
+      }
+
+      function labelToColor(label) {
+        return label === 1
+          ? { r: 105, g: 170, b: 248 }
+          : { r: 255, g: 108, b: 108 };
+      }
+
+      function drawDecisionSurface() {
+        const needBaseline = currentK <= 3;
+        const imageData = ctx.createImageData(width, height);
+        const buffer = imageData.data;
+
+        let highlightData;
+        let highlightBuffer;
+
+        if (needBaseline) {
+          highlightData = highlightCtx.createImageData(width, height);
+          highlightBuffer = highlightData.data;
+        } else {
+          highlightCtx.clearRect(0, 0, width, height);
+        }
+
+        for (let y = 0; y < height; y++) {
+          for (let x = 0; x < width; x++) {
+            const { predicted, baselinePrediction } = evaluatePoint(x + 0.5, y + 0.5, needBaseline);
+            const color = labelToColor(predicted);
+            const idx = (y * width + x) * 4;
+            buffer[idx] = color.r;
+            buffer[idx + 1] = color.g;
+            buffer[idx + 2] = color.b;
+            buffer[idx + 3] = 255;
+
+            if (needBaseline && baselinePrediction !== null && baselinePrediction !== predicted) {
+              highlightBuffer[idx] = 255;
+              highlightBuffer[idx + 1] = 247;
+              highlightBuffer[idx + 2] = 92;
+              highlightBuffer[idx + 3] = 140;
+            }
+          }
+        }
+
+        ctx.putImageData(imageData, 0, 0);
+
+        if (needBaseline && highlightData) {
+          highlightCtx.putImageData(highlightData, 0, 0);
+          ctx.save();
+          ctx.globalCompositeOperation = 'lighter';
+          ctx.drawImage(highlightCanvas, 0, 0);
+          ctx.restore();
+        }
+      }
+
+      function drawTrainingPoints() {
+        ctx.lineWidth = 1.6;
+        trainingPoints.forEach((pt) => {
+          ctx.beginPath();
+          if (pt.label === 'A') {
+            ctx.fillStyle = pt.isNoise ? '#69aaf8' : '#63a1f2';
+            ctx.strokeStyle = pt.isNoise ? 'rgba(255, 226, 140, 0.9)' : 'rgba(32, 46, 90, 0.7)';
+            ctx.arc(pt.x, pt.y, pt.isNoise ? 8 : 6.5, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+          } else {
+            const size = pt.isNoise ? 14 : 12;
+            ctx.fillStyle = '#ff6c6c';
+            ctx.strokeStyle = pt.isNoise ? 'rgba(255, 226, 140, 0.9)' : 'rgba(72, 0, 9, 0.65)';
+            ctx.fillRect(pt.x - size / 2, pt.y - size / 2, size, size);
+            ctx.strokeRect(pt.x - size / 2, pt.y - size / 2, size, size);
+          }
+        });
+      }
+
+      function drawNoiseAnnotations() {
+        if (currentK > 3) {
+          return;
+        }
+        ctx.save();
+        ctx.setLineDash([6, 4]);
+        ctx.lineWidth = 1.5;
+        ctx.strokeStyle = 'rgba(255, 239, 120, 0.9)';
+        ctx.fillStyle = 'rgba(255, 245, 180, 0.95)';
+        ctx.font = '13px "Segoe UI", "Inter", sans-serif';
+
+        noisePoints.forEach((pt, index) => {
+          ctx.beginPath();
+          ctx.arc(pt.x, pt.y, 20, 0, Math.PI * 2);
+          ctx.stroke();
+          const label = index % 2 === 0 ? 'Potential overfitting!' : 'Noise bends the boundary';
+          const offsetX = pt.x + 24 > width - 160 ? -180 : 26;
+          const offsetY = pt.y - 24 < 40 ? 28 : -12;
+          ctx.setLineDash([]);
+          ctx.beginPath();
+          ctx.moveTo(pt.x + Math.sign(offsetX) * 20, pt.y + (offsetY > 0 ? 12 : -12));
+          ctx.lineTo(pt.x + offsetX * 0.35, pt.y + offsetY * 0.6);
+          ctx.stroke();
+          const textX = pt.x + offsetX;
+          const textY = pt.y + offsetY;
+          ctx.fillStyle = 'rgba(12, 16, 38, 0.85)';
+          ctx.fillRect(textX - 6, textY - 16, 190, 26);
+          ctx.strokeStyle = 'rgba(255, 226, 140, 0.9)';
+          ctx.strokeRect(textX - 6, textY - 16, 190, 26);
+          ctx.fillStyle = 'rgba(255, 245, 180, 0.95)';
+          ctx.fillText(label, textX, textY + 2);
+          ctx.setLineDash([6, 4]);
+          ctx.strokeStyle = 'rgba(255, 239, 120, 0.9)';
+        });
+        ctx.restore();
+      }
+
+      function drawTestPoint() {
+        if (!testPoint) {
+          return;
+        }
+        ctx.save();
+        ctx.lineWidth = 1.5;
+        ctx.strokeStyle = 'rgba(122, 255, 177, 0.85)';
+        ctx.fillStyle = 'rgba(122, 255, 177, 0.25)';
+        ctx.setLineDash([4, 3]);
+
+        testPoint.neighbors.forEach((idx) => {
+          if (idx === -1) return;
+          const neighbor = trainingPoints[idx];
+          ctx.beginPath();
+          ctx.moveTo(testPoint.x, testPoint.y);
+          ctx.lineTo(neighbor.x, neighbor.y);
+          ctx.stroke();
+        });
+
+        ctx.setLineDash([]);
+        drawStar(testPoint.x, testPoint.y, 5, 12, 5);
+
+        ctx.restore();
+      }
+
+      function drawStar(cx, cy, spikes, outerRadius, innerRadius) {
+        let rot = (Math.PI / 2) * 3;
+        let x = cx;
+        let y = cy;
+        ctx.beginPath();
+        ctx.moveTo(cx, cy - outerRadius);
+        for (let i = 0; i < spikes; i++) {
+          x = cx + Math.cos(rot) * outerRadius;
+          y = cy + Math.sin(rot) * outerRadius;
+          ctx.lineTo(x, y);
+          rot += Math.PI / spikes;
+
+          x = cx + Math.cos(rot) * innerRadius;
+          y = cy + Math.sin(rot) * innerRadius;
+          ctx.lineTo(x, y);
+          rot += Math.PI / spikes;
+        }
+        ctx.lineTo(cx, cy - outerRadius);
+        ctx.closePath();
+        ctx.fillStyle = 'rgba(44, 197, 137, 0.9)';
+        ctx.fill();
+        ctx.strokeStyle = '#102a1f';
+        ctx.stroke();
+      }
+
+      function updatePredictionInfo() {
+        if (!testPoint) {
+          predictionInfo.textContent = 'Click the canvas to test the model.';
+          return;
+        }
+        const labelText = testPoint.prediction === 1 ? 'Class A' : 'Class B';
+        const warning = currentK <= 3 && testPoint.isWithinOverfit ? ' (inside highlighted overfit zone)' : '';
+        predictionInfo.textContent = `Prediction: ${labelText}${warning}`;
+      }
+
+      function recomputeOverfitFlag() {
+        if (!testPoint) {
+          return;
+        }
+        if (currentK > 3) {
+          testPoint.isWithinOverfit = false;
+          return;
+        }
+        const baselineResult = findNeighbors(testPoint, baselineK);
+        const baselineLabel = baselineResult.prediction;
+        testPoint.isWithinOverfit = baselineLabel !== testPoint.prediction;
+      }
+
+      function render() {
+        kValueEl.textContent = currentK;
+        drawDecisionSurface();
+        drawTrainingPoints();
+        drawNoiseAnnotations();
+        drawTestPoint();
+        updatePredictionInfo();
+      }
+
+      canvas.addEventListener('click', (event) => {
+        const rect = canvas.getBoundingClientRect();
+        const scaleX = canvas.width / rect.width;
+        const scaleY = canvas.height / rect.height;
+        const x = (event.clientX - rect.left) * scaleX;
+        const y = (event.clientY - rect.top) * scaleY;
+
+        const neighborsData = findNeighbors({ x, y }, Math.max(currentK, baselineK));
+        const neighborLabels = neighborsData.neighborIndices.map((idx) =>
+          idx === -1 ? 1 : trainingPoints[idx].label === 'A' ? 1 : 2
+        );
+        testPoint = {
+          x,
+          y,
+          prediction: vote(neighborLabels, currentK),
+          neighbors: neighborsData.neighborIndices.slice(0, currentK),
+          isWithinOverfit: false,
+        };
+        recomputeOverfitFlag();
+        render();
+      });
+
+      let renderPending = false;
+      function scheduleRender() {
+        if (renderPending) return;
+        renderPending = true;
+        window.requestAnimationFrame(() => {
+          renderPending = false;
+          render();
+        });
+      }
+
+      kSlider.addEventListener('input', () => {
+        currentK = parseInt(kSlider.value, 10);
+        if (testPoint) {
+          const neighborsData = findNeighbors(testPoint, Math.max(currentK, baselineK));
+          const neighborLabels = neighborsData.neighborIndices.map((idx) =>
+            idx === -1 ? 1 : trainingPoints[idx].label === 'A' ? 1 : 2
+          );
+          testPoint.prediction = vote(neighborLabels, currentK);
+          testPoint.neighbors = neighborsData.neighborIndices.slice(0, currentK);
+          recomputeOverfitFlag();
+        }
+        scheduleRender();
+      });
+
+      render();
+    })();
+  </script>
+</body>
+</html>
