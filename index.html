@@ -585,64 +585,25 @@
         <!-- 主專案導航 -->
         <div class="sidebar-section">
             <div class="sidebar-section-title">主專案</div>
-            <a href="#dashboard" class="nav-link" onclick="scrollToSection('dashboard'); return false;">📊 儀表板</a>
             <a href="#games" class="nav-link" onclick="scrollToSection('games'); return false;">🎮 遊戲專案</a>
             <a href="#tools" class="nav-link" onclick="scrollToSection('tools'); return false;">🛠️ 工具專案</a>
             <a href="#stories" class="nav-link" onclick="scrollToSection('stories'); return false;">📖 故事專案</a>
         </div>
 
-        <!-- 工具狀態篩選器 -->
+        <!-- 遊戲分類導航 -->
         <div class="sidebar-section">
-            <div class="sidebar-section-title">工具狀態篩選</div>
-            <button class="filter-btn active" data-filter="all" onclick="filterTools('all', event)">
-                📋 顯示全部
-            </button>
-            <button class="filter-btn" data-filter="stable" onclick="filterTools('stable', event)">
-                ⭐ 穩定與正式發布
-            </button>
-            <button class="filter-btn" data-filter="testing" onclick="filterTools('testing', event)">
-                🚧 開發與測試中
-            </button>
-            <button class="filter-btn" data-filter="experimental" onclick="filterTools('experimental', event)">
-                🧪 實驗區與許願池
-            </button>
+            <div class="sidebar-section-title">遊戲分類</div>
+            <a href="#" class="nav-link" onclick="scrollToCategory('經典街機遊戲'); return false;">🎯 經典街機遊戲</a>
+            <a href="#" class="nav-link" onclick="scrollToCategory('益智解謎遊戲'); return false;">🧩 益智解謎遊戲</a>
+            <a href="#" class="nav-link" onclick="scrollToCategory('動作遊戲'); return false;">⚡ 動作遊戲</a>
+            <a href="#" class="nav-link" onclick="scrollToCategory('休閒小遊戲'); return false;">🎲 休閒小遊戲</a>
+            <a href="#" class="nav-link" onclick="scrollToCategory('策略遊戲'); return false;">♟️ 策略遊戲</a>
+            <a href="#" class="nav-link" onclick="scrollToCategory('物理模擬遊戲'); return false;">🔬 物理模擬遊戲</a>
+            <a href="#" class="nav-link" onclick="scrollToCategory('角色扮演/冒險'); return false;">🗡️ 角色扮演/冒險</a>
+            <a href="#" class="nav-link" onclick="scrollToCategory('創意/實驗性遊戲'); return false;">🎨 創意/實驗性遊戲</a>
+            <a href="#" class="nav-link" onclick="scrollToCategory('英語學習遊戲'); return false;">🗣️ 英語學習遊戲</a>
         </div>
 
-        <!-- 工具功能分類 -->
-        <div class="sidebar-section">
-            <div class="sidebar-section-title">工具功能分類</div>
-            
-            <div class="accordion-item">
-                <div class="accordion-header" onclick="toggleAccordion('text-tools')">
-                    <span class="accordion-title">📝 文字與內容工具</span>
-                    <span class="accordion-toggle" id="toggle-text-tools">▼</span>
-                </div>
-                <div class="accordion-content collapsed" id="text-tools">
-                    <a href="#" class="accordion-link" onclick="filterByCategory('text'); return false;">語音轉文字</a>
-                    <a href="#" class="accordion-link" onclick="filterByCategory('text'); return false;">文字轉語音</a>
-                </div>
-            </div>
-
-            <div class="accordion-item">
-                <div class="accordion-header" onclick="toggleAccordion('media-tools')">
-                    <span class="accordion-title">🎨 圖像與視覺工具</span>
-                    <span class="accordion-toggle" id="toggle-media-tools">▼</span>
-                </div>
-                <div class="accordion-content collapsed" id="media-tools">
-                    <a href="#" class="accordion-link">（待新增）</a>
-                </div>
-            </div>
-
-            <div class="accordion-item">
-                <div class="accordion-header" onclick="toggleAccordion('utility-tools')">
-                    <span class="accordion-title">⚙️ 實用與計算工具</span>
-                    <span class="accordion-toggle" id="toggle-utility-tools">▼</span>
-                </div>
-                <div class="accordion-content collapsed" id="utility-tools">
-                    <a href="#" class="accordion-link" onclick="filterByCategory('music'); return false;">音樂工具集</a>
-                </div>
-            </div>
-        </div>
     </aside>
 
     <!-- 主內容區 -->
@@ -1389,9 +1350,10 @@
         function createSubcategory(categoryName, categoryData) {
             const subcategory = document.createElement('div');
             subcategory.className = 'subcategory';
+            subcategory.id = `category-${categoryName.replace(/\s+/g, '-').replace(/\//g, '-')}`;
             
             const gameCount = categoryData.games.length;
-            const subcategoryId = `subcategory-${categoryName.replace(/\s+/g, '-')}`;
+            const subcategoryId = `subcategory-${categoryName.replace(/\s+/g, '-').replace(/\//g, '-')}`;
             
             const header = document.createElement('div');
             header.className = 'subcategory-header';
@@ -1567,6 +1529,33 @@
             const section = document.getElementById(sectionId);
             if (section) {
                 section.scrollIntoView({ behavior: 'smooth' });
+                // 移动端关闭侧边栏
+                if (window.innerWidth <= 768) {
+                    document.getElementById('sidebar').classList.remove('show');
+                }
+            }
+        }
+
+        // 滚动到指定游戏分类
+        function scrollToCategory(categoryName) {
+            const categoryId = `category-${categoryName.replace(/\s+/g, '-').replace(/\//g, '-')}`;
+            const category = document.getElementById(categoryId);
+            
+            if (category) {
+                // 确保分类展开
+                const subcategoryId = `subcategory-${categoryName.replace(/\s+/g, '-').replace(/\//g, '-')}`;
+                const content = document.getElementById(subcategoryId);
+                if (content && content.classList.contains('collapsed')) {
+                    toggleSubcategory(subcategoryId);
+                    // 如果分类是收合的，等待展开动画完成后再滚动
+                    setTimeout(() => {
+                        category.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }, 100);
+                } else {
+                    // 直接滚动到分类
+                    category.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+                
                 // 移动端关闭侧边栏
                 if (window.innerWidth <= 768) {
                     document.getElementById('sidebar').classList.remove('show');
